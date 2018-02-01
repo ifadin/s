@@ -1,6 +1,6 @@
 # Scripts
 
-### CI docker images
+## CI docker images
 
 Images that can be used in CI systems that run just docker containers.
 
@@ -28,3 +28,9 @@ To build:
 0. Publish a ci image.
 0. Run any `sbt` command inside: `./ci.sh sbt about`.
 
+
+## DB utils
+
+ - connect to remote tunnel
+ - decrypt local `.pgpass`
+ - dump between two remotes 
