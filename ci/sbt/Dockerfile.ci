@@ -1,0 +1,35 @@
+FROM registry.opensource.zalan.do/stups/openjdk:latest
+
+ENV HOME /root
+
+# installing sbt
+RUN echo "deb http://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 642AC823
+RUN apt-get update && apt-get -y install sbt curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# installing docker for publishing
+RUN curl -sSL https://get.docker.com/ | sh
+
+
+## fixing sbt in docker bugs
+RUN mkdir -p "$HOME/.sbt/0.13/plugins"
+RUN echo "scalacOptions ++= Seq(\"-Xmax-classfile-name\",\"128\")" > "$HOME/.sbt/0.13/local.sbt"
+
+## adding bintray credentials
+ARG TOKEN
+RUN printf "realm = Bintray\nhost = dl.bintray.com\nuser = lforite\npassword = ${TOKEN}\n" \
+    > "${HOME}/.sbt/.bintrayCredentials"
+
+
+# caching dependencies
+WORKDIR /tmp
+COPY project/build.properties project/build.properties
+RUN sbt about
+
+COPY . .
+RUN sbt clean compile
+
+# cleaning up
+RUN rm -Rf /tmp/* /var/tmp/*
