@@ -33,4 +33,24 @@ To build:
 
  - connect to remote tunnel
  - decrypt local `.pgpass`
- - dump between two remotes 
+ - dump between two remotes
+ 
+
+## Airflow contrib
+
+- AWS SES email sending [module](./airflow/aws_ses.py).
+Put this file into Airflow `PYTHONPATH` and set `AIRFLOW__EMAIL__EMAIL_BACKEND=aws_ses.send_raw_email` env variable.
+- Operators:
+-- BigQuery insert operator using native python SDK and streaming API
+
+### Run tests 
+
+```bash
+    PYTHONPATH=airflow python3 -m unittest discover test
+```
+
+To run a specific test:
+
+```bash
+    PYTHONPATH=airflow python3 -m unittest test.test_operators
+```
