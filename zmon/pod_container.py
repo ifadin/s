@@ -28,11 +28,14 @@ def check():
         else:
             return float('nan')
 
-    def usage_ratio(usage, max):
-        if max == 0:
-            return 0
+    def usage_ratio(usage, limit):
+        if usage is None or limit is None:
+            return None
+
+        if limit == 0:
+            return 1
         else:
-            return float(usage) / float(max)
+            return float(usage) / float(limit)
 
     def handle_cpu_limit(value):
         default_limit = 3000  # default value assigned if you don't specify limit
