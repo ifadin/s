@@ -1,0 +1,68 @@
+Metadata:
+  StackName: '{{{APPLICATION}}}'
+
+Resources:
+  S3WebBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'ci-dna-{{{APPLICATION}}}'
+      LoggingConfiguration:
+        DestinationBucketName:
+          Ref: S3AccessLoggingBucket
+        LogFilePrefix: '{{{VERSION}}}-logs'
+
+  S3AccessLoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'ci-dna-{{{APPLICATION}}}-logs'
+      AccessControl: LogDeliveryWrite
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirationRule
+            Status: Enabled
+            ExpirationInDays: '60'
+
+  S3WebBucketPublicAccess:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: S3WebBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Sid: PublicAccessWithReferer
+            Action:
+              - s3:GetObject
+            Principal: '*'
+            Condition:
+              StringLike:
+                aws:Referer:
+                  - 'https://company-development.eu.data.com/*'
+                  - !Sub 'https://s3.eu-central-1.amazonaws.com/${S3WebBucket}/*'
+            Resource:
+              - !Sub 'arn:aws:s3:::${S3WebBucket}/*'
+
+  IAMAppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: '{{{APPLICATION}}}-iam-role'
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/worker'
+      Policies:
+        - PolicyName: AllowSync
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Sid: AllowSync
+                Action: s3:*
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3WebBucket}'
+                  - !Sub 'arn:aws:s3:::${S3WebBucket}/*'
