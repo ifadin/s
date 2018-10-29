@@ -54,3 +54,18 @@ To run a specific test:
 ```bash
     PYTHONPATH=airflow python3 -m unittest test.test_operators
 ```
+
+
+## AWS shortlist
+
+Encrypt kms key:
+
+```bash
+    aws kms encrypt --key-id=<key_id> --plaintext "<secret>"
+```
+
+Decrypt kms key:
+
+```bash
+    aws kms decrypt --ciphertext-blob fileb://<(echo "<key_string>" | base64 --decode) --output text --query Plaintext | base64 --decode
+```
