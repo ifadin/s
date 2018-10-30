@@ -1,0 +1,86 @@
+Metadata:
+  StackName: 'iam-external-company'
+
+Parameters:
+  AppStackName:
+    Type: String
+    Default: 'app'
+
+Resources:
+  ExternalRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'external-company'
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: ['sts:AssumeRole']
+            Effect: Allow
+            Principal:
+              AWS:
+                - arn:aws:iam::<account>:user/ext-user
+
+      Policies:
+        - PolicyName: AccessBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowList
+                Effect: Allow
+                Action:
+                  - s3:List*
+                  - s3:GetBucketLocation
+                Resource:
+                  Fn::ImportValue: !Sub '${AppStackName}-AppS3Bucket'
+              - Sid: AllowRead
+                Effect: Allow
+                Action:
+                  - s3:Get*
+                Resource:
+                  Fn::Sub:
+                    - '${AppS3Bucket}/*'
+                    - AppS3Bucket:
+                        Fn::ImportValue: !Sub '${AppStackName}-AppS3Bucket'
+              - Sid: AllowModify
+                Effect: Allow
+                Action:
+                  - s3:Put*
+                  - s3:Delete*
+                Resource:
+                  Fn::Sub:
+                    - '${AppS3Bucket}/external-folder/*'
+                    - AppS3Bucket:
+                        Fn::ImportValue: !Sub '${AppStackName}-AppS3Bucket'
+
+  KMSAppKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'external kms key'
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Define key Administrators'
+            Effect: Allow
+            Principal:
+              AWS: !Sub '${AWS::AccountId}'
+            Action: kms:*
+            Resource: '*'
+          - Sid: 'Define key Users'
+            Effect: Allow
+            Principal:
+              AWS:
+                - Fn::GetAtt: ['ExternalRole', 'Arn']
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+
+Outputs:
+  ExternalRole:
+    Description: 'IAM role for assumption'
+    Value:
+      Fn::GetAtt: ['ExternalRole', 'Arn']
