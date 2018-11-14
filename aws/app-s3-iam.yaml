@@ -1,0 +1,90 @@
+Metadata:
+  StackName: '{{{APPLICATION}}}'
+
+Resources:
+  S3AppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'team-{{{APPLICATION}}}'
+      LoggingConfiguration:
+        DestinationBucketName:
+          Ref: S3LoggingBucket
+        LogFilePrefix: '{{{VERSION}}}-logs'
+
+  S3LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'team-{{{APPLICATION}}}-logs'
+      AccessControl: LogDeliveryWrite
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirationRule
+            Status: Enabled
+            ExpirationInDays: '60'
+
+  IAMAppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: '{{{APPLICATION}}}-iam-role'
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: ['sts:AssumeRole']
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/worker'
+      Policies:
+        - PolicyName: AllowPutScv
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub 'arn:aws:s3:::${S3AppBucket}/*'
+        - PolicyName: AllowCreateAccessKeys
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:Describe*
+                  - iam:*AccessKey*
+                Resource: '*'
+
+  IAMExternalUser:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: access-external-service-s3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub 'arn:aws:s3:::${S3AppBucket}'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub 'arn:aws:s3:::${S3AppBucket}/*'
+
+Outputs:
+  AppIAMRole:
+    Description: '{{{APPLICATION}}} IAM role'
+    Value:
+      Fn::GetAtt: ['IAMAppRole', 'Arn']
+    Export:
+      Name: !Sub '${AWS::StackName}-AppIAMRole'
+  UserForExternalUsage:
+    Description: 'IAM user for external usage'
+    Value: !Ref IAMExternalUser
+  AppS3BucketRef:
+    Description: '{{{APPLICATION}}} S3 bucket Ref field'
+    Value: !Ref S3AppBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-AppS3BucketRef'
+  AppS3Bucket:
+    Description: '{{{APPLICATION}}} S3 bucket'
+    Value:
+      Fn::GetAtt: ['S3AppBucket', 'Arn']
+    Export:
+      Name: !Sub '${AWS::StackName}-AppS3Bucket'
