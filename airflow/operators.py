@@ -89,9 +89,8 @@ class BQSDKHook(GoogleCloudBaseHook):
 
         return errors
 
-    def load_file(self, data_file, data_format: SourceFormat, dataset_id, table_id,
-                  partitioned=False, write_disposition: WriteDisposition = None,
-                  schema_update_options: List[SchemaUpdateOption] = None):
+    def load_file(self, data_file: Union[io.IOBase or str], dataset_id, table_id,
+                  job_config: LoadJobConfig = None) -> LoadJob:
         """
         Loads data into a BigQuery table.
 
@@ -105,29 +104,25 @@ class BQSDKHook(GoogleCloudBaseHook):
         dataset_ref = client.dataset(dataset_id)
         table_ref = dataset_ref.table(table_id)
 
-        job_config = bigquery.LoadJobConfig()
-        job_config.source_format = data_format
+        if not job_config:
+            job_config = bigquery.LoadJobConfig()
 
-        if partitioned:
-            job_config.time_partitioning = TimePartitioning()
-        if write_disposition:
-            job_config.write_disposition = write_disposition
-        if schema_update_options is not None:
-            job_config.schema_update_options = schema_update_options
-
-        job = None
-        with open(data_file, 'rb') as f:
-            try:
+        job: LoadJob = None
+        try:
+            with open(data_file, 'rb') if isinstance(data_file, str) else data_file as f:
                 job = client.load_table_from_file(f, table_ref, location='EU', job_config=job_config)
                 self.log.info('Starting job {}'.format(job.job_id))
-            except Exception as err:
-                if job:
-                    job.cancel()
-                raise err
 
-        job.result()  # Waits for table load to complete.
+            job.result()  # Waits for table load to complete.
+            self.log.info('Loaded {} rows into {}:{}.'.format(job.output_rows, dataset_id, table_id))
 
-        self.log.info('Loaded {} rows into {}:{}.'.format(job.output_rows, dataset_id, table_id))
+            return job
+        except Exception as err:
+            if job:
+                if job.errors:
+                    self.log.error(f'Job failed: {job.errors}')
+                job.cancel()
+            raise err
 
     def get_rows_df(self, dataset, table):
         client = bigquery.Client.from_service_account_json(self.key_path)
