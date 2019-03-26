@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-ingress
+spec:
+  rules:
+    - host: test-app.consumer-insights-test.zalan.do
+      http:
+        paths:
+          - backend:
+              serviceName: test-service
+              servicePort: https

@@ -1,0 +1,32 @@
+SenzaInfo:
+  StackName: zms-app
+
+SenzaComponents:
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      InstanceType: t2.micro
+      SecurityGroups:
+        - zms-app-sg
+      IamRoles:
+        - zms-app-iam
+      ElasticLoadBalancer: AppLoadBalancer
+      TaupageConfig:
+        application_version: "version01"
+        source: "pierone.stups.zalan.do/zms/app:version01"
+        health_check_path: /healthcheck
+        ports:
+          8080: 8080
+        environment:
+          EXTERNAL_SERVICE_ENDPOINT: https://service.zms.zalan.do
+          DB_SECRET: aws:kms:base64_secret
+        AutoScaling:
+          Minimum: 3
+
+  # creates an ELB entry and Route53 domains to this ELB
+  - AppLoadBalancer:
+      Type: Senza::WeightedDnsElasticLoadBalancer
+      HTTPPort: 8080
+      HealthCheckPath: /healthcheck
+      SecurityGroups:
+        - app-opt-example-lb
+      Scheme: internet-facing
