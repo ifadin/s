@@ -2,3 +2,5 @@ apache-airflow[s3,gcp_api]
 click
 overpass
 requests
+PyGithub
+pandas
