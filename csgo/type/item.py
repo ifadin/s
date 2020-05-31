@@ -7,6 +7,8 @@ class Item(NamedTuple):
     name: str
     rarity: int
     collection_name: str
+    min_float: float = None
+    max_float: float = None
 
 
 class ItemCollection(NamedTuple):

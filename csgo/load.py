@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List
+from typing import Dict
 
 import yaml
 
@@ -14,7 +14,7 @@ def load_collections() -> Dict[str, ItemCollection]:
         res = yaml.load(f, Loader=yaml.SafeLoader)
         return {
             col_name: ItemCollection(col_name, [
-                Item(item_name, item_details['rarity'], col_name)
+                Item(item_name, item_details['rarity'], col_name, item_details['min_float'], item_details['max_float'])
                 for item_name, item_details
                 in col_details['items'].items()])
             for col_name, col_details
@@ -71,7 +71,7 @@ def load_hexa_prices() -> STPrices:
         return prices
 
 
-def load_paintkits() -> List[PaintKit]:
+def load_paintkits() -> Dict[str, PaintKit]:
     with open('csgo/paintkits.json') as f:
         res = json.loads(f.read())
-        return [PaintKit(p['id'], p['tag'], p['minFloat'], p['maxFloat']) for p in res]
+        return {p['tag']: PaintKit(p['id'], p['tag'], p['minFloat'], p['maxFloat']) for p in res}

@@ -1,1861 +1,3601 @@
 collections:
-  The Winter Offensive Collection:
+  The 2018 Inferno Collection:
     items:
-      Sawed-Off | The Kraken:
-        rarity: 5
-      M4A4 | Asiimov:
-        rarity: 5
-      AWP | Redline:
+      AK-47 | Safety Net:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      AUG | Sweeper:
+        max_float: 0.6
+        min_float: 0
+        rarity: 0
+      Dual Berettas | Twin Turbo:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      P250 | Mehndi:
+      Glock-18 | High Beam:
+        max_float: 0.08
+        min_float: 0
+        rarity: 1
+      M4A4 | Converter:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      MAC-10 | Calf Skin:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      MAG-7 | Rust Coat:
+        max_float: 1
+        min_float: 0
+        rarity: 0
+      MP5-SD | Dirt Drop:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      MP7 | Fade:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      MP9 | Slide:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P250 | Vino Primo:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      PP-Bizon | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 1
+      R8 Revolver | Nitro:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      SG 553 | Integrale:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      M4A1-S | Guardian:
-        rarity: 4
-      Nova | Rising Skull:
-        rarity: 3
-      Dual Berettas | Marina:
-        rarity: 3
-      MP9 | Rose Iron:
-        rarity: 3
-      FAMAS | Pulse:
-        rarity: 3
-      Five-SeveN | Kami:
+      SSG 08 | Hand Brake:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      Galil AR | Sandstorm:
+      Sawed-Off | Brake Light:
+        max_float: 0.08
+        min_float: 0
         rarity: 2
-      PP-Bizon | Cobalt Halftone:
+      UMP-45 | Mudder:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      USP-S | Check Engine:
+        max_float: 0.6
+        min_float: 0
         rarity: 2
-      M249 | Magma:
-        rarity: 2
-  The Wildfire Collection:
+  The 2018 Nuke Collection:
     items:
-      AK-47 | Fuel Injector:
-        rarity: 5
-      M4A4 | The Battlestar:
-        rarity: 5
-      Nova | Hyper Beast:
+      AUG | Random Access:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      AWP | Acheron:
+        max_float: 0.83
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Coolant:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      Galil AR | Cold Fusion:
+        max_float: 0.83
+        min_float: 0
+        rarity: 1
+      Glock-18 | Nuclear Garden:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      M4A1-S | Control Panel:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      Desert Eagle | Kumicho Dragon:
+      M4A4 | Mainframe:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      MAG-7 | Core Breach:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MP5-SD | Co-Processor:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MP7 | Motherboard:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      Negev | Bulkhead:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      Nova | Mandrel:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      P250 | Exchanger:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      P250 | Facility Draft:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      P90 | Facility Negative:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      PP-Bizon | Facility Sketch:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      Tec-9 | Remote Control:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      AWP | Elite Build:
-        rarity: 4
-      FAMAS | Valence:
-        rarity: 3
-      MP7 | Impire:
-        rarity: 3
-      Five-SeveN | Triumvirate:
-        rarity: 3
-      Glock-18 | Royal Legion:
-        rarity: 3
-      MAG-7 | Praetorian:
-        rarity: 3
-      PP-Bizon | Photic Zone:
-        rarity: 2
-      MAC-10 | Lapis Gator:
-        rarity: 2
-      USP-S | Lead Conduit:
-        rarity: 2
-      Tec-9 | Jambiya:
-        rarity: 2
-      SSG 08 | Necropos:
-        rarity: 2
-      Dual Berettas | Cartel:
-        rarity: 2
-  The Vertigo Collection:
+      UMP-45 | Facility Dark:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+  The Alpha Collection:
     items:
-      Dual Berettas | Demolition:
+      AUG | Anodized Navy:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      FAMAS | Spitfire:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 3
-      AK-47 | Black Laminate:
-        rarity: 2
-      P90 | Glacier Mesh:
-        rarity: 2
-      PP-Bizon | Carbon Fiber:
+      Five-SeveN | Anodized Gunmetal:
+        max_float: 0.08
+        min_float: 0
+        rarity: 0
+      Glock-18 | Sand Dune:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      XM1014 | Urban Perforated:
+      M249 | Jungle DDPAT:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
-      MAC-10 | Urban DDPAT:
+      MAG-7 | Hazard:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      MP7 | Groundwater:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
-  The Vanguard Collection:
+      MP9 | Dry Season:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Negev | Palm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      P250 | Facets:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      PP-Bizon | Rust Coat:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      SCAR-20 | Emerald:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      SSG 08 | Mayan Dreams:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Sawed-Off | Mosaico:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Tec-9 | Tornado:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      XM1014 | Jungle:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+  The Arms Deal 2 Collection:
     items:
-      P2000 | Fire Elemental:
+      Dual Berettas | Hemoglobin:
+        max_float: 0.2
+        min_float: 0
+        rarity: 3
+      FAMAS | Hexane:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Case Hardened:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      M4A1-S | Blood Tiger:
+        max_float: 0.3
+        min_float: 0
+        rarity: 2
+      MP9 | Hypnotic:
+        max_float: 0.08
+        min_float: 0
+        rarity: 3
+      Nova | Graphite:
+        max_float: 0.12
+        min_float: 0
+        rarity: 3
+      P250 | Hive:
+        max_float: 0.3
+        min_float: 0
+        rarity: 2
+      P90 | Cold Blooded:
+        max_float: 0.08
+        min_float: 0
+        rarity: 4
+      SCAR-20 | Crimson Web:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      SSG 08 | Blood in the Water:
+        max_float: 0.2
+        min_float: 0.06
         rarity: 5
-      AK-47 | Wasteland Rebel:
-        rarity: 5
-      SCAR-20 | Cardiac:
+      Tec-9 | Blue Titanium:
+        max_float: 0.04
+        min_float: 0
+        rarity: 2
+      USP-S | Serum:
+        max_float: 0.25
+        min_float: 0
         rarity: 4
-      XM1014 | Tranquility:
-        rarity: 4
-      P250 | Cartel:
-        rarity: 4
-      M4A1-S | Basilisk:
-        rarity: 3
-      M4A4 | Griffin:
-        rarity: 3
-      Sawed-Off | Highwayman:
-        rarity: 3
-      Glock-18 | Grinder:
-        rarity: 3
-      Five-SeveN | Urban Hazard:
-        rarity: 2
-      UMP-45 | Delusion:
-        rarity: 2
-      G3SG1 | Murky:
-        rarity: 2
-      MAG-7 | Firestarter:
-        rarity: 2
-      MP9 | Dart:
-        rarity: 2
-  The Train Collection:
+  The Arms Deal 3 Collection:
     items:
-      Tec-9 | Red Quartz:
+      CZ75-Auto | Crimson Web:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      CZ75-Auto | The Fuschia Is Now:
+        max_float: 0.4
+        min_float: 0
+        rarity: 4
+      CZ75-Auto | Tread Plate:
+        max_float: 0.2
+        min_float: 0
         rarity: 3
-      Sawed-Off | Amber Fade:
+      CZ75-Auto | Victoria:
+        max_float: 0.75
+        min_float: 0
+        rarity: 5
+      Desert Eagle | Heirloom:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      Dual Berettas | Panther:
+        max_float: 0.58
+        min_float: 0
         rarity: 2
-      Desert Eagle | Urban Rubble:
+      Five-SeveN | Copper Galaxy:
+        max_float: 0.2
+        min_float: 0
+        rarity: 3
+      Glock-18 | Blue Fissure:
+        max_float: 0.58
+        min_float: 0.06
         rarity: 2
-      M4A4 | Urban DDPAT:
-        rarity: 1
-      MAC-10 | Candy Apple:
-        rarity: 1
-      P90 | Ash Wood:
-        rarity: 1
-      MAG-7 | Metallic DDPAT:
-        rarity: 1
-      P250 | Metallic DDPAT:
-        rarity: 1
-      SCAR-20 | Carbon Fiber:
-        rarity: 1
-      G3SG1 | Polar Camo:
-        rarity: 0
-      Nova | Polar Mesh:
-        rarity: 0
-      Dual Berettas | Colony:
-        rarity: 0
-      Five-SeveN | Forest Night:
-        rarity: 0
-      PP-Bizon | Urban Dashed:
-        rarity: 0
-      UMP-45 | Urban DDPAT:
-        rarity: 0
-  The St. Marc Collection:
+      P2000 | Red FragCam:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      P250 | Undertow:
+        max_float: 0.2
+        min_float: 0
+        rarity: 4
+      Tec-9 | Titanium Bit:
+        max_float: 0.2
+        min_float: 0
+        rarity: 3
+      USP-S | Stainless:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+  The Arms Deal Collection:
     items:
-      AK-47 | Wild Lotus:
-        rarity: 5
-      MP9 | Wild Lily:
+      AK-47 | Case Hardened:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 4
-      AUG | Midnight Lily:
+      AUG | Wings:
+        max_float: 0.14
+        min_float: 0
+        rarity: 2
+      AWP | Lightning Strike:
+        max_float: 0.08
+        min_float: 0
+        rarity: 5
+      Desert Eagle | Hypnotic:
+        max_float: 0.08
+        min_float: 0
+        rarity: 4
+      Glock-18 | Dragon Tattoo:
+        max_float: 0.08
+        min_float: 0
         rarity: 3
-      Glock-18 | Synth Leaf:
+      M4A1-S | Dark Water:
+        max_float: 0.26
+        min_float: 0.1
         rarity: 3
-      SSG 08 | Sea Calico:
+      MP7 | Skulls:
+        max_float: 0.26
+        min_float: 0.1
+        rarity: 2
+      SG 553 | Ultraviolet:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      USP-S | Dark Water:
+        max_float: 0.26
+        min_float: 0.1
         rarity: 3
-      Five-SeveN | Crimson Blossom:
-        rarity: 2
-      FAMAS | Sundown:
-        rarity: 2
-      MP7 | Teal Blossom:
-        rarity: 2
-      UMP-45 | Day Lily:
-        rarity: 2
-      P90 | Sunset Lily:
-        rarity: 1
-      M4A4 | Dark Blossom:
-        rarity: 1
-      Tec-9 | Rust Leaf:
-        rarity: 1
-      XM1014 | Banana Leaf:
-        rarity: 1
-      MAC-10 | Surfwood:
-        rarity: 0
-      PP-Bizon | Seabird:
-        rarity: 0
-      MP5-SD | Bamboo Garden:
-        rarity: 0
-      M249 | Jungle:
-        rarity: 0
-      Sawed-Off | Jungle Thicket:
-        rarity: 0
-  The Spectrum 2 Collection:
+  The Assault Collection:
     items:
-      AK-47 | The Empress:
-        rarity: 5
-      P250 | See Ya Later:
-        rarity: 5
-      PP-Bizon | High Roller:
-        rarity: 4
-      R8 Revolver | Llama Cannon:
-        rarity: 4
-      M4A1-S | Leaded Glass:
-        rarity: 4
-      UMP-45 | Exposure:
+      AUG | Hot Rod:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 1
+      Glock-18 | Fade:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 3
-      SG 553 | Phantom:
+      MP9 | Bulldozer:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 3
-      XM1014 | Ziggy:
-        rarity: 3
-      MP9 | Goo:
-        rarity: 3
-      CZ75-Auto | Tacticat:
-        rarity: 3
-      AUG | Triqua:
+      Negev | Anodized Navy:
+        max_float: 0.08
+        min_float: 0
         rarity: 2
-      Sawed-Off | Morris:
-        rarity: 2
-      Glock-18 | Off World:
-        rarity: 2
-      SCAR-20 | Jungle Slipstream:
-        rarity: 2
-      Tec-9 | Cracked Opal:
-        rarity: 2
-      G3SG1 | Hunter:
-        rarity: 2
-      MAC-10 | Oceanic:
-        rarity: 2
-  The Spectrum Collection:
+      SG 553 | Tornado:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      UMP-45 | Caramel:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+  The Aztec Collection:
     items:
-      USP-S | Neo-Noir:
-        rarity: 5
-      AK-47 | Bloodsport:
-        rarity: 5
-      M4A1-S | Decimator:
-        rarity: 4
-      CZ75-Auto | Xiangliu:
-        rarity: 4
-      AWP | Fever Dream:
-        rarity: 4
-      Galil AR | Crimson Tsunami:
-        rarity: 3
-      M249 | Emerald Poison Dart:
-        rarity: 3
-      MAC-10 | Last Dive:
-        rarity: 3
-      UMP-45 | Scaffold:
-        rarity: 3
-      XM1014 | Seasons:
-        rarity: 3
-      PP-Bizon | Jungle Slipstream:
+      AK-47 | Jungle Spray:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Five-SeveN | Jungle:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A4 | Jungle Tiger:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Nova | Forest Leaves:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SSG 08 | Lichen Dashed:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Tec-9 | Ossified:
+        max_float: 0.08
+        min_float: 0
         rarity: 2
-      Sawed-Off | Zander:
-        rarity: 2
-      SCAR-20 | Blueprint:
-        rarity: 2
-      P250 | Ripple:
-        rarity: 2
-      Five-SeveN | Capillary:
-        rarity: 2
-      MP7 | Akoben:
-        rarity: 2
-      Desert Eagle | Oxide Blaze:
-        rarity: 2
-  The Shattered Web Collection:
+  The Baggage Collection:
     items:
-      MAC-10 | Stalker:
-        rarity: 5
-      AWP | Containment Breach:
-        rarity: 5
-      SSG 08 | Bloodshot:
+      AK-47 | First Class:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      AK-47 | Jet Set:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      SG 553 | Colony IV:
-        rarity: 4
-      Tec-9 | Decimator:
-        rarity: 4
-      P2000 | Obsidian:
+      CZ75-Auto | Green Plaid:
+        max_float: 0.58
+        min_float: 0
+        rarity: 0
+      Desert Eagle | Pilot:
+        max_float: 1
+        min_float: 0
         rarity: 3
-      PP-Bizon | Embargo:
-        rarity: 3
-      AK-47 | Rat Rod:
-        rarity: 3
-      AUG | Arctic Wolf:
-        rarity: 3
-      MP7 | Neon Ply:
-        rarity: 3
-      Dual Berettas | Balance:
+      G3SG1 | Contractor:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      MAC-10 | Commuter:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      MP7 | Olive Plaid:
+        max_float: 0.58
+        min_float: 0
+        rarity: 0
+      MP9 | Green Plaid:
+        max_float: 0.58
+        min_float: 0
+        rarity: 0
+      P2000 | Coach Class:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      P90 | Leather:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      SG 553 | Traveler:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      SSG 08 | Sand Dune:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Sawed-Off | First Class:
+        max_float: 0.5
+        min_float: 0
         rarity: 2
-      MP5-SD | Acid Wash:
+      USP-S | Business Class:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      G3SG1 | Black Sand:
+      XM1014 | Red Leather:
+        max_float: 0.56
+        min_float: 0
         rarity: 2
-      M249 | Warbird:
-        rarity: 2
-      SCAR-20 | Torn:
-        rarity: 2
-      R8 Revolver | Memento:
-        rarity: 2
-      Nova | Plume:
-        rarity: 2
-  The Shadow Collection:
+  The Bank Collection:
     items:
-      USP-S | Kill Confirmed:
-        rarity: 5
-      M4A1-S | Golden Coil:
-        rarity: 5
-      SSG 08 | Big Iron:
+      AK-47 | Emerald Pinstripe:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      CZ75-Auto | Tuxedo:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Desert Eagle | Meteorite:
+        max_float: 0.18
+        min_float: 0
+        rarity: 2
+      G3SG1 | Green Apple:
+        max_float: 0.3
+        min_float: 0
+        rarity: 1
+      Galil AR | Tuxedo:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Glock-18 | Death Rattle:
+        max_float: 0.5
+        min_float: 0.08
+        rarity: 1
+      MAC-10 | Silver:
+        max_float: 0.08
+        min_float: 0
+        rarity: 1
+      MP7 | Forest DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Negev | Army Sheen:
+        max_float: 0.3
+        min_float: 0
+        rarity: 0
+      Nova | Caged Steel:
+        max_float: 0.2
+        min_float: 0
+        rarity: 1
+      P250 | Franklin:
+        max_float: 0.4
+        min_float: 0
         rarity: 4
-      G3SG1 | Flux:
-        rarity: 4
-      AK-47 | Frontside Misty:
-        rarity: 4
-      M249 | Nebula Crusader:
-        rarity: 3
-      P250 | Wingshot:
-        rarity: 3
-      MP7 | Special Delivery:
-        rarity: 3
-      Galil AR | Stone Cold:
-        rarity: 3
-      FAMAS | Survivor Z:
-        rarity: 2
-      MAG-7 | Cobalt Core:
-        rarity: 2
-      Dual Berettas | Dualing Dragons:
-        rarity: 2
-      Glock-18 | Wraiths:
-        rarity: 2
-      MAC-10 | Rangeen:
-        rarity: 2
-      XM1014 | Scumbria:
-        rarity: 2
-      SCAR-20 | Green Marine:
-        rarity: 2
-  The Safehouse Collection:
+      R8 Revolver | Bone Mask:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SG 553 | Army Sheen:
+        max_float: 0.3
+        min_float: 0
+        rarity: 0
+      Sawed-Off | Forest DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Tec-9 | Urban DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      UMP-45 | Carbon Fiber:
+        max_float: 0.12
+        min_float: 0
+        rarity: 1
+  The Bravo Collection:
     items:
-      M4A1-S | Nitro:
+      AK-47 | Fire Serpent:
+        max_float: 0.76
+        min_float: 0.06
+        rarity: 5
+      AWP | Graphite:
+        max_float: 0.12
+        min_float: 0
+        rarity: 4
+      Desert Eagle | Golden Koi:
+        max_float: 0.12
+        min_float: 0
+        rarity: 5
+      Dual Berettas | Black Limba:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      G3SG1 | Demeter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      Galil AR | Shattered:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      M4A1-S | Bright Water:
+        max_float: 0.5
+        min_float: 0
         rarity: 3
-      FAMAS | Teardown:
+      M4A4 | Zirka:
+        max_float: 0.42
+        min_float: 0.06
+        rarity: 3
+      MAC-10 | Graven:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      Nova | Tempest:
+        max_float: 0.22
+        min_float: 0.06
         rarity: 2
-      SSG 08 | Acid Fade:
+      P2000 | Ocean Foam:
+        max_float: 0.08
+        min_float: 0
+        rarity: 4
+      P90 | Emerald Dragon:
+        max_float: 0.52
+        min_float: 0.06
+        rarity: 4
+      SG 553 | Wave Spray:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 2
-      Five-SeveN | Silver Quartz:
+      UMP-45 | Bone Pile:
+        max_float: 0.34
+        min_float: 0.06
         rarity: 2
-      M249 | Gator Mesh:
-        rarity: 1
-      G3SG1 | VariCamo:
-        rarity: 1
-      MP9 | Orange Peel:
-        rarity: 1
-      AUG | Condemned:
-        rarity: 1
-      Galil AR | VariCamo:
-        rarity: 1
-      USP-S | Forest Leaves:
-        rarity: 1
-      SCAR-20 | Contractor:
-        rarity: 0
-      SSG 08 | Blue Spruce:
-        rarity: 0
-      Dual Berettas | Contractor:
-        rarity: 0
-      Tec-9 | Army Mesh:
-        rarity: 0
-      MP7 | Army Recon:
-        rarity: 0
-  The Rising Sun Collection:
+      USP-S | Overgrowth:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+  The Breakout Collection:
     items:
-      AUG | Akihabara Accept:
+      CZ75-Auto | Tigris:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Desert Eagle | Conspiracy:
+        max_float: 0.3
+        min_float: 0
+        rarity: 4
+      Five-SeveN | Fowl Play:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      Glock-18 | Water Elemental:
+        max_float: 0.7
+        min_float: 0
+        rarity: 4
+      M4A1-S | Cyrex:
+        max_float: 0.55
+        min_float: 0
         rarity: 5
-      AK-47 | Hydroponic:
-        rarity: 4
-      Desert Eagle | Sunset Storm 壱:
-        rarity: 3
-      Desert Eagle | Sunset Storm 弐:
-        rarity: 3
-      Five-SeveN | Neon Kimono:
-        rarity: 3
-      M4A4 | Daybreak:
-        rarity: 3
-      Galil AR | Aqua Terrace:
+      MP7 | Urban Hazard:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      Tec-9 | Terrace:
+      Negev | Desert-Strike:
+        max_float: 0.5
+        min_float: 0
         rarity: 2
-      MAG-7 | Counter Terrace:
+      Nova | Koi:
+        max_float: 0.3
+        min_float: 0
+        rarity: 3
+      P2000 | Ivory:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      Desert Eagle | Midnight Storm:
-        rarity: 1
-      P250 | Crimson Kimono:
-        rarity: 1
-      Sawed-Off | Bamboo Shadow:
-        rarity: 0
-      P250 | Mint Kimono:
-        rarity: 0
-      PP-Bizon | Bamboo Print:
-        rarity: 0
-      Tec-9 | Bamboo Forest:
-        rarity: 0
-      G3SG1 | Orange Kimono:
-        rarity: 0
-  The Revolver Collection:
-    items:
-      M4A4 | Royal Paladin:
+      P250 | Supernova:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      P90 | Asiimov:
+        max_float: 0.7
+        min_float: 0.05
         rarity: 5
-      R8 Revolver | Fade:
-        rarity: 5
-      P90 | Shapewood:
-        rarity: 4
-      G3SG1 | The Executioner:
-        rarity: 4
-      AK-47 | Point Disarray:
-        rarity: 4
-      Negev | Power Loader:
-        rarity: 3
-      PP-Bizon | Fuel Rod:
-        rarity: 3
-      SG 553 | Tiger Moth:
-        rarity: 3
-      XM1014 | Teclu Burner:
-        rarity: 3
-      Five-SeveN | Retrobution:
-        rarity: 3
-      Tec-9 | Avalanche:
-        rarity: 3
-      P2000 | Imperial:
-        rarity: 2
-      AUG | Ricochet:
-        rarity: 2
-      Sawed-Off | Yorick:
-        rarity: 2
-      SCAR-20 | Outbreak:
-        rarity: 2
-      R8 Revolver | Crimson Web:
-        rarity: 2
-      Desert Eagle | Corinthian:
-        rarity: 2
-  The Prisma 2 Collection:
-    items:
-      M4A1-S | Player Two:
-        rarity: 5
-      Glock-18 | Bullet Queen:
-        rarity: 5
-      AK-47 | Phantom Disruptor:
-        rarity: 4
-      MAG-7 | Justice:
-        rarity: 4
-      MAC-10 | Disco Tech:
-        rarity: 4
-      Sawed-Off | Apocalypto:
-        rarity: 3
-      SSG 08 | Fever Dream:
-        rarity: 3
-      SG 553 | Darkwing:
-        rarity: 3
-      SCAR-20 | Enforcer:
-        rarity: 3
-      P2000 | Acid Etched:
-        rarity: 3
-      CZ75-Auto | Distressed:
-        rarity: 2
-      MP5-SD | Desert Strike:
-        rarity: 2
-      R8 Revolver | Bone Forged:
-        rarity: 2
-      Negev | Prototype:
-        rarity: 2
-      Desert Eagle | Blue Ply:
-        rarity: 2
-      AUG | Tom Cat:
-        rarity: 2
-      AWP | Capillary:
-        rarity: 2
-  The Prisma Collection:
-    items:
-      M4A4 | The Emperor:
-        rarity: 5
-      Five-SeveN | Angry Mob:
-        rarity: 5
-      XM1014 | Incinegator:
-        rarity: 4
-      AUG | Momentum:
-        rarity: 4
-      R8 Revolver | Skull Crusher:
-        rarity: 4
-      Desert Eagle | Light Rail:
-        rarity: 3
-      AWP | Atheris:
-        rarity: 3
-      MP5-SD | Gauss:
-        rarity: 3
-      Tec-9 | Bamboozle:
-        rarity: 3
-      UMP-45 | Moonrise:
-        rarity: 3
-      MAC-10 | Whitefish:
-        rarity: 2
-      P90 | Off World:
-        rarity: 2
-      MP7 | Mischief:
-        rarity: 2
-      Galil AR | Akoben:
-        rarity: 2
-      AK-47 | Uncharted:
-        rarity: 2
-      P250 | Verdigris:
-        rarity: 2
-      FAMAS | Crypsis:
-        rarity: 2
-  The Phoenix Collection:
-    items:
-      AWP | Asiimov:
-        rarity: 5
-      AUG | Chameleon:
-        rarity: 5
-      AK-47 | Redline:
-        rarity: 4
-      P90 | Trigon:
-        rarity: 4
-      Nova | Antique:
-        rarity: 4
-      SG 553 | Pulse:
-        rarity: 3
-      MAC-10 | Heat:
-        rarity: 3
-      FAMAS | Sergeant:
-        rarity: 3
-      USP-S | Guardian:
-        rarity: 3
-      MAG-7 | Heaven Guard:
-        rarity: 2
-      Tec-9 | Sandstorm:
-        rarity: 2
-      UMP-45 | Corporal:
-        rarity: 2
-      Negev | Terrain:
-        rarity: 2
-  The Overpass Collection:
-    items:
-      M4A1-S | Master Piece:
-        rarity: 4
-      USP-S | Road Rash:
-        rarity: 3
-      AWP | Pink DDPAT:
-        rarity: 3
-      XM1014 | VariCamo Blue:
-        rarity: 2
-      CZ75-Auto | Nitro:
-        rarity: 2
-      SSG 08 | Detour:
-        rarity: 2
-      MP7 | Gunsmoke:
-        rarity: 1
-      Desert Eagle | Urban DDPAT:
-        rarity: 1
-      Glock-18 | Night:
-        rarity: 1
-      P2000 | Grassland:
-        rarity: 1
-      MP9 | Storm:
-        rarity: 0
-      MAG-7 | Storm:
-        rarity: 0
-      M249 | Contrast Spray:
-        rarity: 0
-      UMP-45 | Scorched:
-        rarity: 0
-      Sawed-Off | Sage Spray:
-        rarity: 0
-  The Operation Hydra Collection:
-    items:
-      Five-SeveN | Hyper Beast:
-        rarity: 5
-      AWP | Oni Taiji:
-        rarity: 5
-      Dual Berettas | Cobra Strike:
-        rarity: 4
-      M4A4 | Hellfire:
-        rarity: 4
-      Galil AR | Sugar Rush:
-        rarity: 4
-      P90 | Death Grip:
-        rarity: 3
-      P2000 | Woodsman:
-        rarity: 3
-      AK-47 | Orbit Mk01:
-        rarity: 3
-      P250 | Red Rock:
-        rarity: 3
-      SSG 08 | Death's Head:
-        rarity: 3
-      MAG-7 | Hard Water:
-        rarity: 2
-      MAC-10 | Aloha:
-        rarity: 2
-      USP-S | Blueprint:
-        rarity: 2
-      FAMAS | Macabre:
-        rarity: 2
-      UMP-45 | Metal Flowers:
-        rarity: 2
-      M4A1-S | Briefing:
-        rarity: 2
-      Tec-9 | Cut Out:
-        rarity: 2
-  The Office Collection:
-    items:
-      P2000 | Silver:
-        rarity: 2
-      MP7 | Whiteout:
-        rarity: 2
-      M249 | Blizzard Marbleized:
-        rarity: 1
-      Galil AR | Winter Forest:
-        rarity: 1
-      G3SG1 | Arctic Camo:
-        rarity: 1
-      FAMAS | Contrast Spray:
-        rarity: 0
-  The Nuke Collection:
-    items:
-      Tec-9 | Nuclear Threat:
-        rarity: 3
-      P250 | Nuclear Threat:
-        rarity: 3
-      M4A4 | Radiation Hazard:
-        rarity: 2
-      UMP-45 | Fallout Warning:
-        rarity: 1
-      XM1014 | Fallout Warning:
-        rarity: 1
-      P90 | Fallout Warning:
-        rarity: 1
-      MAG-7 | Irradiated Alert:
-        rarity: 0
-      Sawed-Off | Irradiated Alert:
-        rarity: 0
-      PP-Bizon | Irradiated Alert:
-        rarity: 0
-  The Norse Collection:
-    items:
-      AWP | Gungnir:
-        rarity: 5
-      Negev | Mjölnir:
-        rarity: 4
-      AUG | Flame Jörmungandr:
-        rarity: 3
-      Desert Eagle | Emerald Jörmungandr:
-        rarity: 3
-      P90 | Astral Jörmungandr:
-        rarity: 3
-      SCAR-20 | Brass:
-        rarity: 2
-      XM1014 | Frost Borre:
-        rarity: 2
-      MAC-10 | Copper Borre:
-        rarity: 2
-      CZ75-Auto | Emerald Quartz:
-        rarity: 2
-      Dual Berettas | Pyre:
-        rarity: 1
-      MAG-7 | Chainmail:
-        rarity: 1
-      USP-S | Pathfinder:
-        rarity: 1
-      M4A1-S | Moss Quartz:
-        rarity: 1
-      MP7 | Scorched:
-        rarity: 0
-      SSG 08 | Red Stone:
-        rarity: 0
-      SG 553 | Barricade:
-        rarity: 0
-      FAMAS | Night Borre:
-        rarity: 0
-      Galil AR | Tornado:
-        rarity: 0
-  The Mirage Collection:
-    items:
-      MAG-7 | Bulldozer:
-        rarity: 3
-      MP9 | Hot Rod:
-        rarity: 2
-      UMP-45 | Blaze:
-        rarity: 2
-      MAC-10 | Amber Fade:
-        rarity: 2
-      MP7 | Orange Peel:
-        rarity: 1
-      SSG 08 | Tropical Storm:
-        rarity: 1
-      Negev | CaliCamo:
-        rarity: 1
-      Glock-18 | Groundwater:
-        rarity: 1
-      SG 553 | Gator Mesh:
-        rarity: 1
-      P250 | Bone Mask:
-        rarity: 0
-      AUG | Colony:
-        rarity: 0
-      Five-SeveN | Contractor:
-        rarity: 0
-      P90 | Scorched:
-        rarity: 0
-      Galil AR | Hunting Blind:
-        rarity: 0
-      G3SG1 | Safari Mesh:
-        rarity: 0
-  The Militia Collection:
-    items:
-      SCAR-20 | Splash Jam:
-        rarity: 4
-      M4A4 | Modern Hunter:
-        rarity: 3
-      PP-Bizon | Modern Hunter:
-        rarity: 2
-      XM1014 | Blaze Orange:
-        rarity: 2
-      P250 | Modern Hunter:
-        rarity: 2
-      Nova | Blaze Orange:
-        rarity: 2
-      Nova | Modern Hunter:
-        rarity: 2
-      P2000 | Grassland Leaves:
-        rarity: 1
-      XM1014 | Grassland:
-        rarity: 0
-      MAC-10 | Tornado:
-        rarity: 0
-      PP-Bizon | Forest Leaves:
-        rarity: 0
-  The Lake Collection:
-    items:
-      Dual Berettas | Cobalt Quartz:
-        rarity: 3
-      P90 | Teardown:
-        rarity: 2
-      SG 553 | Anodized Navy:
-        rarity: 2
-      USP-S | Night Ops:
-        rarity: 2
-      Desert Eagle | Mudder:
-        rarity: 1
-      FAMAS | Cyanospatter:
-        rarity: 1
-      XM1014 | Blue Steel:
-        rarity: 1
-      PP-Bizon | Night Ops:
-        rarity: 1
-      AWP | Safari Mesh:
-        rarity: 1
-      AUG | Storm:
-        rarity: 0
-      SG 553 | Waves Perforated:
-        rarity: 0
-      Galil AR | Sage Spray:
-        rarity: 0
-      XM1014 | Blue Spruce:
-        rarity: 0
-      P250 | Boreal Forest:
-        rarity: 0
-      G3SG1 | Jungle Dashed:
-        rarity: 0
-  The Italy Collection:
-    items:
-      AWP | Pit Viper:
-        rarity: 3
-      Glock-18 | Candy Apple:
-        rarity: 2
-      MP7 | Anodized Navy:
-        rarity: 2
-      Sawed-Off | Full Stop:
-        rarity: 2
-      UMP-45 | Gunsmoke:
-        rarity: 1
-      P2000 | Granite Marbleized:
-        rarity: 1
-      Dual Berettas | Stained:
-        rarity: 1
-      XM1014 | CaliCamo:
-        rarity: 1
-      Nova | Candy Apple:
-        rarity: 1
-      M4A1-S | Boreal Forest:
-        rarity: 1
-      Tec-9 | Groundwater:
-        rarity: 0
-      FAMAS | Colony:
-        rarity: 0
-      Nova | Sand Dune:
-        rarity: 0
-      PP-Bizon | Sand Dashed:
-        rarity: 0
-      AUG | Contractor:
-        rarity: 0
-  The Inferno Collection:
-    items:
-      Dual Berettas | Anodized Navy:
-        rarity: 2
-      Tec-9 | Brass:
-        rarity: 2
-      P250 | Gunsmoke:
-        rarity: 1
-      M4A4 | Tornado:
-        rarity: 1
-      Nova | Walnut:
-        rarity: 0
-      MAG-7 | Sand Dune:
-        rarity: 0
-  The Huntsman Collection:
-    items:
-      M4A4 | Howl:
-        rarity: 7
-      M4A4 | Desert-Strike:
-        rarity: 5
-      AK-47 | Vulcan:
-        rarity: 5
-      USP-S | Orion:
-        rarity: 4
-      SCAR-20 | Cyrex:
-        rarity: 4
-      M4A1-S | Atomic Alloy:
-        rarity: 4
-      USP-S | Caiman:
-        rarity: 4
-      MAC-10 | Curse:
-        rarity: 3
-      MAC-10 | Tatter:
-        rarity: 3
-      PP-Bizon | Antique:
-        rarity: 3
-      AUG | Torque:
-        rarity: 3
-      XM1014 | Heaven Guard:
-        rarity: 3
-      Galil AR | Kami:
-        rarity: 2
-      Tec-9 | Isaac:
-        rarity: 2
-      CZ75-Auto | Twist:
-        rarity: 2
-      CZ75-Auto | Poison Dart:
-        rarity: 2
-      P2000 | Pulse:
-        rarity: 2
-      SSG 08 | Slashed:
-        rarity: 2
-      P90 | Module:
-        rarity: 2
-      Dual Berettas | Retribution:
-        rarity: 2
-      P90 | Desert Warfare:
-        rarity: 2
-  The Horizon Collection:
-    items:
-      AK-47 | Neon Rider:
-        rarity: 5
-      Desert Eagle | Code Red:
-        rarity: 5
-      Sawed-Off | Devourer:
-        rarity: 4
-      M4A1-S | Nightmare:
-        rarity: 4
-      FAMAS | Eye of Athena:
-        rarity: 4
-      CZ75-Auto | Eco:
-        rarity: 3
-      Nova | Toy Soldier:
-        rarity: 3
-      AWP | PAW:
-        rarity: 3
-      MP7 | Powercore:
-        rarity: 3
-      G3SG1 | High Seas:
-        rarity: 3
-      Dual Berettas | Shred:
-        rarity: 2
-      MP9 | Capillary:
-        rarity: 2
-      P90 | Traction:
-        rarity: 2
-      R8 Revolver | Survivalist:
-        rarity: 2
-      AUG | Amber Slipstream:
-        rarity: 2
-      Glock-18 | Warhawk:
-        rarity: 2
-      Tec-9 | Snek-9:
-        rarity: 2
-  The Gods and Monsters Collection:
-    items:
-      AWP | Medusa:
-        rarity: 5
-      M4A4 | Poseidon:
-        rarity: 4
-      M4A1-S | Icarus Fell:
-        rarity: 3
-      G3SG1 | Chronos:
-        rarity: 3
-      UMP-45 | Minotaur's Labyrinth:
-        rarity: 2
-      MP9 | Pandora's Box:
-        rarity: 2
-      M249 | Shipping Forecast:
-        rarity: 1
-      AWP | Sun in Leo:
-        rarity: 1
-      Tec-9 | Hades:
-        rarity: 1
-      P2000 | Pathfinder:
-        rarity: 1
-      Nova | Moon in Libra:
-        rarity: 0
-      Dual Berettas | Moon in Libra:
-        rarity: 0
-      AUG | Daedalus:
-        rarity: 0
-      MP7 | Asterion:
-        rarity: 0
-  The Glove Collection:
-    items:
-      M4A4 | Buzz Kill:
-        rarity: 5
-      SSG 08 | Dragonfire:
-        rarity: 5
-      FAMAS | Mecha Industries:
-        rarity: 4
-      Sawed-Off | Wasteland Princess:
-        rarity: 4
-      P90 | Shallow Grave:
-        rarity: 4
-      M4A1-S | Flashback:
-        rarity: 3
-      Dual Berettas | Royal Consorts:
-        rarity: 3
-      USP-S | Cyrex:
-        rarity: 3
-      G3SG1 | Stinger:
-        rarity: 3
-      Nova | Gila:
-        rarity: 3
-      MAG-7 | Sonar:
-        rarity: 2
-      MP9 | Sand Scale:
-        rarity: 2
-      Galil AR | Black Sand:
-        rarity: 2
-      P2000 | Turf:
-        rarity: 2
-      MP7 | Cirrus:
-        rarity: 2
-      Glock-18 | Ironwork:
-        rarity: 2
-      CZ75-Auto | Polymer:
-        rarity: 2
-  The Gamma 2 Collection:
-    items:
-      FAMAS | Roll Cage:
-        rarity: 5
-      AK-47 | Neon Revolution:
-        rarity: 5
-      MP9 | Airlock:
-        rarity: 4
-      AUG | Syd Mead:
-        rarity: 4
-      Tec-9 | Fuel Injector:
-        rarity: 4
-      Glock-18 | Weasel:
-        rarity: 3
-      SG 553 | Triarch:
-        rarity: 3
-      MAG-7 | Petroglyph:
-        rarity: 3
-      Desert Eagle | Directive:
-        rarity: 3
-      SCAR-20 | Powercore:
-        rarity: 3
-      Negev | Dazzle:
-        rarity: 2
-      CZ75-Auto | Imprint:
-        rarity: 2
-      P90 | Grim:
-        rarity: 2
-      XM1014 | Slipstream:
-        rarity: 2
-      UMP-45 | Briefing:
-        rarity: 2
-      G3SG1 | Ventilator:
-        rarity: 2
-      Five-SeveN | Scumbria:
-        rarity: 2
-  The Gamma Collection:
-    items:
-      M4A1-S | Mecha Industries:
-        rarity: 5
-      Glock-18 | Wasteland Rebel:
-        rarity: 5
-      SCAR-20 | Bloodsport:
-        rarity: 4
-      M4A4 | Desolate Space:
-        rarity: 4
-      P2000 | Imperial Dragon:
-        rarity: 4
-      Sawed-Off | Limelight:
-        rarity: 3
-      AWP | Phobos:
-        rarity: 3
-      R8 Revolver | Reboot:
-        rarity: 3
-      P90 | Chopper:
-        rarity: 3
-      AUG | Aristocrat:
-        rarity: 3
-      P250 | Iron Clad:
-        rarity: 2
-      Tec-9 | Ice Cap:
-        rarity: 2
-      PP-Bizon | Harvester:
-        rarity: 2
-      Five-SeveN | Violent Daimyo:
-        rarity: 2
-      MAC-10 | Carnivore:
-        rarity: 2
-      SG 553 | Aerial:
-        rarity: 2
-      Nova | Exo:
-        rarity: 2
-  The Falchion Collection:
-    items:
-      AK-47 | Aquamarine Revenge:
-        rarity: 5
-      AWP | Hyper Beast:
-        rarity: 5
-      SG 553 | Cyrex:
-        rarity: 4
-      CZ75-Auto | Yellow Jacket:
-        rarity: 4
-      MP7 | Nemesis:
-        rarity: 4
-      Negev | Loudmouth:
-        rarity: 3
-      P2000 | Handgun:
-        rarity: 3
-      M4A4 | Evil Daimyo:
-        rarity: 3
-      FAMAS | Neural Net:
-        rarity: 3
-      MP9 | Ruby Poison Dart:
-        rarity: 3
-      Galil AR | Rocket Pop:
-        rarity: 2
-      USP-S | Torque:
-        rarity: 2
-      Glock-18 | Bunsen Burner:
-        rarity: 2
-      UMP-45 | Riot:
-        rarity: 2
-      P90 | Elite Build:
-        rarity: 2
-      Nova | Ranger:
-        rarity: 2
-  The eSports 2014 Summer Collection:
-    items:
-      M4A4 | Bullet Rain:
-        rarity: 5
-      AK-47 | Jaguar:
-        rarity: 5
-      AUG | Bengal Tiger:
-        rarity: 4
-      P2000 | Corticera:
-        rarity: 4
-      Nova | Bloomstick:
-        rarity: 4
-      AWP | Corticera:
-        rarity: 4
-      Glock-18 | Steel Disruption:
-        rarity: 3
-      MP7 | Ocean Foam:
-        rarity: 3
-      P90 | Virus:
-        rarity: 3
-      PP-Bizon | Blue Streak:
-        rarity: 3
-      Desert Eagle | Crimson Web:
-        rarity: 3
-      Negev | Bratatat:
-        rarity: 2
-      CZ75-Auto | Hexane:
-        rarity: 2
-      SSG 08 | Dark Water:
-        rarity: 2
-      XM1014 | Red Python:
-        rarity: 2
-      MAC-10 | Ultraviolet:
-        rarity: 2
-      USP-S | Blood Tiger:
-        rarity: 2
-  The eSports 2013 Winter Collection:
-    items:
-      M4A4 | X-Ray:
-        rarity: 5
-      FAMAS | Afterimage:
-        rarity: 4
-      AWP | Electric Hive:
-        rarity: 4
-      Desert Eagle | Cobalt Disruption:
-        rarity: 4
-      AK-47 | Blue Laminate:
-        rarity: 3
-      P90 | Blind Spot:
-        rarity: 3
-      P250 | Steel Disruption:
-        rarity: 2
-      Nova | Ghost Camo:
-        rarity: 2
-      PP-Bizon | Water Sigil:
-        rarity: 2
-      Five-SeveN | Nightshade:
-        rarity: 2
-      G3SG1 | Azure Zebra:
-        rarity: 2
-      Galil AR | Blue Titanium:
-        rarity: 2
-  The eSports 2013 Collection:
-    items:
-      P90 | Death by Kitty:
-        rarity: 5
-      AK-47 | Red Laminate:
-        rarity: 4
-      AWP | BOOM:
-        rarity: 4
-      Sawed-Off | Orange DDPAT:
-        rarity: 3
-      P250 | Splash:
-        rarity: 3
-      Galil AR | Orange DDPAT:
-        rarity: 3
-      FAMAS | Doomkitty:
-        rarity: 2
-      M4A4 | Faded Zebra:
-        rarity: 2
-      MAG-7 | Memento:
-        rarity: 2
-  The Dust 2 Collection:
-    items:
-      R8 Revolver | Amber Fade:
-        rarity: 4
-      P2000 | Amber Fade:
-        rarity: 3
-      M4A1-S | VariCamo:
-        rarity: 2
-      SG 553 | Damascus Steel:
-        rarity: 2
-      PP-Bizon | Brass:
-        rarity: 2
-      Sawed-Off | Snake Camo:
-        rarity: 1
-      AK-47 | Safari Mesh:
-        rarity: 1
-      MAC-10 | Palm:
-        rarity: 1
-      Tec-9 | VariCamo:
-        rarity: 1
-      Five-SeveN | Orange Peel:
-        rarity: 1
-      G3SG1 | Desert Storm:
-        rarity: 0
-      MP9 | Sand Dashed:
-        rarity: 0
-      P90 | Sand Spray:
-        rarity: 0
-      SCAR-20 | Sand Mesh:
-        rarity: 0
-      P250 | Sand Dune:
-        rarity: 0
-      Nova | Predator:
-        rarity: 0
-  The Dust Collection:
-    items:
-      Glock-18 | Brass:
-        rarity: 3
-      Desert Eagle | Blaze:
-        rarity: 3
-      P2000 | Scorpion:
-        rarity: 3
-      AWP | Snake Camo:
-        rarity: 2
-      AUG | Copperhead:
-        rarity: 2
-      Sawed-Off | Copper:
-        rarity: 2
-      SCAR-20 | Palm:
-        rarity: 1
-      M4A4 | Desert Storm:
-        rarity: 1
-      AK-47 | Predator:
-        rarity: 1
-  The Danger Zone Collection:
-    items:
-      AK-47 | Asiimov:
-        rarity: 5
-      AWP | Neo-Noir:
-        rarity: 5
-      MP5-SD | Phosphor:
-        rarity: 4
-      UMP-45 | Momentum:
-        rarity: 4
-      Desert Eagle | Mecha Industries:
-        rarity: 4
-      USP-S | Flashback:
-        rarity: 3
-      G3SG1 | Scavenger:
-        rarity: 3
-      MAC-10 | Pipe Down:
-        rarity: 3
-      Galil AR | Signal:
-        rarity: 3
-      P250 | Nevermore:
-        rarity: 3
-      SG 553 | Danger Close:
-        rarity: 2
-      Nova | Wood Fired:
-        rarity: 2
-      Glock-18 | Oxide Blaze:
-        rarity: 2
-      MP9 | Modest Threat:
-        rarity: 2
-      M4A4 | Magnesium:
-        rarity: 2
-      Sawed-Off | Black Sand:
-        rarity: 2
-      Tec-9 | Fubar:
+      PP-Bizon | Osiris:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      SSG 08 | Abyss:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      UMP-45 | Labyrinth:
+        max_float: 0.4
+        min_float: 0
         rarity: 2
   The CS20 Collection:
     items:
-      FAMAS | Commemoration:
-        rarity: 5
-      AWP | Wildfire:
-        rarity: 5
       AUG | Death by Puppy:
+        max_float: 0.4
+        min_float: 0
         rarity: 4
-      MP9 | Hydra:
-        rarity: 4
-      P90 | Nostalgia:
-        rarity: 4
-      MP5-SD | Agent:
-        rarity: 3
-      P250 | Inferno:
-        rarity: 3
-      M249 | Aztec:
-        rarity: 3
-      UMP-45 | Plastique:
-        rarity: 3
+      AWP | Wildfire:
+        max_float: 0.7
+        min_float: 0.01
+        rarity: 5
+      Dual Berettas | Elite 1.6:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      FAMAS | Commemoration:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      FAMAS | Decommissioned:
+        max_float: 1
+        min_float: 0
+        rarity: 2
       Five-SeveN | Buddy:
+        max_float: 0.55
+        min_float: 0
         rarity: 3
       Glock-18 | Sacrifice:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      FAMAS | Decommissioned:
-        rarity: 2
-      Tec-9 | Flash Out:
-        rarity: 2
-      SCAR-20 | Assault:
-        rarity: 2
+      M249 | Aztec:
+        max_float: 0.75
+        min_float: 0
+        rarity: 3
       MAC-10 | Classic Crate:
-        rarity: 2
-      Dual Berettas | Elite 1.6:
+        max_float: 1
+        min_float: 0
         rarity: 2
       MAG-7 | Popdog:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      MP5-SD | Agent:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MP9 | Hydra:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      P250 | Inferno:
+        max_float: 0.68
+        min_float: 0
+        rarity: 3
+      P90 | Nostalgia:
+        max_float: 0.57
+        min_float: 0
+        rarity: 4
+      SCAR-20 | Assault:
+        max_float: 0.62
+        min_float: 0
+        rarity: 2
+      Tec-9 | Flash Out:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      UMP-45 | Plastique:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+  The Cache Collection:
+    items:
+      AUG | Radiation Hazard:
+        max_float: 0.55
+        min_float: 0
+        rarity: 1
+      FAMAS | Styx:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Hot Shot:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      Galil AR | Cerberus:
+        max_float: 0.9
+        min_float: 0
+        rarity: 3
+      Glock-18 | Reactor:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      MAC-10 | Nuclear Garden:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      MP9 | Setting Sun:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Negev | Nuclear Waste:
+        max_float: 0.4
+        min_float: 0
+        rarity: 1
+      P250 | Contamination:
+        max_float: 0.83
+        min_float: 0
+        rarity: 1
+      PP-Bizon | Chemical Green:
+        max_float: 0.9
+        min_float: 0
+        rarity: 1
+      SG 553 | Fallout Warning:
+        max_float: 0.8
+        min_float: 0
+        rarity: 1
+      Tec-9 | Toxic:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      XM1014 | Bone Machine:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+  The Canals Collection:
+    items:
+      AK-47 | Baroque Purple:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      AUG | Navy Murano:
+        max_float: 1
+        min_float: 0
+        rarity: 0
+      AWP | The Prince:
+        max_float: 0.6
+        min_float: 0
+        rarity: 5
+      CZ75-Auto | Indigo:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Dual Berettas | Emerald:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      G3SG1 | Violet Murano:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MAC-10 | Red Filigree:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      MAG-7 | Cinquedea:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      MP9 | Stained Glass:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      Negev | Boroque Sand:
+        max_float: 1
+        min_float: 0
+        rarity: 0
+      Nova | Baroque Orange:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      P250 | Dark Filigree:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      P90 | Baroque Red:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Canal Spray:
+        max_float: 0.6
+        min_float: 0.06
+        rarity: 0
+      SCAR-20 | Stone Mosaico:
+        max_float: 0.5
+        min_float: 0.06
+        rarity: 0
+      SG 553 | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 1
+      SSG 08 | Orange Filigree:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Tec-9 | Orange Murano:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+  The Chop Shop Collection:
+    items:
+      CZ75-Auto | Army Sheen:
+        max_float: 0.3
+        min_float: 0
+        rarity: 0
+      CZ75-Auto | Emerald:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      Desert Eagle | Night:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Dual Berettas | Duelist:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Nitro:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      Galil AR | Urban Rubble:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      Glock-18 | Twilight Galaxy:
+        max_float: 0.2
+        min_float: 0
+        rarity: 4
+      M249 | Impact Drill:
+        max_float: 1
+        min_float: 0
+        rarity: 0
+      M4A1-S | Hot Rod:
+        max_float: 0.08
+        min_float: 0
+        rarity: 4
+      MAC-10 | Fade:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      MAG-7 | Seabird:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      MP7 | Full Stop:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      P250 | Whiteout:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      SCAR-20 | Army Sheen:
+        max_float: 0.3
+        min_float: 0
+        rarity: 0
+      SG 553 | Bulldozer:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      USP-S | Para Green:
+        max_float: 0.8
+        min_float: 0
+        rarity: 1
+  The Chroma 2 Collection:
+    items:
+      AK-47 | Elite Build:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      AWP | Worm God:
+        max_float: 0.45
+        min_float: 0
+        rarity: 3
+      CZ75-Auto | Pole Position:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      Desert Eagle | Bronze Deco:
+        max_float: 0.46
+        min_float: 0
+        rarity: 2
+      FAMAS | Djinn:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      Five-SeveN | Monkey Business:
+        max_float: 0.9
+        min_float: 0.1
+        rarity: 4
+      Galil AR | Eco:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      M4A1-S | Hyper Beast:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      MAC-10 | Neon Rider:
+        max_float: 0.8
+        min_float: 0
+        rarity: 5
+      MAG-7 | Heat:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MP7 | Armor Core:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Negev | Man-o'-war:
+        max_float: 0.2
+        min_float: 0.1
+        rarity: 2
+      P250 | Valence:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Origami:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      UMP-45 | Grand Prix:
+        max_float: 0.35
+        min_float: 0.25
+        rarity: 3
+  The Chroma 3 Collection:
+    items:
+      AUG | Fleet Flock:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      CZ75-Auto | Red Astor:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Dual Berettas | Ventilators:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      G3SG1 | Orange Crash:
+        max_float: 0.52
+        min_float: 0
+        rarity: 2
+      Galil AR | Firefight:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      M249 | Spectre:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      M4A1-S | Chantico's Fire:
+        max_float: 0.99
+        min_float: 0
+        rarity: 5
+      MP9 | Bioleak:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      P2000 | Oceanic:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      P250 | Asiimov:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 4
+      PP-Bizon | Judgement of Anubis:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      SG 553 | Atlas:
+        max_float: 0.81
+        min_float: 0
+        rarity: 2
+      SSG 08 | Ghost Crusader:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Sawed-Off | Fubar:
+        max_float: 1
+        min_float: 0.14
+        rarity: 2
+      Tec-9 | Re-Entry:
+        max_float: 0.43
+        min_float: 0
+        rarity: 3
+      UMP-45 | Primal Saber:
+        max_float: 0.77
+        min_float: 0
+        rarity: 4
+      XM1014 | Black Tie:
+        max_float: 0.75
+        min_float: 0
+        rarity: 3
+  The Chroma Collection:
+    items:
+      AK-47 | Cartel:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      AWP | Man-o'-war:
+        max_float: 0.2
+        min_float: 0.1
+        rarity: 5
+      Desert Eagle | Naga:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Dual Berettas | Urban Shock:
+        max_float: 0.47
+        min_float: 0
+        rarity: 3
+      Galil AR | Chatterbox:
+        max_float: 0.85
+        min_float: 0.35
+        rarity: 5
+      Glock-18 | Catacombs:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      M249 | System Lock:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      "M4A4 | \u9F8D\u738B (Dragon King)":
+        max_float: 0.75
+        min_float: 0
+        rarity: 4
+      MAC-10 | Malachite:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      MP9 | Deadly Poison:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      P250 | Muertos:
+        max_float: 0.6
+        min_float: 0
+        rarity: 4
+      SCAR-20 | Grotto:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Serenity:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      XM1014 | Quicksilver:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+  The Clutch Collection:
+    items:
+      AUG | Stymphalian:
+        max_float: 0.63
+        min_float: 0
+        rarity: 4
+      AWP | Mortis:
+        max_float: 0.64
+        min_float: 0
+        rarity: 4
+      Five-SeveN | Flame Test:
+        max_float: 0.65
+        min_float: 0
+        rarity: 2
+      Glock-18 | Moonrise:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      M4A4 | Neo-Noir:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      MAG-7 | SWAG-7:
+        max_float: 0.92
+        min_float: 0
+        rarity: 3
+      MP7 | Bloodsport:
+        max_float: 0.65
+        min_float: 0
+        rarity: 5
+      MP9 | Black Sand:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Negev | Lionfish:
+        max_float: 0.55
+        min_float: 0
+        rarity: 3
+      Nova | Wild Six:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      P2000 | Urban Hazard:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      PP-Bizon | Night Riot:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Grip:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      SG 553 | Aloha:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      UMP-45 | Arctic Wolf:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      USP-S | Cortex:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      XM1014 | Oxide Blaze:
+        max_float: 0.85
+        min_float: 0
         rarity: 2
   The Cobblestone Collection:
     items:
       AWP | Dragon Lore:
+        max_float: 0.7
+        min_float: 0
         rarity: 5
-      M4A1-S | Knight:
-        rarity: 4
-      Desert Eagle | Hand Cannon:
-        rarity: 3
       CZ75-Auto | Chalice:
+        max_float: 0.1
+        min_float: 0
         rarity: 3
-      P2000 | Chainmail:
-        rarity: 2
-      MP9 | Dark Age:
-        rarity: 2
-      USP-S | Royal Blue:
-        rarity: 1
-      Sawed-Off | Rust Coat:
-        rarity: 1
-      Nova | Green Apple:
-        rarity: 1
+      Desert Eagle | Hand Cannon:
+        max_float: 0.7
+        min_float: 0.01
+        rarity: 3
+      Dual Berettas | Briar:
+        max_float: 0.22
+        min_float: 0
+        rarity: 0
+      M4A1-S | Knight:
+        max_float: 0.1
+        min_float: 0
+        rarity: 4
+      MAC-10 | Indigo:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
       MAG-7 | Silver:
+        max_float: 0.08
+        min_float: 0
         rarity: 1
+      MP9 | Dark Age:
+        max_float: 0.22
+        min_float: 0
+        rarity: 2
+      Nova | Green Apple:
+        max_float: 0.3
+        min_float: 0
+        rarity: 1
+      P2000 | Chainmail:
+        max_float: 0.22
+        min_float: 0
+        rarity: 2
       P90 | Storm:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
       SCAR-20 | Storm:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
+      Sawed-Off | Rust Coat:
+        max_float: 1
+        min_float: 0
+        rarity: 1
       UMP-45 | Indigo:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
-      Dual Berettas | Briar:
-        rarity: 0
-      MAC-10 | Indigo:
-        rarity: 0
-  The Clutch Collection:
+      USP-S | Royal Blue:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+  The Danger Zone Collection:
     items:
-      M4A4 | Neo-Noir:
+      AK-47 | Asiimov:
+        max_float: 0.7
+        min_float: 0.05
         rarity: 5
-      MP7 | Bloodsport:
+      AWP | Neo-Noir:
+        max_float: 0.5
+        min_float: 0
         rarity: 5
-      USP-S | Cortex:
+      Desert Eagle | Mecha Industries:
+        max_float: 0.6
+        min_float: 0
         rarity: 4
-      AUG | Stymphalian:
+      G3SG1 | Scavenger:
+        max_float: 0.65
+        min_float: 0
+        rarity: 3
+      Galil AR | Signal:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      Glock-18 | Oxide Blaze:
+        max_float: 0.85
+        min_float: 0
+        rarity: 2
+      M4A4 | Magnesium:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      MAC-10 | Pipe Down:
+        max_float: 0.9
+        min_float: 0
+        rarity: 3
+      MP5-SD | Phosphor:
+        max_float: 0.8
+        min_float: 0
         rarity: 4
-      AWP | Mortis:
+      MP9 | Modest Threat:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      Nova | Wood Fired:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      P250 | Nevermore:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      SG 553 | Danger Close:
+        max_float: 0.8
+        min_float: 0.02
+        rarity: 2
+      Sawed-Off | Black Sand:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Tec-9 | Fubar:
+        max_float: 1
+        min_float: 0.14
+        rarity: 2
+      UMP-45 | Momentum:
+        max_float: 1
+        min_float: 0.05
         rarity: 4
-      UMP-45 | Arctic Wolf:
+      USP-S | Flashback:
+        max_float: 0.5
+        min_float: 0
         rarity: 3
-      Glock-18 | Moonrise:
-        rarity: 3
-      Nova | Wild Six:
-        rarity: 3
-      MAG-7 | SWAG-7:
-        rarity: 3
-      Negev | Lionfish:
-        rarity: 3
-      MP9 | Black Sand:
-        rarity: 2
-      PP-Bizon | Night Riot:
-        rarity: 2
-      Five-SeveN | Flame Test:
-        rarity: 2
-      R8 Revolver | Grip:
-        rarity: 2
-      P2000 | Urban Hazard:
-        rarity: 2
-      SG 553 | Aloha:
-        rarity: 2
-      XM1014 | Oxide Blaze:
-        rarity: 2
-  The Chroma 3 Collection:
+  The Dust 2 Collection:
     items:
-      M4A1-S | Chantico's Fire:
+      AK-47 | Safari Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Five-SeveN | Orange Peel:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      G3SG1 | Desert Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A1-S | VariCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      MAC-10 | Palm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MP9 | Sand Dashed:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Nova | Predator:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P2000 | Amber Fade:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      P250 | Sand Dune:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P90 | Sand Spray:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      PP-Bizon | Brass:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Amber Fade:
+        max_float: 0.4
+        min_float: 0
+        rarity: 4
+      SCAR-20 | Sand Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SG 553 | Damascus Steel:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Snake Camo:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Tec-9 | VariCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+  The Dust Collection:
+    items:
+      AK-47 | Predator:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      AUG | Copperhead:
+        max_float: 0.38
+        min_float: 0.12
+        rarity: 2
+      AWP | Snake Camo:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      Desert Eagle | Blaze:
+        max_float: 0.08
+        min_float: 0
+        rarity: 3
+      Glock-18 | Brass:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      M4A4 | Desert Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      P2000 | Scorpion:
+        max_float: 0.08
+        min_float: 0
+        rarity: 3
+      SCAR-20 | Palm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Sawed-Off | Copper:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+  The Falchion Collection:
+    items:
+      AK-47 | Aquamarine Revenge:
+        max_float: 1
+        min_float: 0
         rarity: 5
-      PP-Bizon | Judgement of Anubis:
+      AWP | Hyper Beast:
+        max_float: 1
+        min_float: 0
         rarity: 5
-      P250 | Asiimov:
+      CZ75-Auto | Yellow Jacket:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      UMP-45 | Primal Saber:
+      FAMAS | Neural Net:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      Galil AR | Rocket Pop:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Glock-18 | Bunsen Burner:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      M4A4 | Evil Daimyo:
+        max_float: 0.52
+        min_float: 0
+        rarity: 3
+      MP7 | Nemesis:
+        max_float: 0.32
+        min_float: 0
         rarity: 4
-      AUG | Fleet Flock:
+      MP9 | Ruby Poison Dart:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      Negev | Loudmouth:
+        max_float: 0.65
+        min_float: 0.14
+        rarity: 3
+      Nova | Ranger:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      P2000 | Handgun:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      P90 | Elite Build:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      SG 553 | Cyrex:
+        max_float: 0.55
+        min_float: 0
         rarity: 4
-      SSG 08 | Ghost Crusader:
-        rarity: 3
-      Tec-9 | Re-Entry:
-        rarity: 3
-      XM1014 | Black Tie:
-        rarity: 3
-      Galil AR | Firefight:
-        rarity: 3
-      CZ75-Auto | Red Astor:
-        rarity: 3
-      SG 553 | Atlas:
+      UMP-45 | Riot:
+        max_float: 0.7
+        min_float: 0
         rarity: 2
-      G3SG1 | Orange Crash:
+      USP-S | Torque:
+        max_float: 0.46
+        min_float: 0
         rarity: 2
-      MP9 | Bioleak:
-        rarity: 2
-      M249 | Spectre:
-        rarity: 2
-      Dual Berettas | Ventilators:
-        rarity: 2
-      P2000 | Oceanic:
-        rarity: 2
-      Sawed-Off | Fubar:
-        rarity: 2
-  The Chroma 2 Collection:
+  The Gamma 2 Collection:
     items:
-      M4A1-S | Hyper Beast:
+      AK-47 | Neon Revolution:
+        max_float: 0.8
+        min_float: 0
         rarity: 5
-      MAC-10 | Neon Rider:
+      AUG | Syd Mead:
+        max_float: 0.8
+        min_float: 0
+        rarity: 4
+      CZ75-Auto | Imprint:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Desert Eagle | Directive:
+        max_float: 1
+        min_float: 0.06
+        rarity: 3
+      FAMAS | Roll Cage:
+        max_float: 1
+        min_float: 0
         rarity: 5
-      Five-SeveN | Monkey Business:
+      Five-SeveN | Scumbria:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      G3SG1 | Ventilator:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      Glock-18 | Weasel:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MAG-7 | Petroglyph:
+        max_float: 0.44
+        min_float: 0
+        rarity: 3
+      MP9 | Airlock:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      Galil AR | Eco:
+      Negev | Dazzle:
+        max_float: 0.65
+        min_float: 0.1
+        rarity: 2
+      P90 | Grim:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      SCAR-20 | Powercore:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      SG 553 | Triarch:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Tec-9 | Fuel Injector:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      FAMAS | Djinn:
-        rarity: 4
-      CZ75-Auto | Pole Position:
-        rarity: 3
-      MAG-7 | Heat:
-        rarity: 3
-      UMP-45 | Grand Prix:
-        rarity: 3
-      AWP | Worm God:
-        rarity: 3
-      Sawed-Off | Origami:
+      UMP-45 | Briefing:
+        max_float: 0.8
+        min_float: 0
         rarity: 2
-      MP7 | Armor Core:
+      XM1014 | Slipstream:
+        max_float: 0.5
+        min_float: 0
         rarity: 2
-      Desert Eagle | Bronze Deco:
-        rarity: 2
-      Negev | Man-o'-war:
-        rarity: 2
-      P250 | Valence:
-        rarity: 2
-      AK-47 | Elite Build:
-        rarity: 2
-  The Chroma Collection:
+  The Gamma Collection:
     items:
-      Galil AR | Chatterbox:
+      AUG | Aristocrat:
+        max_float: 0.66
+        min_float: 0
+        rarity: 3
+      AWP | Phobos:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Violent Daimyo:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      Glock-18 | Wasteland Rebel:
+        max_float: 0.54
+        min_float: 0
         rarity: 5
-      AWP | Man-o'-war:
+      M4A1-S | Mecha Industries:
+        max_float: 0.6
+        min_float: 0
         rarity: 5
-      P250 | Muertos:
+      M4A4 | Desolate Space:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      M4A4 | 龍王 (Dragon King):
+      MAC-10 | Carnivore:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Nova | Exo:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      P2000 | Imperial Dragon:
+        max_float: 0.63
+        min_float: 0
         rarity: 4
-      AK-47 | Cartel:
+      P250 | Iron Clad:
+        max_float: 0.8
+        min_float: 0.05
+        rarity: 2
+      P90 | Chopper:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      PP-Bizon | Harvester:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Reboot:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      SCAR-20 | Bloodsport:
+        max_float: 0.65
+        min_float: 0
         rarity: 4
-      MAC-10 | Malachite:
+      SG 553 | Aerial:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Limelight:
+        max_float: 1
+        min_float: 0
         rarity: 3
-      Dual Berettas | Urban Shock:
-        rarity: 3
-      Desert Eagle | Naga:
-        rarity: 3
-      Sawed-Off | Serenity:
-        rarity: 3
-      Glock-18 | Catacombs:
+      Tec-9 | Ice Cap:
+        max_float: 0.5
+        min_float: 0
         rarity: 2
-      MP9 | Deadly Poison:
-        rarity: 2
-      SCAR-20 | Grotto:
-        rarity: 2
-      M249 | System Lock:
-        rarity: 2
-      XM1014 | Quicksilver:
-        rarity: 2
-  The Chop Shop Collection:
+  The Glove Collection:
     items:
-      Glock-18 | Twilight Galaxy:
-        rarity: 4
-      M4A1-S | Hot Rod:
-        rarity: 4
-      SG 553 | Bulldozer:
+      CZ75-Auto | Polymer:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Dual Berettas | Royal Consorts:
+        max_float: 1
+        min_float: 0
         rarity: 3
-      Dual Berettas | Duelist:
+      FAMAS | Mecha Industries:
+        max_float: 0.6
+        min_float: 0
+        rarity: 4
+      G3SG1 | Stinger:
+        max_float: 0.7
+        min_float: 0
         rarity: 3
-      P250 | Whiteout:
+      Galil AR | Black Sand:
+        max_float: 0.8
+        min_float: 0
         rarity: 2
-      MP7 | Full Stop:
+      Glock-18 | Ironwork:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      CZ75-Auto | Emerald:
-        rarity: 2
-      MAC-10 | Fade:
-        rarity: 2
-      Five-SeveN | Nitro:
-        rarity: 2
-      Galil AR | Urban Rubble:
-        rarity: 1
-      USP-S | Para Green:
-        rarity: 1
-      Desert Eagle | Night:
-        rarity: 1
-      M249 | Impact Drill:
-        rarity: 0
-      MAG-7 | Seabird:
-        rarity: 0
-      CZ75-Auto | Army Sheen:
-        rarity: 0
-      SCAR-20 | Army Sheen:
-        rarity: 0
-  The Canals Collection:
-    items:
-      AWP | The Prince:
+      M4A1-S | Flashback:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      M4A4 | Buzz Kill:
+        max_float: 0.7
+        min_float: 0
         rarity: 5
-      MAG-7 | Cinquedea:
+      MAG-7 | Sonar:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      MP7 | Cirrus:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      MP9 | Sand Scale:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      Nova | Gila:
+        max_float: 0.3
+        min_float: 0
+        rarity: 3
+      P2000 | Turf:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      P90 | Shallow Grave:
+        max_float: 0.75
+        min_float: 0
         rarity: 4
-      MAC-10 | Red Filigree:
-        rarity: 3
-      MP9 | Stained Glass:
-        rarity: 3
-      Nova | Baroque Orange:
-        rarity: 3
-      G3SG1 | Violet Murano:
-        rarity: 2
-      P90 | Baroque Red:
-        rarity: 2
-      Dual Berettas | Emerald:
-        rarity: 2
-      SSG 08 | Orange Filigree:
-        rarity: 2
-      SG 553 | Candy Apple:
-        rarity: 1
-      AK-47 | Baroque Purple:
-        rarity: 1
-      Tec-9 | Orange Murano:
-        rarity: 1
-      P250 | Dark Filigree:
-        rarity: 1
-      SCAR-20 | Stone Mosaico:
-        rarity: 0
-      AUG | Navy Murano:
-        rarity: 0
-      CZ75-Auto | Indigo:
-        rarity: 0
-      Negev | Boroque Sand:
-        rarity: 0
-      R8 Revolver | Canal Spray:
-        rarity: 0
-  The Cache Collection:
-    items:
-      Galil AR | Cerberus:
-        rarity: 3
-      FAMAS | Styx:
-        rarity: 3
-      Glock-18 | Reactor:
-        rarity: 2
-      MP9 | Setting Sun:
-        rarity: 2
-      Tec-9 | Toxic:
-        rarity: 2
-      MAC-10 | Nuclear Garden:
-        rarity: 2
-      XM1014 | Bone Machine:
-        rarity: 2
-      AUG | Radiation Hazard:
-        rarity: 1
-      SG 553 | Fallout Warning:
-        rarity: 1
-      Negev | Nuclear Waste:
-        rarity: 1
-      PP-Bizon | Chemical Green:
-        rarity: 1
-      Five-SeveN | Hot Shot:
-        rarity: 1
-      P250 | Contamination:
-        rarity: 1
-  The Breakout Collection:
-    items:
-      M4A1-S | Cyrex:
+      SSG 08 | Dragonfire:
+        max_float: 0.5
+        min_float: 0
         rarity: 5
-      P90 | Asiimov:
+      Sawed-Off | Wasteland Princess:
+        max_float: 0.7
+        min_float: 0
+        rarity: 4
+      USP-S | Cyrex:
+        max_float: 0.55
+        min_float: 0
+        rarity: 3
+  The Gods and Monsters Collection:
+    items:
+      AUG | Daedalus:
+        max_float: 0.55
+        min_float: 0
+        rarity: 0
+      AWP | Medusa:
+        max_float: 1
+        min_float: 0
         rarity: 5
-      Desert Eagle | Conspiracy:
+      AWP | Sun in Leo:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      Dual Berettas | Moon in Libra:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      G3SG1 | Chronos:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      M249 | Shipping Forecast:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      M4A1-S | Icarus Fell:
+        max_float: 0.1
+        min_float: 0
+        rarity: 3
+      M4A4 | Poseidon:
+        max_float: 0.33
+        min_float: 0
         rarity: 4
-      Five-SeveN | Fowl Play:
-        rarity: 4
-      Glock-18 | Water Elemental:
-        rarity: 4
-      CZ75-Auto | Tigris:
-        rarity: 3
-      Nova | Koi:
-        rarity: 3
-      PP-Bizon | Osiris:
-        rarity: 3
-      P250 | Supernova:
-        rarity: 3
-      UMP-45 | Labyrinth:
+      MP7 | Asterion:
+        max_float: 0.55
+        min_float: 0
+        rarity: 0
+      MP9 | Pandora's Box:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 2
-      Negev | Desert-Strike:
+      Nova | Moon in Libra:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      P2000 | Pathfinder:
+        max_float: 0.35
+        min_float: 0
+        rarity: 1
+      Tec-9 | Hades:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      UMP-45 | Minotaur's Labyrinth:
+        max_float: 0.39
+        min_float: 0
         rarity: 2
-      SSG 08 | Abyss:
-        rarity: 2
-      MP7 | Urban Hazard:
-        rarity: 2
-      P2000 | Ivory:
-        rarity: 2
-  The Bravo Collection:
+  The Horizon Collection:
     items:
-      AK-47 | Fire Serpent:
+      AK-47 | Neon Rider:
+        max_float: 0.8
+        min_float: 0
         rarity: 5
-      Desert Eagle | Golden Koi:
+      AUG | Amber Slipstream:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      AWP | PAW:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      CZ75-Auto | Eco:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Desert Eagle | Code Red:
+        max_float: 1
+        min_float: 0
         rarity: 5
-      P2000 | Ocean Foam:
+      Dual Berettas | Shred:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      FAMAS | Eye of Athena:
+        max_float: 0.7
+        min_float: 0
         rarity: 4
-      P90 | Emerald Dragon:
+      G3SG1 | High Seas:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      Glock-18 | Warhawk:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      M4A1-S | Nightmare:
+        max_float: 1
+        min_float: 0
         rarity: 4
-      AWP | Graphite:
+      MP7 | Powercore:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      MP9 | Capillary:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 2
+      Nova | Toy Soldier:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      P90 | Traction:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Survivalist:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Devourer:
+        max_float: 0.8
+        min_float: 0
         rarity: 4
-      MAC-10 | Graven:
-        rarity: 3
-      M4A1-S | Bright Water:
-        rarity: 3
-      M4A4 | Zirka:
-        rarity: 3
-      USP-S | Overgrowth:
-        rarity: 3
-      G3SG1 | Demeter:
+      Tec-9 | Snek-9:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      UMP-45 | Bone Pile:
-        rarity: 2
-      Nova | Tempest:
-        rarity: 2
-      SG 553 | Wave Spray:
-        rarity: 2
-      Dual Berettas | Black Limba:
-        rarity: 2
-      Galil AR | Shattered:
-        rarity: 2
-  The Bank Collection:
+  The Huntsman Collection:
     items:
-      P250 | Franklin:
-        rarity: 4
-      AK-47 | Emerald Pinstripe:
-        rarity: 3
-      Galil AR | Tuxedo:
-        rarity: 2
-      CZ75-Auto | Tuxedo:
-        rarity: 2
-      Desert Eagle | Meteorite:
-        rarity: 2
-      Nova | Caged Steel:
-        rarity: 1
-      G3SG1 | Green Apple:
-        rarity: 1
-      MAC-10 | Silver:
-        rarity: 1
-      Glock-18 | Death Rattle:
-        rarity: 1
-      UMP-45 | Carbon Fiber:
-        rarity: 1
-      Sawed-Off | Forest DDPAT:
-        rarity: 0
-      R8 Revolver | Bone Mask:
-        rarity: 0
-      MP7 | Forest DDPAT:
-        rarity: 0
-      SG 553 | Army Sheen:
-        rarity: 0
-      Tec-9 | Urban DDPAT:
-        rarity: 0
-      Negev | Army Sheen:
-        rarity: 0
-  The Baggage Collection:
-    items:
-      AK-47 | Jet Set:
-        rarity: 4
-      Desert Eagle | Pilot:
-        rarity: 3
-      AK-47 | First Class:
-        rarity: 3
-      XM1014 | Red Leather:
-        rarity: 2
-      Sawed-Off | First Class:
-        rarity: 2
-      USP-S | Business Class:
-        rarity: 2
-      MAC-10 | Commuter:
-        rarity: 1
-      P2000 | Coach Class:
-        rarity: 1
-      P90 | Leather:
-        rarity: 1
-      SG 553 | Traveler:
-        rarity: 1
-      MP9 | Green Plaid:
-        rarity: 0
-      CZ75-Auto | Green Plaid:
-        rarity: 0
-      MP7 | Olive Plaid:
-        rarity: 0
-      G3SG1 | Contractor:
-        rarity: 0
-      SSG 08 | Sand Dune:
-        rarity: 0
-  The Aztec Collection:
-    items:
-      Tec-9 | Ossified:
-        rarity: 2
-      M4A4 | Jungle Tiger:
-        rarity: 1
-      AK-47 | Jungle Spray:
-        rarity: 1
-      Nova | Forest Leaves:
-        rarity: 0
-      Five-SeveN | Jungle:
-        rarity: 0
-      SSG 08 | Lichen Dashed:
-        rarity: 0
-  The Assault Collection:
-    items:
-      MP9 | Bulldozer:
-        rarity: 3
-      Glock-18 | Fade:
-        rarity: 3
-      AUG | Hot Rod:
-        rarity: 2
-      Negev | Anodized Navy:
-        rarity: 2
-      Five-SeveN | Candy Apple:
-        rarity: 1
-      UMP-45 | Caramel:
-        rarity: 0
-      SG 553 | Tornado:
-        rarity: 0
-  The Arms Deal 3 Collection:
-    items:
-      CZ75-Auto | Victoria:
+      AK-47 | Vulcan:
+        max_float: 0.9
+        min_float: 0
         rarity: 5
-      CZ75-Auto | The Fuschia Is Now:
+      AUG | Torque:
+        max_float: 0.46
+        min_float: 0
+        rarity: 3
+      CZ75-Auto | Poison Dart:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      CZ75-Auto | Twist:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Dual Berettas | Retribution:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      Galil AR | Kami:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      M4A1-S | Atomic Alloy:
+        max_float: 0.9
+        min_float: 0
         rarity: 4
-      P250 | Undertow:
-        rarity: 4
-      Desert Eagle | Heirloom:
-        rarity: 3
-      Five-SeveN | Copper Galaxy:
-        rarity: 3
-      CZ75-Auto | Tread Plate:
-        rarity: 3
-      Tec-9 | Titanium Bit:
-        rarity: 3
-      Glock-18 | Blue Fissure:
-        rarity: 2
-      P2000 | Red FragCam:
-        rarity: 2
-      CZ75-Auto | Crimson Web:
-        rarity: 2
-      USP-S | Stainless:
-        rarity: 2
-      Dual Berettas | Panther:
-        rarity: 2
-  The Arms Deal 2 Collection:
-    items:
-      SSG 08 | Blood in the Water:
+      M4A4 | Desert-Strike:
+        max_float: 0.5
+        min_float: 0
         rarity: 5
-      P90 | Cold Blooded:
+      M4A4 | Howl:
+        max_float: 0.4
+        min_float: 0
+        rarity: 7
+      MAC-10 | Curse:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      MAC-10 | Tatter:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      P2000 | Pulse:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      P90 | Desert Warfare:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      P90 | Module:
+        max_float: 0.35
+        min_float: 0
+        rarity: 2
+      PP-Bizon | Antique:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      SCAR-20 | Cyrex:
+        max_float: 0.55
+        min_float: 0
         rarity: 4
-      USP-S | Serum:
+      SSG 08 | Slashed:
+        max_float: 0.8
+        min_float: 0.15
+        rarity: 2
+      Tec-9 | Isaac:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      USP-S | Caiman:
+        max_float: 0.4
+        min_float: 0
         rarity: 4
-      Dual Berettas | Hemoglobin:
+      USP-S | Orion:
+        max_float: 0.5
+        min_float: 0
+        rarity: 4
+      XM1014 | Heaven Guard:
+        max_float: 0.5
+        min_float: 0.03
         rarity: 3
-      Nova | Graphite:
-        rarity: 3
-      MP9 | Hypnotic:
-        rarity: 3
-      Five-SeveN | Case Hardened:
-        rarity: 3
-      Tec-9 | Blue Titanium:
-        rarity: 2
-      M4A1-S | Blood Tiger:
-        rarity: 2
-      SCAR-20 | Crimson Web:
-        rarity: 2
-      P250 | Hive:
-        rarity: 2
-      FAMAS | Hexane:
-        rarity: 2
-  The Arms Deal Collection:
+  The Inferno Collection:
     items:
-      AWP | Lightning Strike:
+      Dual Berettas | Anodized Navy:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      M4A4 | Tornado:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MAG-7 | Sand Dune:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Nova | Walnut:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P250 | Gunsmoke:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Tec-9 | Brass:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+  The Italy Collection:
+    items:
+      AUG | Contractor:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      AWP | Pit Viper:
+        max_float: 0.5
+        min_float: 0.08
+        rarity: 3
+      Dual Berettas | Stained:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+      FAMAS | Colony:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Glock-18 | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      M4A1-S | Boreal Forest:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MP7 | Anodized Navy:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      Nova | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 1
+      Nova | Sand Dune:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P2000 | Granite Marbleized:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      PP-Bizon | Sand Dashed:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Sawed-Off | Full Stop:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Tec-9 | Groundwater:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      UMP-45 | Gunsmoke:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      XM1014 | CaliCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+  The Lake Collection:
+    items:
+      AUG | Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      AWP | Safari Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Desert Eagle | Mudder:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Dual Berettas | Cobalt Quartz:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      FAMAS | Cyanospatter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      G3SG1 | Jungle Dashed:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Galil AR | Sage Spray:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P250 | Boreal Forest:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P90 | Teardown:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      PP-Bizon | Night Ops:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      SG 553 | Anodized Navy:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      SG 553 | Waves Perforated:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      USP-S | Night Ops:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      XM1014 | Blue Spruce:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      XM1014 | Blue Steel:
+        max_float: 1
+        min_float: 0
+        rarity: 1
+  The Militia Collection:
+    items:
+      M4A4 | Modern Hunter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      MAC-10 | Tornado:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Nova | Blaze Orange:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      Nova | Modern Hunter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      P2000 | Grassland Leaves:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      P250 | Modern Hunter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      PP-Bizon | Forest Leaves:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      PP-Bizon | Modern Hunter:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      SCAR-20 | Splash Jam:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 4
+      XM1014 | Blaze Orange:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      XM1014 | Grassland:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+  The Mirage Collection:
+    items:
+      AUG | Colony:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Five-SeveN | Contractor:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      G3SG1 | Safari Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Galil AR | Hunting Blind:
+        max_float: 0.6
+        min_float: 0
+        rarity: 0
+      Glock-18 | Groundwater:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MAC-10 | Amber Fade:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      MAG-7 | Bulldozer:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      MP7 | Orange Peel:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MP9 | Hot Rod:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+      Negev | CaliCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      P250 | Bone Mask:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P90 | Scorched:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SG 553 | Gator Mesh:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      SSG 08 | Tropical Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      UMP-45 | Blaze:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+  The Norse Collection:
+    items:
+      "AUG | Flame J\xF6rmungandr":
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      AWP | Gungnir:
+        max_float: 0.6
+        min_float: 0
         rarity: 5
-      Desert Eagle | Hypnotic:
+      CZ75-Auto | Emerald Quartz:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      "Desert Eagle | Emerald J\xF6rmungandr":
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      Dual Berettas | Pyre:
+        max_float: 0.55
+        min_float: 0.06
+        rarity: 1
+      FAMAS | Night Borre:
+        max_float: 0.55
+        min_float: 0
+        rarity: 0
+      Galil AR | Tornado:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A1-S | Moss Quartz:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      MAC-10 | Copper Borre:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MAG-7 | Chainmail:
+        max_float: 0.22
+        min_float: 0
+        rarity: 1
+      MP7 | Scorched:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      "Negev | Mj\xF6lnir":
+        max_float: 0.6
+        min_float: 0
         rarity: 4
-      AK-47 | Case Hardened:
-        rarity: 4
-      Glock-18 | Dragon Tattoo:
+      "P90 | Astral J\xF6rmungandr":
+        max_float: 0.5
+        min_float: 0
         rarity: 3
-      USP-S | Dark Water:
-        rarity: 3
-      M4A1-S | Dark Water:
-        rarity: 3
-      AUG | Wings:
+      SCAR-20 | Brass:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      SG 553 | Ultraviolet:
+      SG 553 | Barricade:
+        max_float: 0.65
+        min_float: 0
+        rarity: 0
+      SSG 08 | Red Stone:
+        max_float: 0.5
+        min_float: 0.06
+        rarity: 0
+      USP-S | Pathfinder:
+        max_float: 0.35
+        min_float: 0
+        rarity: 1
+      XM1014 | Frost Borre:
+        max_float: 0.5
+        min_float: 0
         rarity: 2
-      MP7 | Skulls:
-        rarity: 2
-  The Alpha Collection:
+  The Nuke Collection:
     items:
-      FAMAS | Spitfire:
+      M4A4 | Radiation Hazard:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      MAG-7 | Irradiated Alert:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P250 | Nuclear Threat:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 3
-      SCAR-20 | Emerald:
+      P90 | Fallout Warning:
+        max_float: 0.8
+        min_float: 0
+        rarity: 1
+      PP-Bizon | Irradiated Alert:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Sawed-Off | Irradiated Alert:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Tec-9 | Nuclear Threat:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 3
-      MAG-7 | Hazard:
-        rarity: 2
-      PP-Bizon | Rust Coat:
-        rarity: 2
-      AUG | Anodized Navy:
-        rarity: 2
-      Glock-18 | Sand Dune:
+      UMP-45 | Fallout Warning:
+        max_float: 0.8
+        min_float: 0
         rarity: 1
-      P250 | Facets:
+      XM1014 | Fallout Warning:
+        max_float: 0.8
+        min_float: 0
         rarity: 1
-      Sawed-Off | Mosaico:
-        rarity: 1
-      SSG 08 | Mayan Dreams:
-        rarity: 1
-      Negev | Palm:
-        rarity: 1
-      MP9 | Dry Season:
-        rarity: 0
-      MP7 | Groundwater:
-        rarity: 0
-      Five-SeveN | Anodized Gunmetal:
-        rarity: 0
-      XM1014 | Jungle:
-        rarity: 0
-      Tec-9 | Tornado:
-        rarity: 0
-      M249 | Jungle DDPAT:
-        rarity: 0
-  The 2018 Nuke Collection:
+  The Office Collection:
     items:
-      M4A1-S | Control Panel:
-        rarity: 4
-      Tec-9 | Remote Control:
-        rarity: 4
-      AUG | Random Access:
-        rarity: 3
-      Glock-18 | Nuclear Garden:
-        rarity: 3
-      MAG-7 | Core Breach:
-        rarity: 3
-      AWP | Acheron:
-        rarity: 2
-      MP5-SD | Co-Processor:
-        rarity: 2
-      P250 | Exchanger:
-        rarity: 2
-      P90 | Facility Negative:
-        rarity: 2
-      MP7 | Motherboard:
+      FAMAS | Contrast Spray:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      G3SG1 | Arctic Camo:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      Galil AR | Cold Fusion:
+      Galil AR | Winter Forest:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      Negev | Bulkhead:
+      M249 | Blizzard Marbleized:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      M4A4 | Mainframe:
-        rarity: 1
-      PP-Bizon | Facility Sketch:
-        rarity: 0
-      P250 | Facility Draft:
-        rarity: 0
-      Five-SeveN | Coolant:
-        rarity: 0
-      UMP-45 | Facility Dark:
-        rarity: 0
-      Nova | Mandrel:
-        rarity: 0
-  The 2018 Inferno Collection:
+      MP7 | Whiteout:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      P2000 | Silver:
+        max_float: 0.08
+        min_float: 0
+        rarity: 2
+  The Operation Hydra Collection:
     items:
-      SG 553 | Integrale:
+      AK-47 | Orbit Mk01:
+        max_float: 0.55
+        min_float: 0
+        rarity: 3
+      AWP | Oni Taiji:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      Dual Berettas | Cobra Strike:
+        max_float: 0.6
+        min_float: 0
         rarity: 4
-      Dual Berettas | Twin Turbo:
+      FAMAS | Macabre:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Hyper Beast:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      Galil AR | Sugar Rush:
+        max_float: 0.55
+        min_float: 0
         rarity: 4
-      MP7 | Fade:
+      M4A1-S | Briefing:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      M4A4 | Hellfire:
+        max_float: 0.5
+        min_float: 0
+        rarity: 4
+      MAC-10 | Aloha:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      MAG-7 | Hard Water:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      P2000 | Woodsman:
+        max_float: 0.8
+        min_float: 0
         rarity: 3
-      AK-47 | Safety Net:
+      P250 | Red Rock:
+        max_float: 1
+        min_float: 0
         rarity: 3
-      P250 | Vino Primo:
+      P90 | Death Grip:
+        max_float: 1
+        min_float: 0
         rarity: 3
-      SSG 08 | Hand Brake:
+      SSG 08 | Death's Head:
+        max_float: 0.51
+        min_float: 0
+        rarity: 3
+      Tec-9 | Cut Out:
+        max_float: 1
+        min_float: 0
         rarity: 2
-      M4A4 | Converter:
+      UMP-45 | Metal Flowers:
+        max_float: 0.7
+        min_float: 0
         rarity: 2
-      USP-S | Check Engine:
+      USP-S | Blueprint:
+        max_float: 0.86
+        min_float: 0
         rarity: 2
-      Sawed-Off | Brake Light:
+  The Overpass Collection:
+    items:
+      AWP | Pink DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      CZ75-Auto | Nitro:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 2
-      Glock-18 | High Beam:
+      Desert Eagle | Urban DDPAT:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      R8 Revolver | Nitro:
+      Glock-18 | Night:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      PP-Bizon | Candy Apple:
+      M249 | Contrast Spray:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A1-S | Master Piece:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      MAG-7 | Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      MP7 | Gunsmoke:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      MAC-10 | Calf Skin:
+      MP9 | Storm:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P2000 | Grassland:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 1
-      MP9 | Slide:
+      SSG 08 | Detour:
+        max_float: 0.43
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Sage Spray:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
-      AUG | Sweeper:
+      UMP-45 | Scorched:
+        max_float: 0.8
+        min_float: 0.06
         rarity: 0
-      UMP-45 | Mudder:
+      USP-S | Road Rash:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      XM1014 | VariCamo Blue:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+  The Phoenix Collection:
+    items:
+      AK-47 | Redline:
+        max_float: 0.7
+        min_float: 0.1
+        rarity: 4
+      AUG | Chameleon:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      AWP | Asiimov:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 5
+      FAMAS | Sergeant:
+        max_float: 1
+        min_float: 0.1
+        rarity: 3
+      MAC-10 | Heat:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MAG-7 | Heaven Guard:
+        max_float: 0.5
+        min_float: 0.03
+        rarity: 2
+      Negev | Terrain:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      Nova | Antique:
+        max_float: 0.5
+        min_float: 0
+        rarity: 4
+      P90 | Trigon:
+        max_float: 0.75
+        min_float: 0.08
+        rarity: 4
+      SG 553 | Pulse:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      Tec-9 | Sandstorm:
+        max_float: 0.7
+        min_float: 0.1
+        rarity: 2
+      UMP-45 | Corporal:
+        max_float: 0.75
+        min_float: 0.05
+        rarity: 2
+      USP-S | Guardian:
+        max_float: 0.38
+        min_float: 0
+        rarity: 3
+  The Prisma 2 Collection:
+    items:
+      AK-47 | Phantom Disruptor:
+        max_float: 0.65
+        min_float: 0
+        rarity: 4
+      AUG | Tom Cat:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      AWP | Capillary:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 2
+      CZ75-Auto | Distressed:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Desert Eagle | Blue Ply:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Glock-18 | Bullet Queen:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      M4A1-S | Player Two:
+        max_float: 0.84
+        min_float: 0
+        rarity: 5
+      MAC-10 | Disco Tech:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      MAG-7 | Justice:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      MP5-SD | Desert Strike:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Negev | Prototype:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      P2000 | Acid Etched:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      R8 Revolver | Bone Forged:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      SCAR-20 | Enforcer:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      SG 553 | Darkwing:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      SSG 08 | Fever Dream:
+        max_float: 0.72
+        min_float: 0
+        rarity: 3
+      Sawed-Off | Apocalypto:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+  The Prisma Collection:
+    items:
+      AK-47 | Uncharted:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      AUG | Momentum:
+        max_float: 1
+        min_float: 0.05
+        rarity: 4
+      AWP | Atheris:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Desert Eagle | Light Rail:
+        max_float: 0.9
+        min_float: 0
+        rarity: 3
+      FAMAS | Crypsis:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Angry Mob:
+        max_float: 0.7
+        min_float: 0
+        rarity: 5
+      Galil AR | Akoben:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      M4A4 | The Emperor:
+        max_float: 0.8
+        min_float: 0
+        rarity: 5
+      MAC-10 | Whitefish:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      MP5-SD | Gauss:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      MP7 | Mischief:
+        max_float: 1
+        min_float: 0.1
+        rarity: 2
+      P250 | Verdigris:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      P90 | Off World:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      R8 Revolver | Skull Crusher:
+        max_float: 0.8
+        min_float: 0.25
+        rarity: 4
+      Tec-9 | Bamboozle:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      UMP-45 | Moonrise:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      XM1014 | Incinegator:
+        max_float: 0.65
+        min_float: 0.14
+        rarity: 4
+  The Revolver Collection:
+    items:
+      AK-47 | Point Disarray:
+        max_float: 0.67
+        min_float: 0
+        rarity: 4
+      AUG | Ricochet:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      Desert Eagle | Corinthian:
+        max_float: 0.44
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Retrobution:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      G3SG1 | The Executioner:
+        max_float: 0.85
+        min_float: 0.14
+        rarity: 4
+      M4A4 | Royal Paladin:
+        max_float: 0.8
+        min_float: 0
+        rarity: 5
+      Negev | Power Loader:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      P2000 | Imperial:
+        max_float: 0.2
+        min_float: 0
+        rarity: 2
+      P90 | Shapewood:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      PP-Bizon | Fuel Rod:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      R8 Revolver | Crimson Web:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      R8 Revolver | Fade:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 5
+      SCAR-20 | Outbreak:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      SG 553 | Tiger Moth:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Sawed-Off | Yorick:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Tec-9 | Avalanche:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      XM1014 | Teclu Burner:
+        max_float: 0.65
+        min_float: 0
+        rarity: 3
+  The Rising Sun Collection:
+    items:
+      AK-47 | Hydroponic:
+        max_float: 0.8
+        min_float: 0
+        rarity: 4
+      AUG | Akihabara Accept:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      Desert Eagle | Midnight Storm:
+        max_float: 0.75
+        min_float: 0
+        rarity: 1
+      "Desert Eagle | Sunset Storm \u58F1":
+        max_float: 0.75
+        min_float: 0
+        rarity: 3
+      "Desert Eagle | Sunset Storm \u5F10":
+        max_float: 0.75
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Neon Kimono:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      G3SG1 | Orange Kimono:
+        max_float: 0.8
+        min_float: 0
         rarity: 0
-      MP5-SD | Dirt Drop:
+      Galil AR | Aqua Terrace:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      M4A4 | Daybreak:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      MAG-7 | Counter Terrace:
+        max_float: 0.65
+        min_float: 0
+        rarity: 2
+      P250 | Crimson Kimono:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      P250 | Mint Kimono:
+        max_float: 0.8
+        min_float: 0
         rarity: 0
-      MAG-7 | Rust Coat:
+      PP-Bizon | Bamboo Print:
+        max_float: 0.8
+        min_float: 0
         rarity: 0
+      Sawed-Off | Bamboo Shadow:
+        max_float: 0.6
+        min_float: 0
+        rarity: 0
+      Tec-9 | Bamboo Forest:
+        max_float: 0.6
+        min_float: 0
+        rarity: 0
+      Tec-9 | Terrace:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+  The Safehouse Collection:
+    items:
+      AUG | Condemned:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      Dual Berettas | Contractor:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      FAMAS | Teardown:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Silver Quartz:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      G3SG1 | VariCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      Galil AR | VariCamo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      M249 | Gator Mesh:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+      M4A1-S | Nitro:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      MP7 | Army Recon:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      MP9 | Orange Peel:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      SCAR-20 | Contractor:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SSG 08 | Acid Fade:
+        max_float: 0.03
+        min_float: 0
+        rarity: 2
+      SSG 08 | Blue Spruce:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Tec-9 | Army Mesh:
+        max_float: 0.6
+        min_float: 0
+        rarity: 0
+      USP-S | Forest Leaves:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+  The Shadow Collection:
+    items:
+      AK-47 | Frontside Misty:
+        max_float: 0.87
+        min_float: 0.02
+        rarity: 4
+      Dual Berettas | Dualing Dragons:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      FAMAS | Survivor Z:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      G3SG1 | Flux:
+        max_float: 0.9
+        min_float: 0
+        rarity: 4
+      Galil AR | Stone Cold:
+        max_float: 0.9
+        min_float: 0
+        rarity: 3
+      Glock-18 | Wraiths:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      M249 | Nebula Crusader:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      M4A1-S | Golden Coil:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      MAC-10 | Rangeen:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MAG-7 | Cobalt Core:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MP7 | Special Delivery:
+        max_float: 0.62
+        min_float: 0
+        rarity: 3
+      P250 | Wingshot:
+        max_float: 0.9
+        min_float: 0
+        rarity: 3
+      SCAR-20 | Green Marine:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      SSG 08 | Big Iron:
+        max_float: 0.64
+        min_float: 0
+        rarity: 4
+      USP-S | Kill Confirmed:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      XM1014 | Scumbria:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+  The Shattered Web Collection:
+    items:
+      AK-47 | Rat Rod:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      AUG | Arctic Wolf:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      AWP | Containment Breach:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      Dual Berettas | Balance:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      G3SG1 | Black Sand:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      M249 | Warbird:
+        max_float: 0.65
+        min_float: 0.05
+        rarity: 2
+      MAC-10 | Stalker:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      MP5-SD | Acid Wash:
+        max_float: 0.68
+        min_float: 0
+        rarity: 2
+      MP7 | Neon Ply:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      Nova | Plume:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      P2000 | Obsidian:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      PP-Bizon | Embargo:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      R8 Revolver | Memento:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      SCAR-20 | Torn:
+        max_float: 0.45
+        min_float: 0
+        rarity: 2
+      SG 553 | Colony IV:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      SSG 08 | Bloodshot:
+        max_float: 0.6
+        min_float: 0.14
+        rarity: 4
+      Tec-9 | Decimator:
+        max_float: 0.75
+        min_float: 0
+        rarity: 4
+  The Spectrum 2 Collection:
+    items:
+      AK-47 | The Empress:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      AUG | Triqua:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      CZ75-Auto | Tacticat:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      G3SG1 | Hunter:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Glock-18 | Off World:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      M4A1-S | Leaded Glass:
+        max_float: 0.7
+        min_float: 0
+        rarity: 4
+      MAC-10 | Oceanic:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      MP9 | Goo:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      P250 | See Ya Later:
+        max_float: 0.7
+        min_float: 0
+        rarity: 5
+      PP-Bizon | High Roller:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      R8 Revolver | Llama Cannon:
+        max_float: 0.7
+        min_float: 0.03
+        rarity: 4
+      SCAR-20 | Jungle Slipstream:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      SG 553 | Phantom:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      Sawed-Off | Morris:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Tec-9 | Cracked Opal:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      UMP-45 | Exposure:
+        max_float: 0.55
+        min_float: 0
+        rarity: 3
+      XM1014 | Ziggy:
+        max_float: 0.72
+        min_float: 0
+        rarity: 3
+  The Spectrum Collection:
+    items:
+      AK-47 | Bloodsport:
+        max_float: 0.65
+        min_float: 0
+        rarity: 5
+      AWP | Fever Dream:
+        max_float: 0.72
+        min_float: 0
+        rarity: 4
+      CZ75-Auto | Xiangliu:
+        max_float: 0.56
+        min_float: 0
+        rarity: 4
+      Desert Eagle | Oxide Blaze:
+        max_float: 0.85
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Capillary:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 2
+      Galil AR | Crimson Tsunami:
+        max_float: 0.55
+        min_float: 0
+        rarity: 3
+      M249 | Emerald Poison Dart:
+        max_float: 0.45
+        min_float: 0
+        rarity: 3
+      M4A1-S | Decimator:
+        max_float: 0.75
+        min_float: 0
+        rarity: 4
+      MAC-10 | Last Dive:
+        max_float: 0.52
+        min_float: 0
+        rarity: 3
+      MP7 | Akoben:
+        max_float: 0.75
+        min_float: 0
+        rarity: 2
+      P250 | Ripple:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      PP-Bizon | Jungle Slipstream:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      SCAR-20 | Blueprint:
+        max_float: 0.86
+        min_float: 0
+        rarity: 2
+      Sawed-Off | Zander:
+        max_float: 1
+        min_float: 0.05
+        rarity: 2
+      UMP-45 | Scaffold:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      USP-S | Neo-Noir:
+        max_float: 0.5
+        min_float: 0
+        rarity: 5
+      XM1014 | Seasons:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+  The St. Marc Collection:
+    items:
+      AK-47 | Wild Lotus:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      AUG | Midnight Lily:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      FAMAS | Sundown:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Five-SeveN | Crimson Blossom:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Glock-18 | Synth Leaf:
+        max_float: 0.7
+        min_float: 0
+        rarity: 3
+      M249 | Jungle:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A4 | Dark Blossom:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      MAC-10 | Surfwood:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      MP5-SD | Bamboo Garden:
+        max_float: 0.55
+        min_float: 0
+        rarity: 0
+      MP7 | Teal Blossom:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MP9 | Wild Lily:
+        max_float: 0.7
+        min_float: 0
+        rarity: 4
+      P90 | Sunset Lily:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      PP-Bizon | Seabird:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      SSG 08 | Sea Calico:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      Sawed-Off | Jungle Thicket:
+        max_float: 0.5
+        min_float: 0
+        rarity: 0
+      Tec-9 | Rust Leaf:
+        max_float: 0.5
+        min_float: 0
+        rarity: 1
+      UMP-45 | Day Lily:
+        max_float: 0.55
+        min_float: 0
+        rarity: 2
+      XM1014 | Banana Leaf:
+        max_float: 0.6
+        min_float: 0
+        rarity: 1
+  The Train Collection:
+    items:
+      Desert Eagle | Urban Rubble:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      Dual Berettas | Colony:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      Five-SeveN | Forest Night:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      G3SG1 | Polar Camo:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      M4A4 | Urban DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 1
+      MAC-10 | Candy Apple:
+        max_float: 0.7
+        min_float: 0
+        rarity: 1
+      MAG-7 | Metallic DDPAT:
+        max_float: 0.08
+        min_float: 0
+        rarity: 1
+      Nova | Polar Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P250 | Metallic DDPAT:
+        max_float: 0.08
+        min_float: 0
+        rarity: 1
+      P90 | Ash Wood:
+        max_float: 0.45
+        min_float: 0
+        rarity: 1
+      PP-Bizon | Urban Dashed:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      SCAR-20 | Carbon Fiber:
+        max_float: 0.12
+        min_float: 0
+        rarity: 1
+      Sawed-Off | Amber Fade:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      Tec-9 | Red Quartz:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      UMP-45 | Urban DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+  The Vanguard Collection:
+    items:
+      AK-47 | Wasteland Rebel:
+        max_float: 0.54
+        min_float: 0
+        rarity: 5
+      Five-SeveN | Urban Hazard:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      G3SG1 | Murky:
+        max_float: 0.25
+        min_float: 0
+        rarity: 2
+      Glock-18 | Grinder:
+        max_float: 0.25
+        min_float: 0.02
+        rarity: 3
+      M4A1-S | Basilisk:
+        max_float: 0.68
+        min_float: 0
+        rarity: 3
+      M4A4 | Griffin:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      MAG-7 | Firestarter:
+        max_float: 0.49
+        min_float: 0.06
+        rarity: 2
+      MP9 | Dart:
+        max_float: 0.46
+        min_float: 0
+        rarity: 2
+      P2000 | Fire Elemental:
+        max_float: 0.6
+        min_float: 0
+        rarity: 5
+      P250 | Cartel:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      SCAR-20 | Cardiac:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      Sawed-Off | Highwayman:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      UMP-45 | Delusion:
+        max_float: 0.35
+        min_float: 0.06
+        rarity: 2
+      XM1014 | Tranquility:
+        max_float: 0.5
+        min_float: 0
+        rarity: 4
+  The Vertigo Collection:
+    items:
+      AK-47 | Black Laminate:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Dual Berettas | Demolition:
+        max_float: 0.6
+        min_float: 0.26
+        rarity: 3
+      MAC-10 | Urban DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+      P90 | Glacier Mesh:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      PP-Bizon | Carbon Fiber:
+        max_float: 0.12
+        min_float: 0
+        rarity: 1
+      XM1014 | Urban Perforated:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 0
+  The Wildfire Collection:
+    items:
+      AK-47 | Fuel Injector:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      AWP | Elite Build:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      Desert Eagle | Kumicho Dragon:
+        max_float: 0.76
+        min_float: 0
+        rarity: 4
+      Dual Berettas | Cartel:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      FAMAS | Valence:
+        max_float: 0.8
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Triumvirate:
+        max_float: 0.61
+        min_float: 0
+        rarity: 3
+      Glock-18 | Royal Legion:
+        max_float: 1
+        min_float: 0
+        rarity: 3
+      M4A4 | The Battlestar:
+        max_float: 0.64
+        min_float: 0
+        rarity: 5
+      MAC-10 | Lapis Gator:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      MAG-7 | Praetorian:
+        max_float: 0.45
+        min_float: 0
+        rarity: 3
+      MP7 | Impire:
+        max_float: 0.4
+        min_float: 0
+        rarity: 3
+      Nova | Hyper Beast:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      PP-Bizon | Photic Zone:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      SSG 08 | Necropos:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Tec-9 | Jambiya:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      USP-S | Lead Conduit:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+  The Winter Offensive Collection:
+    items:
+      AWP | Redline:
+        max_float: 0.7
+        min_float: 0.1
+        rarity: 4
+      Dual Berettas | Marina:
+        max_float: 0.5
+        min_float: 0.05
+        rarity: 3
+      FAMAS | Pulse:
+        max_float: 0.6
+        min_float: 0
+        rarity: 3
+      Five-SeveN | Kami:
+        max_float: 0.6
+        min_float: 0
+        rarity: 2
+      Galil AR | Sandstorm:
+        max_float: 0.7
+        min_float: 0.1
+        rarity: 2
+      M249 | Magma:
+        max_float: 0.7
+        min_float: 0
+        rarity: 2
+      M4A1-S | Guardian:
+        max_float: 0.38
+        min_float: 0
+        rarity: 4
+      M4A4 | Asiimov:
+        max_float: 0.7
+        min_float: 0.05
+        rarity: 5
+      MP9 | Rose Iron:
+        max_float: 0.3
+        min_float: 0
+        rarity: 3
+      Nova | Rising Skull:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      P250 | Mehndi:
+        max_float: 1
+        min_float: 0
+        rarity: 4
+      PP-Bizon | Cobalt Halftone:
+        max_float: 0.45
+        min_float: 0.05
+        rarity: 2
+      Sawed-Off | The Kraken:
+        max_float: 0.4
+        min_float: 0
+        rarity: 5
+  The eSports 2013 Collection:
+    items:
+      AK-47 | Red Laminate:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 4
+      AWP | BOOM:
+        max_float: 0.28
+        min_float: 0.06
+        rarity: 4
+      FAMAS | Doomkitty:
+        max_float: 0.22
+        min_float: 0.08
+        rarity: 2
+      Galil AR | Orange DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      M4A4 | Faded Zebra:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      MAG-7 | Memento:
+        max_float: 0.8
+        min_float: 0
+        rarity: 2
+      P250 | Splash:
+        max_float: 0.18
+        min_float: 0.06
+        rarity: 3
+      P90 | Death by Kitty:
+        max_float: 0.32
+        min_float: 0.08
+        rarity: 5
+      Sawed-Off | Orange DDPAT:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+  The eSports 2013 Winter Collection:
+    items:
+      AK-47 | Blue Laminate:
+        max_float: 0.4
+        min_float: 0.02
+        rarity: 3
+      AWP | Electric Hive:
+        max_float: 0.4
+        min_float: 0
+        rarity: 4
+      Desert Eagle | Cobalt Disruption:
+        max_float: 0.2
+        min_float: 0
+        rarity: 4
+      FAMAS | Afterimage:
+        max_float: 0.4
+        min_float: 0.02
+        rarity: 4
+      Five-SeveN | Nightshade:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+      G3SG1 | Azure Zebra:
+        max_float: 0.28
+        min_float: 0
+        rarity: 2
+      Galil AR | Blue Titanium:
+        max_float: 0.04
+        min_float: 0
+        rarity: 2
+      M4A4 | X-Ray:
+        max_float: 0.3
+        min_float: 0
+        rarity: 5
+      Nova | Ghost Camo:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      P250 | Steel Disruption:
+        max_float: 0.2
+        min_float: 0
+        rarity: 2
+      P90 | Blind Spot:
+        max_float: 0.5
+        min_float: 0
+        rarity: 3
+      PP-Bizon | Water Sigil:
+        max_float: 0.5
+        min_float: 0
+        rarity: 2
+  The eSports 2014 Summer Collection:
+    items:
+      AK-47 | Jaguar:
+        max_float: 1
+        min_float: 0
+        rarity: 5
+      AUG | Bengal Tiger:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 4
+      AWP | Corticera:
+        max_float: 0.3
+        min_float: 0.06
+        rarity: 4
+      CZ75-Auto | Hexane:
+        max_float: 0.4
+        min_float: 0
+        rarity: 2
+      Desert Eagle | Crimson Web:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      Glock-18 | Steel Disruption:
+        max_float: 0.2
+        min_float: 0
+        rarity: 3
+      M4A4 | Bullet Rain:
+        max_float: 0.46
+        min_float: 0.02
+        rarity: 5
+      MAC-10 | Ultraviolet:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 2
+      MP7 | Ocean Foam:
+        max_float: 0.08
+        min_float: 0
+        rarity: 3
+      Negev | Bratatat:
+        max_float: 1
+        min_float: 0
+        rarity: 2
+      Nova | Bloomstick:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 4
+      P2000 | Corticera:
+        max_float: 0.3
+        min_float: 0.06
+        rarity: 4
+      P90 | Virus:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      PP-Bizon | Blue Streak:
+        max_float: 0.8
+        min_float: 0.06
+        rarity: 3
+      SSG 08 | Dark Water:
+        max_float: 0.26
+        min_float: 0.1
+        rarity: 2
+      USP-S | Blood Tiger:
+        max_float: 0.3
+        min_float: 0
+        rarity: 2
+      XM1014 | Red Python:
+        max_float: 0.5
+        min_float: 0.08
+        rarity: 2
