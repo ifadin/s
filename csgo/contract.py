@@ -1,6 +1,8 @@
+from operator import itemgetter
 from statistics import mean
 from typing import List, Tuple, Optional, Set, Dict
 
+from csgo.condition import get_item_possible_conversions
 from csgo.level import get_next_level_items
 from csgo.price import PriceManager
 from csgo.type.contract import ContractReturn
@@ -30,6 +32,22 @@ def get_contract_candidates(price_manager: PriceManager, time_range: PriceTimeRa
     return res
 
 
+def get_best_conversion_avg_price(item: Item,
+                                  item_condition: ItemCondition,
+                                  item_collection: ItemCollection,
+                                  price_manager: PriceManager,
+                                  price_time_range: PriceTimeRange) -> List[Tuple[float, float]]:
+    next_items = get_next_level_items(item, item_collection)
+    next_items_prices: List[Tuple[float, float]] = []
+    for n_item in next_items:
+        possible_conversions = get_item_possible_conversions(item, item_condition, n_item)
+        max_price = max([(price_manager.get_avg_price(n_item, conversion, price_time_range), max_allowed_float)
+                         for conversion, max_allowed_float in possible_conversions.items()], key=itemgetter(0))
+        next_items_prices.append(max_price)
+
+    return next_items_prices
+
+
 def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollection]],
                                     item_condition: ItemCondition,
                                     price_manager: PriceManager,
@@ -47,7 +65,6 @@ def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollect
     contract_possible_items: Set[Item] = set()
     for item, item_collection in contract_items:
         item_price = price_manager.get_avg_price(item, item_condition, price_time_range)
-        item_std = price_manager.get_std(item, item_condition, price_time_range)
         if not item_price:
             return None
         contract_items_values.append(item_price * buy_price_reduction)

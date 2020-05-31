@@ -7,8 +7,8 @@ class Item(NamedTuple):
     name: str
     rarity: int
     collection_name: str
-    min_float: float = None
-    max_float: float = None
+    min_float: float = 0
+    max_float: float = 1
 
 
 class ItemCollection(NamedTuple):
@@ -23,7 +23,7 @@ class ItemCondition(IntEnum):
     MINIMAL_WEAR = 3
     FACTORY_NEW = 4
 
-    def __str__(self):
+    def __str__(self) -> str:
         names = {
             self.BATTLE_SCARED: 'Battle-Scarred',
             self.WELL_WORN: 'Well-Worn',
