@@ -5,10 +5,9 @@
 ```
 
 ```shell script
-  yarn install
-  HEXA_API_KEY=<api_key> node csgo/t.js
+  http "https://api.hexa.one/market/prices/730?key=<api_key>" > csgo/hexa_prices.json
 ```
 
 ## Data sources
 
-https://github.com/cs-idb/cs-idb/blob/master/data/paintkits.json
+https://github.com/cs-idb/cs-idb/blob/master/data

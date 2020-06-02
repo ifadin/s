@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Dict
+
+import yaml
 
 from csgo.type.item import Item, ItemCollection
 
@@ -13,3 +15,16 @@ def get_prev_level_items(item: Item, collection: ItemCollection) -> List[Item]:
     if item.collection_name != collection.name:
         raise AssertionError(f'Item {item.name} is from another collection')
     return [c_item for c_item in collection.items if item.rarity - c_item.rarity == 1]
+
+
+def load_collections() -> Dict[str, ItemCollection]:
+    with open('csgo/collections.yaml') as f:
+        res = yaml.load(f, Loader=yaml.SafeLoader)
+        return {
+            col_name: ItemCollection(col_name, [
+                Item(item_name, item_details['rarity'], col_name, item_details['min_float'], item_details['max_float'])
+                for item_name, item_details
+                in col_details['items'].items()])
+            for col_name, col_details
+            in res['collections'].items()
+        }

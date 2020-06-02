@@ -1,10 +1,13 @@
+import html
+import json
 import math
 from statistics import mean
 from typing import Dict, Optional, List
 
-from csgo.level import get_next_level_items, get_prev_level_items
+from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import STPrices, PriceTimeRange
+from csgo.type.price import STPrices, PriceTimeRange, ItemPriceDetails, ItemPrice, get_price_time_range_from_bck_string, \
+    get_price_time_range_from_hexa_string
 
 
 def get_item_price_name(item_name: str, item_condition: ItemCondition) -> str:
@@ -68,11 +71,15 @@ class PriceManager:
 
     def get_avg_price(self, item: Item,
                       item_condition: ItemCondition,
-                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30) -> Optional[float]:
+                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
+                      with_price_fallback: bool = True) -> Optional[float]:
         name = get_item_price_name(item.name, item_condition)
         p = self.prices.get(name)
         if p is not None:
-            return p.prices[time_range].average if time_range in p.prices else None
+            time_ranges = [t for t in PriceTimeRange if t >= time_range] if with_price_fallback else [time_range]
+            for t_range in time_ranges:
+                if t_range in p.prices and p.prices[t_range].average:
+                    return p.prices[t_range].average
 
         return None
 
@@ -155,3 +162,53 @@ class PriceManager:
         return (mean(([approx_price_left] if approx_price_left else []) +
                      ([approx_price_right] if approx_price_right else []))
                 if approx_price_left or approx_price_right else None)
+
+
+def load_bck_prices() -> STPrices:
+    def get_price_details(price: dict) -> ItemPriceDetails:
+        return ItemPriceDetails(average=float(price['average']),
+                                sold=price['sold'],
+                                median=price.get('median'),
+                                standard_deviation=(float(price.get('standard_deviation'))
+                                                    if price.get('standard_deviation') else None),
+                                lowest_price=price.get('lowest_price'),
+                                highest_price=price.get('highest_price'))
+
+    with open('csgo/bck_prices.json') as f:
+        res = json.loads(f.read())
+        if not res.get('success'):
+            raise AssertionError('Prices response was not successful')
+
+        prices: STPrices = {}
+        for item_name_escaped, price_obj in res['items_list'].items():
+            item_name = html.unescape(item_name_escaped)
+            prices[item_name] = ItemPrice(item_name, {
+                get_price_time_range_from_bck_string(price_key): get_price_details(price_details)
+                for price_key, price_details in price_obj.get('price', {}).items()
+                if get_price_time_range_from_bck_string(price_key)
+            })
+
+        return prices
+
+
+def load_hexa_prices() -> STPrices:
+    def get_price_details(price: dict) -> ItemPriceDetails:
+        return ItemPriceDetails(average=float(price['avg']),
+                                sold=price.get('sales'),
+                                median=price['med'],
+                                standard_deviation=price.get('std'),
+                                lowest_price=price.get('min'),
+                                highest_price=price.get('max'))
+
+    with open('csgo/hexa_prices.json') as f:
+        res = json.loads(f.read())
+
+        prices: STPrices = {}
+        for item_name, price_obj in res['result']['prices'].items():
+            prices[item_name] = ItemPrice(item_name, {
+                get_price_time_range_from_hexa_string(price_key): get_price_details(price_details)
+                for price_key, price_details in price_obj.items()
+                if get_price_time_range_from_hexa_string(price_key)
+            })
+
+        return prices
