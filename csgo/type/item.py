@@ -9,6 +9,12 @@ class Item(NamedTuple):
     collection_name: str
     min_float: float = 0
     max_float: float = 1
+    st_track: bool = False
+
+    @property
+    def full_name(self) -> str:
+        st_track = 'StatTrak™ ' if self.st_track else ''
+        return f'{st_track}{self.name}'
 
 
 class ItemCollection(NamedTuple):

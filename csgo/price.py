@@ -1,13 +1,15 @@
 import html
 import json
 import math
+from abc import ABC, abstractmethod
 from statistics import mean
 from typing import Dict, Optional, List
 
 from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import STPrices, PriceTimeRange, ItemPriceDetails, ItemPrice, get_price_time_range_from_bck_string, \
-    get_price_time_range_from_hexa_string
+from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
+    get_price_time_range_from_bck_string, \
+    get_price_time_range_from_hexa_string, LFPrices, LFItemPrice
 
 
 def get_item_price_name(item_name: str, item_condition: ItemCondition) -> str:
@@ -18,7 +20,18 @@ RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
 
 
-class PriceManager:
+class PriceManager(ABC):
+
+    @abstractmethod
+    def get_avg_price(self, item: Item,
+                      item_condition: ItemCondition,
+                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
+                      with_price_fallback: bool = True) -> Optional[float]:
+        pass
+
+
+class STPriceManager(PriceManager):
+
     def __init__(self,
                  prices: STPrices,
                  collections: Dict[str, ItemCollection]) -> None:
@@ -73,7 +86,7 @@ class PriceManager:
                       item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
-        name = get_item_price_name(item.name, item_condition)
+        name = get_item_price_name(item.full_name, item_condition)
         p = self.prices.get(name)
         if p is not None:
             time_ranges = [t for t in PriceTimeRange if t >= time_range] if with_price_fallback else [time_range]
@@ -86,7 +99,7 @@ class PriceManager:
     def get_sold(self, item: Item,
                  item_condition: ItemCondition,
                  time_range: PriceTimeRange = PriceTimeRange.DAYS_30) -> Optional[int]:
-        name = get_item_price_name(item.name, item_condition)
+        name = get_item_price_name(item.full_name, item_condition)
         p = self.prices.get(name)
         if p is not None:
             return int(p.prices[time_range].sold) if time_range in p.prices and p.prices[time_range].sold else None
@@ -96,7 +109,7 @@ class PriceManager:
     def get_std(self, item: Item,
                 item_condition: ItemCondition,
                 time_range: PriceTimeRange = PriceTimeRange.DAYS_30) -> Optional[float]:
-        name = get_item_price_name(item.name, item_condition)
+        name = get_item_price_name(item.full_name, item_condition)
         p = self.prices.get(name)
         if p is not None:
             return p.prices[time_range].standard_deviation if time_range in p.prices else None
@@ -164,15 +177,33 @@ class PriceManager:
                 if approx_price_left or approx_price_right else None)
 
 
+class LFPriceManager(PriceManager):
+
+    def __init__(self, prices: LFPrices) -> None:
+        self.prices = prices
+
+    def get_avg_price(self, item: Item, item_condition: ItemCondition,
+                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
+                      with_price_fallback: bool = True) -> Optional[float]:
+        item_name = get_item_price_name(item.full_name, item_condition)
+        p = self.prices.get(item_name)
+        return p.price if p else None
+
+    def get_available(self, item: Item, item_condition: ItemCondition) -> Optional[int]:
+        item_name = get_item_price_name(item.full_name, item_condition)
+        p = self.prices.get(item_name)
+        return p.tradable + p.reservable if p else None
+
+
 def load_bck_prices() -> STPrices:
-    def get_price_details(price: dict) -> ItemPriceDetails:
-        return ItemPriceDetails(average=float(price['average']),
-                                sold=price['sold'],
-                                median=price.get('median'),
-                                standard_deviation=(float(price.get('standard_deviation'))
-                                                    if price.get('standard_deviation') else None),
-                                lowest_price=price.get('lowest_price'),
-                                highest_price=price.get('highest_price'))
+    def get_price_details(price: dict) -> STItemPriceDetails:
+        return STItemPriceDetails(average=float(price['average']),
+                                  sold=price['sold'],
+                                  median=price.get('median'),
+                                  standard_deviation=(float(price.get('standard_deviation'))
+                                                      if price.get('standard_deviation') else None),
+                                  lowest_price=price.get('lowest_price'),
+                                  highest_price=price.get('highest_price'))
 
     with open('csgo/bck_prices.json') as f:
         res = json.loads(f.read())
@@ -182,7 +213,7 @@ def load_bck_prices() -> STPrices:
         prices: STPrices = {}
         for item_name_escaped, price_obj in res['items_list'].items():
             item_name = html.unescape(item_name_escaped)
-            prices[item_name] = ItemPrice(item_name, {
+            prices[item_name] = STItemPrice(item_name, {
                 get_price_time_range_from_bck_string(price_key): get_price_details(price_details)
                 for price_key, price_details in price_obj.get('price', {}).items()
                 if get_price_time_range_from_bck_string(price_key)
@@ -192,23 +223,36 @@ def load_bck_prices() -> STPrices:
 
 
 def load_hexa_prices() -> STPrices:
-    def get_price_details(price: dict) -> ItemPriceDetails:
-        return ItemPriceDetails(average=float(price['avg']),
-                                sold=price.get('sales'),
-                                median=price['med'],
-                                standard_deviation=price.get('std'),
-                                lowest_price=price.get('min'),
-                                highest_price=price.get('max'))
+    def get_price_details(price: dict) -> STItemPriceDetails:
+        return STItemPriceDetails(average=float(price['avg']),
+                                  sold=price.get('sales'),
+                                  median=price['med'],
+                                  standard_deviation=price.get('std'),
+                                  lowest_price=price.get('min'),
+                                  highest_price=price.get('max'))
 
     with open('csgo/hexa_prices.json') as f:
         res = json.loads(f.read())
 
         prices: STPrices = {}
         for item_name, price_obj in res['result']['prices'].items():
-            prices[item_name] = ItemPrice(item_name, {
+            prices[item_name] = STItemPrice(item_name, {
                 get_price_time_range_from_hexa_string(price_key): get_price_details(price_details)
                 for price_key, price_details in price_obj.items()
                 if get_price_time_range_from_hexa_string(price_key)
             })
+
+        return prices
+
+
+def load_lf_prices() -> LFPrices:
+    with open('csgo/lf_prices.json') as f:
+        data = json.loads(f.read())
+
+        prices: LFPrices = {}
+        for price_obj in data:
+            item_name = price_obj['name']
+            prices[item_name] = LFItemPrice(item_name, price_obj['price'] / 100, price_obj['have'], price_obj['max'],
+                                            price_obj['rate'] / 100, price_obj['tr'], price_obj['res'])
 
         return prices

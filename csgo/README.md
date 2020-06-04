@@ -8,6 +8,10 @@
   http "https://api.hexa.one/market/prices/730?key=<api_key>" > csgo/hexa_prices.json
 ```
 
+```shell script
+    http "https://loot.farm/fullprice.json" > csgo/lf_prices.json
+```
+
 ## Data sources
 
 https://github.com/cs-idb/cs-idb/blob/master/data

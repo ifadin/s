@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from csgo.price import get_item_price_name, PriceManager
+from csgo.price import get_item_price_name, STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import PriceTimeRange
@@ -45,7 +45,7 @@ class CalculateTest(TestCase):
         }
 
         item_condition = ItemCondition.MINIMAL_WEAR
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         price = price_manager.get_approx_price(
             Item('item5', 5, 'test'), item_condition, self.time_range)
         self.assertEqual(price, (10 * 500 + 5 * 250) / 2)
@@ -72,7 +72,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         price = price_manager.get_approx_price(Item('item2-4', 2, 'test'), item_condition, self.time_range)
         self.assertEqual(price, (0.5 * 500 + 0.25 * 250 + 0.2 * 320) / 3)
 
@@ -96,7 +96,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         price = price_manager.get_approx_price(
             Item('item4-1', 4, 'test'), item_condition, self.time_range)
         self.assertAlmostEqual(price, (
@@ -122,7 +122,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         price = price_manager.get_approx_price(
             Item('item4-1', 4, 'test'), item_condition, self.time_range)
         self.assertAlmostEqual(price, (
@@ -146,7 +146,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         price = price_manager.get_approx_price(
             Item('item4-1', 4, 'test'), item_condition, self.time_range)
         self.assertAlmostEqual(price, (
@@ -171,7 +171,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
         }
 
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
         expected = {
             ItemRarity.COVERT: {
                 ItemCondition.BATTLE_SCARED: 100 / 500,
@@ -203,7 +203,7 @@ class CalculateTest(TestCase):
             get_item_price_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
         }
 
-        price_manager = PriceManager(prices, self.collections)
+        price_manager = STPriceManager(prices, self.collections)
 
         self.assertEqual(price_manager.get_approx_price_from_rarity(
             Item('item4-1', 4, 'test'), ItemCondition.FIELD_TESTED, self.time_range), 90 / (40 / 60))

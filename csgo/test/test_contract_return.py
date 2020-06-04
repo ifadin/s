@@ -1,8 +1,8 @@
 from unittest import TestCase
 
 from csgo.condition import FloatRange
-from csgo.contract import get_contract_candidates, get_item_conversion_return, calculate_trade_contract_return
-from csgo.price import get_item_price_name, PriceManager
+from csgo.contract import get_contract_candidates, get_st_item_conversion_return, calculate_trade_contract_return
+from csgo.price import get_item_price_name, STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
@@ -70,20 +70,20 @@ class CalculateTest(TestCase):
         get_item_price_name('item4b-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 10),
         get_item_price_name('item3b-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 5)
     }
-    price_manager = PriceManager(prices, collections)
+    price_manager = STPriceManager(prices, collections)
 
     def test_get_item_conversion_return(self):
-        standard_float_return = get_item_conversion_return(self.ItemA3_2, self.collections['A'],
-                                                           self.price_manager, self.time_range)
+        standard_float_return = get_st_item_conversion_return(self.ItemA3_2, self.collections['A'],
+                                                              self.price_manager, self.time_range)
         expected = [
             ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 50, 60.0, FloatRange(0.07, 0.15),
                        guaranteed=False,
                        conversion_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
         self.assertEqual(standard_float_return, expected)
 
-        limited_float_return = get_item_conversion_return(self.ItemB3_1, self.collections['B'],
-                                                          self.price_manager, self.time_range,
-                                                          possible_price_discount=0)
+        limited_float_return = get_st_item_conversion_return(self.ItemB3_1, self.collections['B'],
+                                                             self.price_manager, self.time_range,
+                                                             possible_price_discount=0)
 
         expected = [
             ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 5, 10.75, FloatRange(0.45, 0.56),

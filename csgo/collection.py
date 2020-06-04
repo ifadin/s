@@ -8,13 +8,15 @@ from csgo.type.item import Item, ItemCollection
 def get_next_level_items(item: Item, collection: ItemCollection) -> List[Item]:
     if item.collection_name != collection.name:
         raise AssertionError(f'Item {item.name} is from another collection')
-    return [c_item for c_item in collection.items if c_item.rarity - item.rarity == 1]
+    return [Item(c_item.name, c_item.rarity, c_item.collection_name, c_item.min_float, c_item.max_float, item.st_track)
+            for c_item in collection.items if c_item.rarity - item.rarity == 1]
 
 
 def get_prev_level_items(item: Item, collection: ItemCollection) -> List[Item]:
     if item.collection_name != collection.name:
         raise AssertionError(f'Item {item.name} is from another collection')
-    return [c_item for c_item in collection.items if item.rarity - c_item.rarity == 1]
+    return [Item(c_item.name, c_item.rarity, c_item.collection_name, c_item.min_float, c_item.max_float, item.st_track)
+            for c_item in collection.items if item.rarity - c_item.rarity == 1]
 
 
 def load_collections() -> Dict[str, ItemCollection]:

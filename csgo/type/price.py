@@ -33,7 +33,7 @@ def get_price_time_range_from_hexa_string(value: str) -> Optional[PriceTimeRange
     return names.get(value)
 
 
-class ItemPriceDetails(NamedTuple):
+class STItemPriceDetails(NamedTuple):
     average: float
     sold: int
     median: float = None
@@ -42,9 +42,22 @@ class ItemPriceDetails(NamedTuple):
     highest_price: float = None
 
 
-class ItemPrice(NamedTuple):
+class STItemPrice(NamedTuple):
     item_name: str
-    prices: Dict[PriceTimeRange, ItemPriceDetails]
+    prices: Dict[PriceTimeRange, STItemPriceDetails]
 
 
-STPrices = Dict[str, ItemPrice]
+STPrices = Dict[str, STItemPrice]
+
+
+class LFItemPrice(NamedTuple):
+    name: str
+    price: float
+    have: int
+    max: int
+    rate: float
+    tradable: int
+    reservable: int
+
+
+LFPrices = Dict[str, LFItemPrice]
