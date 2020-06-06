@@ -1,6 +1,6 @@
 from typing import NamedTuple, List, Dict
 
-from csgo.condition import FloatRange
+from csgo.conversion import FloatRange
 from csgo.type.item import Item, ItemCondition
 
 
@@ -24,16 +24,17 @@ class ContractReturn(NamedTuple):
 class ItemReturn(NamedTuple):
     item: Item
     item_condition: ItemCondition
-    item_buy_price: float
+    item_investment: float
     item_return: float
     float_range: FloatRange
+    item_float: float = None
     guaranteed: bool = False
     conversion_items: Dict[str, float] = None
 
     @property
     def item_revenue(self) -> float:
-        return self.item_return - self.item_buy_price
+        return self.item_return - self.item_investment
 
     @property
     def item_roi(self) -> float:
-        return self.item_revenue / self.item_buy_price
+        return self.item_revenue / self.item_investment

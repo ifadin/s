@@ -1,7 +1,8 @@
 from unittest import TestCase
 
-from csgo.condition import FloatRange
-from csgo.contract import get_contract_candidates, get_st_item_conversion_return, calculate_trade_contract_return
+from csgo.contract import get_contract_candidates, calculate_trade_contract_return, \
+    STContractCalc
+from csgo.conversion import FloatRange
 from csgo.price import get_item_price_name, STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
@@ -73,17 +74,16 @@ class CalculateTest(TestCase):
     price_manager = STPriceManager(prices, collections)
 
     def test_get_item_conversion_return(self):
-        standard_float_return = get_st_item_conversion_return(self.ItemA3_2, self.collections['A'],
-                                                              self.price_manager, self.time_range)
+        calc = STContractCalc(self.collections, self.price_manager)
+        standard_float_return = calc.get_item_returns(self.ItemA3_2, self.time_range)
         expected = [
             ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 50, 60.0, FloatRange(0.07, 0.15),
                        guaranteed=False,
                        conversion_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
         self.assertEqual(standard_float_return, expected)
 
-        limited_float_return = get_st_item_conversion_return(self.ItemB3_1, self.collections['B'],
-                                                             self.price_manager, self.time_range,
-                                                             possible_price_discount=0)
+        calc = STContractCalc(self.collections, self.price_manager, possible_price_discount=0)
+        limited_float_return = calc.get_item_returns(self.ItemB3_1, self.time_range)
 
         expected = [
             ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 5, 10.75, FloatRange(0.45, 0.56),
@@ -131,6 +131,7 @@ class CalculateTest(TestCase):
         expected_return = 1000
         expected_revenue = expected_return - expected_investment
         expected_roi = expected_revenue / expected_investment
+
         self.assertEqual(res.contract_investment, expected_investment)
         self.assertEqual(res.contract_return, expected_return)
         self.assertEqual(res.contract_revenue, expected_revenue)

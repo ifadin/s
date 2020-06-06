@@ -1,6 +1,7 @@
-from typing import NamedTuple, Dict, List
+from typing import NamedTuple, Dict, List, Set, Tuple
 
-from csgo.type.item import ItemCondition, Item
+from csgo.collection import get_next_level_items
+from csgo.type.item import ItemCondition, Item, ItemCollection
 
 eps = 0.000000000001
 
@@ -14,6 +15,14 @@ class FloatRange(NamedTuple):
 
     def __str__(self) -> str:
         return f'[{self.min_value}, {self.max_value}]'
+
+
+ItemWithCondition = Tuple[Item, ItemCondition]
+ItemConversions = Dict[FloatRange, Dict[Item, ItemCondition]]
+
+
+def is_in_float_range(src_float_range: FloatRange, target_float_range: FloatRange) -> bool:
+    return target_float_range.min_value <= src_float_range.min_value and src_float_range.max_value <= target_float_range.max_value
 
 
 def get_condition_range(cond: ItemCondition) -> FloatRange:
@@ -32,7 +41,7 @@ def get_conversion_float_value(target_float: float, item: Item) -> float:
     return 0 if value < 0 else (1 if value > 1 else value)
 
 
-def get_item_conversion_ranges(item: Item) -> Dict[ItemCondition, FloatRange]:
+def get_conversion_required_ranges(item: Item) -> Dict[ItemCondition, FloatRange]:
     res = {}
     min_conversion_float = 1
     for cond in get_item_possible_conditions(item):
@@ -68,15 +77,16 @@ def get_item_condition_ranges(item: Item) -> Dict[ItemCondition, FloatRange]:
     }
 
 
-def get_item_possible_conversions(item: Item,
-                                  item_condition: ItemCondition,
-                                  target_item: Item) -> Dict[ItemCondition, FloatRange]:
+def get_item_to_item_conversions(item: Item,
+                                 item_condition: ItemCondition,
+                                 target_item: Item) -> Dict[ItemCondition, FloatRange]:
     res = {}
-    item_range_left = get_item_condition_ranges(item)[item_condition].min_value
-    item_range_right = get_item_condition_ranges(item)[item_condition].max_value
+    item_condition_range = get_item_condition_ranges(item)[item_condition]
+    item_range_left = item_condition_range.min_value
+    item_range_right = item_condition_range.max_value
     item_float_range = FloatRange(item_range_left, item_range_right)
 
-    for conv_cond, conversion_range in get_item_conversion_ranges(target_item).items():
+    for conv_cond, conversion_range in get_conversion_required_ranges(target_item).items():
         if (item_range_right - eps in conversion_range or
                 item_range_left + eps in conversion_range or
                 conversion_range.min_value in item_float_range or
@@ -85,3 +95,29 @@ def get_item_possible_conversions(item: Item,
                                         min((item_range_right, conversion_range.max_value)))
 
     return res
+
+
+def get_item_conversions(item: Item, item_condition: ItemCondition, item_collection: ItemCollection) -> ItemConversions:
+    next_items = get_next_level_items(item, item_collection)
+    if not next_items:
+        return {}
+
+    range_markers_set: Set[float] = set()
+    next_level_conversions: Dict[ItemWithCondition, FloatRange] = {}
+    for n_item in next_items:
+        for n_item_cond, float_range in get_item_to_item_conversions(item, item_condition, n_item).items():
+            next_level_conversions[(n_item, n_item_cond)] = float_range
+            range_markers_set.add(float_range.min_value)
+            range_markers_set.add(float_range.max_value)
+
+    item_conversion: ItemConversions = {}
+    range_markers = sorted(list(range_markers_set))
+    for marker_index in range(0, len(range_markers) - 1):
+        item_float_range = FloatRange(range_markers[marker_index], range_markers[marker_index + 1])
+        for (i, i_cond), next_level_range in next_level_conversions.items():
+            if is_in_float_range(item_float_range, next_level_range):
+                if item_float_range not in item_conversion:
+                    item_conversion[item_float_range] = {}
+                item_conversion[item_float_range][i] = i_cond
+
+    return item_conversion

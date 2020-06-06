@@ -2,9 +2,13 @@ import html
 import json
 import math
 from abc import ABC, abstractmethod
+from operator import attrgetter
 from statistics import mean
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 
+import yaml
+
+from csgo.bs.update import BSPriceMap, BSItemPrice
 from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
@@ -12,7 +16,8 @@ from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItem
     get_price_time_range_from_hexa_string, LFPrices, LFItemPrice
 
 
-def get_item_price_name(item_name: str, item_condition: ItemCondition) -> str:
+def get_item_price_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
+    item_name = item_name.full_name if isinstance(item_name, Item) else item_name
     return f'{item_name} ({str(item_condition)})'
 
 
@@ -195,6 +200,25 @@ class LFPriceManager(PriceManager):
         return p.tradable + p.reservable if p else None
 
 
+class BSPriceManager(PriceManager):
+
+    def __init__(self, prices: BSPriceMap) -> None:
+        self.prices = prices
+
+    def get_avg_price(self, item: Item, item_condition: ItemCondition,
+                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
+                      with_price_fallback: bool = True) -> Optional[float]:
+        item_name = get_item_price_name(item.full_name, item_condition)
+        prices = self.prices.get(item_name)
+        sample_size = 3
+
+        return mean([p.price for p in sorted(prices, key=attrgetter('price'))][0:sample_size]) if prices else None
+
+    def get_all_prices(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
+        item_name = get_item_price_name(item.full_name, item_condition)
+        return self.prices.get(item_name, [])
+
+
 def load_bck_prices() -> STPrices:
     def get_price_details(price: dict) -> STItemPriceDetails:
         return STItemPriceDetails(average=float(price['average']),
@@ -256,3 +280,14 @@ def load_lf_prices() -> LFPrices:
                                             price_obj['rate'] / 100, price_obj['tr'], price_obj['res'])
 
         return prices
+
+
+def load_bs_prices() -> BSPriceMap:
+    with open('csgo/bs/bs_prices.yaml') as f:
+        data = yaml.load(f, Loader=yaml.SafeLoader)
+
+        return {
+            item_name: [BSItemPrice(item_name, float(price_value), float(float_value))
+                        for float_value, price_value in price.items() if float_value and price_value]
+            for item_name, price in data['prices'].items()
+        }

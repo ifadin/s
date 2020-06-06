@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 from statistics import mean
 from typing import List, Tuple, Optional, Set, Dict, NamedTuple
 
 from csgo.collection import get_next_level_items
-from csgo.condition import get_item_possible_conversions, get_item_possible_conditions, FloatRange
-from csgo.price import STPriceManager, LFPriceManager, PriceManager
+from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, get_item_conversions
+from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager, get_item_price_name
 from csgo.type.contract import ContractReturn, ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import PriceTimeRange
@@ -19,36 +20,107 @@ class ItemConversionResult(NamedTuple):
     price_warning: bool = None
 
 
-def get_st_item_conversion_return(item: Item,
-                                  item_collection: ItemCollection,
-                                  price_manager: STPriceManager,
-                                  price_time_range: PriceTimeRange,
-                                  required_sold_amount: int = None,
-                                  possible_price_discount: float = 0,
-                                  return_commission: float = 0,
-                                  with_price_fallback: bool = True) -> List[ItemReturn]:
-    item_roi: List[ItemReturn] = []
-    for item_condition in get_item_possible_conditions(item):
-        items_sold = price_manager.get_sold(item, item_condition, price_time_range)
-        if (items_sold and items_sold >= required_sold_amount) if required_sold_amount else True:
-            item_roi += get_item_range_rois(item, item_condition, item_collection, price_manager, price_time_range,
-                                            possible_price_discount, return_commission, with_price_fallback)
-    return item_roi
+class ContractCalc(ABC):
+
+    @abstractmethod
+    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange) -> List[ItemReturn]:
+        pass
 
 
-def get_lf_item_conversion_return(item: Item,
-                                  item_collection: ItemCollection,
-                                  price_manager: LFPriceManager,
-                                  required_available: int = 0,
-                                  return_commission: float = 0.05) -> List[ItemReturn]:
-    item_roi: List[ItemReturn] = []
-    for item_condition in get_item_possible_conditions(item):
-        items_available = price_manager.get_available(item, item_condition)
-        if items_available and items_available >= required_available:
-            item_roi += get_item_range_rois(item, item_condition, item_collection, price_manager,
-                                            None, 0, return_commission)
+class BSContractCalc(ContractCalc):
 
-    return item_roi
+    def __init__(self, collections: Dict[str, ItemCollection], price_manager: BSPriceManager) -> None:
+        self.collections = collections
+        self.price_manager = price_manager
+        # TODO: add commission
+
+    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange = None) -> List[ItemReturn]:
+        item_returns = []
+        item_collection = self.collections[item.collection_name]
+        for item_condition in get_item_possible_conditions(item):
+            conversions = get_item_conversions(item, item_condition, item_collection)
+            for item_range, conversion_items in conversions.items():
+                guaranteed = len(conversion_items) == 1
+                item_return = get_conversion_items_return(conversion_items, self.price_manager)
+                if item_return:
+                    for item_price in self.price_manager.get_all_prices(item, item_condition):
+                        if item_price.float_value in item_range:
+                            conv_items_with_price: Dict[str, float] = {
+                                get_item_price_name(c_item, c_item_condition):
+                                    self.price_manager.get_avg_price(c_item, c_item_condition)
+                                for c_item, c_item_condition in conversion_items.items()
+                            }
+                            item_investment = item_price.price * 10
+                            item_returns.append(
+                                ItemReturn(item, item_condition, item_investment, item_return, item_range,
+                                           item_float=item_price.float_value,
+                                           guaranteed=guaranteed,
+                                           conversion_items=conv_items_with_price))
+        return item_returns
+
+
+class STContractCalc(ContractCalc):
+
+    def __init__(self, collections: Dict[str, ItemCollection],
+                 price_manager: STPriceManager,
+                 required_sold_amount: int = None,
+                 possible_price_discount: float = 0,
+                 return_commission: float = 0,
+                 with_price_fallback: bool = True) -> None:
+        self.collections = collections
+        self.price_manager = price_manager
+        self.required_sold_amount = required_sold_amount
+        self.possible_price_discount = possible_price_discount
+        self.return_commission = return_commission
+        self.with_price_fallback = with_price_fallback
+
+    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange) -> List[ItemReturn]:
+        item_collection = self.collections[item.collection_name]
+        item_roi: List[ItemReturn] = []
+        for item_condition in get_item_possible_conditions(item):
+            items_sold = self.price_manager.get_sold(item, item_condition, price_time_range)
+            if (items_sold and items_sold >= self.required_sold_amount) if self.required_sold_amount else True:
+                item_roi += get_item_range_rois(item, item_condition, item_collection, self.price_manager,
+                                                price_time_range,
+                                                self.possible_price_discount, self.return_commission,
+                                                self.with_price_fallback)
+        return item_roi
+
+
+class LFContractCalc(ContractCalc):
+
+    def __init__(self, collections: Dict[str, ItemCollection],
+                 price_manager: LFPriceManager,
+                 required_available: int = 0,
+                 return_commission: float = 0.05) -> None:
+        self.collections = collections
+        self.price_manager = price_manager
+        self.required_available = required_available
+        self.return_commission = return_commission
+
+    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange) -> List[ItemReturn]:
+        item_collection = self.collections[item.collection_name]
+
+        item_roi: List[ItemReturn] = []
+        for item_condition in get_item_possible_conditions(item):
+            items_available = self.price_manager.get_available(item, item_condition)
+            if items_available and items_available >= self.required_available:
+                item_roi += get_item_range_rois(item, item_condition, item_collection, self.price_manager,
+                                                None, 0, self.return_commission)
+
+        return item_roi
+
+
+def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
+                                price_manager: PriceManager) -> Optional[float]:
+    total_return = 0
+    for item, item_condition in conversion_items.items():
+        item_price = price_manager.get_avg_price(item, item_condition)
+        if not item_price:
+            print(f'[WARN] price for {item.full_name} ({str(item_condition)}) not found')
+            return None
+        total_return += item_price
+    return total_return / len(conversion_items)
 
 
 def get_item_range_rois(item: Item,
@@ -92,7 +164,8 @@ def get_item_range_rois(item: Item,
             item_buy_price = item_price * (1 - possible_price_discount)
             guaranteed = len(next_items) == 1
             item_roi.append(ItemReturn(
-                item, item_condition, item_buy_price, item_return, item_float_range, guaranteed, range_items))
+                item, item_condition, item_buy_price, item_return, item_float_range,
+                guaranteed=guaranteed, conversion_items=range_items))
 
     return item_roi
 
@@ -107,7 +180,7 @@ def get_item_conversion_result(item: Item,
     range_markers_set: Set[float] = set()
     item_conversions = {}
     for n_item in get_next_level_items(item, item_collection):
-        for n_item_cond, float_range in get_item_possible_conversions(item, item_condition, n_item).items():
+        for n_item_cond, float_range in get_item_to_item_conversions(item, item_condition, n_item).items():
             n_item_price = price_manager.get_avg_price(n_item, n_item_cond,
                                                        price_time_range, with_price_fallback)
             return_key = f'{n_item.full_name} ({str(n_item_cond)})'
