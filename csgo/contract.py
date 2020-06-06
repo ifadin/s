@@ -3,11 +3,12 @@ from statistics import mean
 from typing import List, Tuple, Optional, Set, Dict, NamedTuple
 
 from csgo.collection import get_next_level_items
-from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, get_item_conversions
+from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
+    get_item_conversions, get_condition_from_float
 from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn
-from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import PriceTimeRange, get_item_price_name
+from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition
+from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice
 
 ContractCandidatesMap = Dict[ItemCondition, Dict[ItemRarity, List[Item]]]
 
@@ -18,6 +19,12 @@ class ItemConversionResult(NamedTuple):
     item_conversions: Dict[str, Dict[FloatRange, float]]
     range_markers_set: Set[float]
     price_warning: bool = None
+
+
+class ContractItem(NamedTuple):
+    item: Item
+    item_price: float
+    item_float: float
 
 
 class ContractCalc(ABC):
@@ -203,6 +210,41 @@ def get_item_conversion_result(item: Item,
     return ItemConversionResult(item, item_condition, item_conversions, range_markers_set, price_warning)
 
 
+def get_trade_contract_return(items: List[ContractItem],
+                              price_manager: PriceManager,
+                              collections: Dict[str, ItemCollection],
+                              commission: float = 0.1) -> ContractReturn:
+    if len(items) != 10:
+        raise AssertionError('Contract must be of length 10')
+
+    st_track = items[0].item.st_track
+    outcomes: List[ItemWithCondition] = []
+    investment: float = 0
+    for c_item in items:
+        if c_item.item.st_track != st_track:
+            raise AssertionError(f'Item {c_item.item.full_name} has different st track value')
+        item_condition = get_condition_from_float(c_item.item_float)
+        conversions = get_item_conversions(c_item.item, item_condition, collections[c_item.item.collection_name])
+        conv_items = next((c_items for f_range, c_items in conversions.items() if c_item.item_float in f_range), None)
+        if not conv_items:
+            raise AssertionError(f'Item {c_item.item.full_name} cannot be converted')
+        for conv_item, conv_item_condition in conv_items.items():
+            outcomes.append((conv_item, conv_item_condition))
+        investment += c_item.item_price
+
+    result: float = 0
+    outcome_items: List[ItemWithPrice] = []
+    for o_item, o_item_condition in outcomes:
+        o_item_price = price_manager.get_avg_price(o_item, o_item_condition)
+        if not o_item_price:
+            raise AssertionError(f'Item {o_item.full_name} has no price')
+        result += o_item_price
+        outcome_items.append(ItemWithPrice(o_item, o_item_price, o_item_condition))
+
+    revenue = result / len(outcomes) * (1 - commission)
+    return ContractReturn(outcome_items, investment, revenue)
+
+
 def get_contract_candidates(price_manager: STPriceManager, time_range: PriceTimeRange,
                             required_sold_amount: int = None,
                             possible_outcomes_limit: int = None) -> ContractCandidatesMap:
@@ -237,7 +279,7 @@ def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollect
 
     contract_items_values: List[float] = []
     contract_items_expected_return: List[float] = []
-    contract_possible_items: Set[Item] = set()
+    outcome_items: List[ItemWithPrice] = []
     for item, item_collection in contract_items:
         item_price = price_manager.get_avg_price(item, item_condition, price_time_range)
         if not item_price:
@@ -247,7 +289,6 @@ def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollect
         next_items = get_next_level_items(item, item_collection)
         next_items_prices: List[float] = []
         for n_item in next_items:
-            contract_possible_items.add(n_item)
             n_item_price = price_manager.get_avg_price(n_item, item_condition, price_time_range)
             if not n_item_price:
                 if price_approximation_by_collection or price_approximation_by_condition:
@@ -261,16 +302,15 @@ def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollect
             if not n_item_price:
                 return None
             else:
+                outcome_items.append(ItemWithPrice(n_item, n_item_price, item_condition))
                 next_items_prices.append(n_item_price)
         next_item_expected_value = sum(next_items_prices) / len(next_items_prices)
         contract_items_expected_return.append(next_item_expected_value)
 
-    items = [item for item, _ in contract_items]
-    guaranteed = len(contract_possible_items) == 1
+    guaranteed = len(set([i.item for i in outcome_items])) == 1
     contract_investment = sum(contract_items_values)
     contract_expected_revenue = sum(contract_items_expected_return) / 10
-    return ContractReturn(items, item_condition, contract_investment, contract_expected_revenue, approximated,
-                          guaranteed)
+    return ContractReturn(outcome_items, contract_investment, contract_expected_revenue, approximated, guaranteed)
 
 
 def get_approximated_prices(item: Item, item_condition: ItemCondition,

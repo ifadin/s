@@ -1,7 +1,7 @@
-from typing import NamedTuple, Dict, List, Set, Tuple
+from typing import NamedTuple, Dict, List, Set
 
 from csgo.collection import get_next_level_items
-from csgo.type.item import ItemCondition, Item, ItemCollection
+from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition
 
 eps = 0.000000000001
 
@@ -17,7 +17,6 @@ class FloatRange(NamedTuple):
         return f'[{self.min_value}, {self.max_value}]'
 
 
-ItemWithCondition = Tuple[Item, ItemCondition]
 ItemConversions = Dict[FloatRange, Dict[Item, ItemCondition]]
 
 

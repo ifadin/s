@@ -1,17 +1,18 @@
 import operator
 import sys
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, Dict
 
 from enum import Enum
 
 from .bs.update import BSPrices
 from .collection import load_collections
-from .contract import BSContractCalc, STContractCalc, LFContractCalc
+from .contract import BSContractCalc, STContractCalc, LFContractCalc, ContractCalc
 from .conversion import FloatRange, get_condition_range
 from .price import STPriceManager, load_bck_prices, load_hexa_prices, load_lf_prices, LFPriceManager, load_bs_prices, \
     BSPriceManager, load_bs_sales
-from .type.contract import ContractReturn, ItemReturn
-from .type.item import to_st_track, ItemRarity
+from .type.contract import ItemReturn
+from .type.item import to_st_track, ItemRarity, Item
 from .type.price import STPrices, LFPrices, PriceTimeRange
 
 
@@ -38,9 +39,14 @@ class Model(Enum):
         return names.get(value.lower())
 
 
-collections = load_collections()
-roi_list: List[ContractReturn] = []
-returns: List[ItemReturn] = []
+class GetItemReturns:
+    def __init__(self, calc: ContractCalc, time_range):
+        self.calc = calc
+        self.time_range = time_range
+
+    def __call__(self, item: Item) -> List[ItemReturn]:
+        return self.calc.get_item_returns(item, self.time_range)
+
 
 model = Model.from_str(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1] else Model.LF
 if not model:
@@ -48,6 +54,7 @@ if not model:
 else:
     print(f'Loading model {model.name}')
 
+collections = load_collections()
 if model == Model.LF:
     prices: LFPrices = load_lf_prices()
     price_manager = LFPriceManager(prices)
@@ -64,23 +71,23 @@ else:
     calc = STContractCalc(collections, price_manager,
                           required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
 
+returns: List[ItemReturn] = []
+time_range: PriceTimeRange = PriceTimeRange.DAYS_30
+items: List[Item] = []
 for col_name, collection in collections.items():
     for item in collection.items:
         if item.rarity < ItemRarity.COVERT:
-            time_range: PriceTimeRange = PriceTimeRange.DAYS_30
-            st_item = to_st_track(item)
-            for i in [item, st_item]:
-                returns += calc.get_item_returns(i, time_range)
+            items.append(item)
+            items.append(to_st_track(item))
 
-collection_name = None
+with ThreadPoolExecutor(max_workers=10) as executor:
+    returns = list((r for res in executor.map(GetItemReturns(calc, time_range), items, chunksize=10) for r in res))
+
 for i in sorted(returns,
-                key=operator.attrgetter('item.collection_name', 'item.rarity', 'item_condition',
-                                        'item.full_name', 'item_revenue'),
-                reverse=True):
-    if i.item_roi >= 0 and i.item_revenue > 5 and len(i.conversion_items) <= 30:
-        if i.item.collection_name != collection_name:
-            collection_name = i.item.collection_name
-            print('\n' + collection_name)
+                key=operator.attrgetter('item.rarity', 'float_range.min_value', 'float_range.max_value',
+                                        'item_revenue'),
+                reverse=False):
+    if i.item_revenue > 1 and len(i.conversion_items) <= 30:
         guaranteed = '(100%) ' if i.guaranteed else ''
         item_range = FloatRange(get_condition_range(i.item_condition).min_value, i.float_range.max_value)
         print(f'{guaranteed}[{i.item.rarity}] {i.item_float} {i.float_range} '

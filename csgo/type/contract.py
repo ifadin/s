@@ -2,6 +2,7 @@ from typing import NamedTuple, List, Dict
 
 from csgo.conversion import FloatRange
 from csgo.type.item import Item, ItemCondition
+from csgo.type.price import ItemWithPrice
 
 
 class ContractReturn(NamedTuple):
@@ -13,8 +14,7 @@ class ContractReturn(NamedTuple):
     def contract_revenue(self) -> float:
         return self.contract_return - self.contract_investment
 
-    items: List[Item]
-    item_condition: ItemCondition
+    outcome_items: List[ItemWithPrice]
     contract_investment: float
     contract_return: float
     approximated: bool = False

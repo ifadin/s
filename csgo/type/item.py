@@ -1,4 +1,4 @@
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Tuple
 
 from enum import IntEnum
 
@@ -53,3 +53,6 @@ class ItemRarity(IntEnum):
     COVERT = 5
     EXTRAORDINARY = 6
     CONTRABAND = 7
+
+
+ItemWithCondition = Tuple[Item, ItemCondition]

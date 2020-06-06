@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import yaml
 
@@ -30,3 +30,7 @@ def load_collections() -> Dict[str, ItemCollection]:
             for col_name, col_details
             in res['collections'].items()
         }
+
+
+def get_item_from_collection(item_name: str, collections: Dict[str, ItemCollection]) -> Optional[Item]:
+    return next((i for collection in collections.values() for i in collection.items if i.name == item_name), None)

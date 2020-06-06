@@ -14,6 +14,12 @@ class PriceTimeRange(IntEnum):
     ALL_TIME = 5
 
 
+class ItemWithPrice(NamedTuple):
+    item: Item
+    item_price: float
+    item_condition: ItemCondition
+
+
 def get_price_time_range_from_bck_string(value: str) -> Optional[PriceTimeRange]:
     names = {
         '24_hours': PriceTimeRange.HOURS_24,
