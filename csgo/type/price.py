@@ -1,6 +1,8 @@
-from typing import NamedTuple, Dict, Optional
+from typing import NamedTuple, Dict, Optional, Union
 
 from enum import IntEnum
+
+from csgo.type.item import Item, ItemCondition
 
 
 class PriceTimeRange(IntEnum):
@@ -61,3 +63,8 @@ class LFItemPrice(NamedTuple):
 
 
 LFPrices = Dict[str, LFItemPrice]
+
+
+def get_item_price_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
+    item_name = item_name.full_name if isinstance(item_name, Item) else item_name
+    return f'{item_name} ({str(item_condition)})'

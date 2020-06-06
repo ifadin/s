@@ -3,11 +3,11 @@ from unittest import TestCase
 from csgo.contract import get_contract_candidates, calculate_trade_contract_return, \
     STContractCalc
 from csgo.conversion import FloatRange
-from csgo.price import get_item_price_name, STPriceManager
+from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import PriceTimeRange
+from csgo.type.price import PriceTimeRange, get_item_price_name
 
 
 class CalculateTest(TestCase):

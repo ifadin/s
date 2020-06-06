@@ -4,12 +4,12 @@ from typing import List, Dict
 
 from enum import Enum
 
-from .bs.update import BSPriceMap
+from .bs.update import BSPrices
 from .collection import load_collections
 from .contract import BSContractCalc, STContractCalc, LFContractCalc
 from .conversion import FloatRange, get_condition_range
 from .price import STPriceManager, load_bck_prices, load_hexa_prices, load_lf_prices, LFPriceManager, load_bs_prices, \
-    BSPriceManager
+    BSPriceManager, load_bs_sales
 from .type.contract import ContractReturn, ItemReturn
 from .type.item import to_st_track, ItemRarity
 from .type.price import STPrices, LFPrices, PriceTimeRange
@@ -54,8 +54,9 @@ if model == Model.LF:
     calc = LFContractCalc(collections, price_manager, required_available=1)
 
 if model == Model.BS:
-    prices: BSPriceMap = load_bs_prices()
-    price_manager = BSPriceManager(prices)
+    prices: BSPrices = load_bs_prices()
+    sales = load_bs_sales()
+    price_manager = BSPriceManager(prices, sales)
     calc = BSContractCalc(collections, price_manager)
 else:
     prices: STPrices = load_hexa_prices() if model == Model.HX else load_bck_prices()
@@ -67,17 +68,16 @@ for col_name, collection in collections.items():
     for item in collection.items:
         if item.rarity < ItemRarity.COVERT:
             time_range: PriceTimeRange = PriceTimeRange.DAYS_30
-            returns += calc.get_item_returns(item, time_range)
-
-            stat_item = to_st_track(item)
-            returns += calc.get_item_returns(stat_item, time_range)
+            st_item = to_st_track(item)
+            for i in [item, st_item]:
+                returns += calc.get_item_returns(i, time_range)
 
 collection_name = None
 for i in sorted(returns,
                 key=operator.attrgetter('item.collection_name', 'item.rarity', 'item_condition',
                                         'item.full_name', 'item_revenue'),
                 reverse=True):
-    if i.item_roi >= 0 and 10 < i.item_revenue < 1500 and len(i.conversion_items) <= 30:
+    if i.item_roi >= 0 and i.item_revenue > 5 and len(i.conversion_items) <= 30:
         if i.item.collection_name != collection_name:
             collection_name = i.item.collection_name
             print('\n' + collection_name)

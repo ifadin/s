@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from csgo.price import get_item_price_name, STPriceManager
+from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import PriceTimeRange
+from csgo.type.price import PriceTimeRange, get_item_price_name
 
 
 class CalculateTest(TestCase):

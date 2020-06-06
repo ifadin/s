@@ -4,10 +4,10 @@ from typing import List, Tuple, Optional, Set, Dict, NamedTuple
 
 from csgo.collection import get_next_level_items
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, get_item_conversions
-from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager, get_item_price_name
+from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import PriceTimeRange
+from csgo.type.price import PriceTimeRange, get_item_price_name
 
 ContractCandidatesMap = Dict[ItemCondition, Dict[ItemRarity, List[Item]]]
 
@@ -29,10 +29,11 @@ class ContractCalc(ABC):
 
 class BSContractCalc(ContractCalc):
 
-    def __init__(self, collections: Dict[str, ItemCollection], price_manager: BSPriceManager) -> None:
+    def __init__(self, collections: Dict[str, ItemCollection], price_manager: BSPriceManager,
+                 sale_commission: float = 0.1) -> None:
         self.collections = collections
         self.price_manager = price_manager
-        # TODO: add commission
+        self.sale_commission = sale_commission
 
     def get_item_returns(self, item: Item, price_time_range: PriceTimeRange = None) -> List[ItemReturn]:
         item_returns = []
@@ -43,7 +44,7 @@ class BSContractCalc(ContractCalc):
                 guaranteed = len(conversion_items) == 1
                 item_return = get_conversion_items_return(conversion_items, self.price_manager)
                 if item_return:
-                    for item_price in self.price_manager.get_all_prices(item, item_condition):
+                    for item_price in self.price_manager.get_sale_prices(item, item_condition):
                         if item_price.float_value in item_range:
                             conv_items_with_price: Dict[str, float] = {
                                 get_item_price_name(c_item, c_item_condition):
@@ -52,7 +53,11 @@ class BSContractCalc(ContractCalc):
                             }
                             item_investment = item_price.price * 10
                             item_returns.append(
-                                ItemReturn(item, item_condition, item_investment, item_return, item_range,
+                                ItemReturn(item,
+                                           item_condition,
+                                           item_investment,
+                                           item_return * (1 - self.sale_commission),
+                                           item_range,
                                            item_float=item_price.float_value,
                                            guaranteed=guaranteed,
                                            conversion_items=conv_items_with_price))
@@ -117,7 +122,7 @@ def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
     for item, item_condition in conversion_items.items():
         item_price = price_manager.get_avg_price(item, item_condition)
         if not item_price:
-            print(f'[WARN] price for {item.full_name} ({str(item_condition)}) not found')
+            # print(f'[WARN] price for {item.full_name} ({str(item_condition)}) not found')
             return None
         total_return += item_price
     return total_return / len(conversion_items)

@@ -2,24 +2,18 @@ import html
 import json
 import math
 from abc import ABC, abstractmethod
-from operator import attrgetter
+from functools import reduce
 from statistics import mean
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List
 
 import yaml
 
-from csgo.bs.update import BSPriceMap, BSItemPrice
+from csgo.bs.update import BSPrices, BSItemPrice, BSSalesHistory
 from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
-    get_price_time_range_from_hexa_string, LFPrices, LFItemPrice
-
-
-def get_item_price_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
-    item_name = item_name.full_name if isinstance(item_name, Item) else item_name
-    return f'{item_name} ({str(item_condition)})'
-
+    get_price_time_range_from_hexa_string, LFPrices, LFItemPrice, get_item_price_name
 
 RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
@@ -202,21 +196,29 @@ class LFPriceManager(PriceManager):
 
 class BSPriceManager(PriceManager):
 
-    def __init__(self, prices: BSPriceMap) -> None:
+    def __init__(self, prices: BSPrices, sales: BSSalesHistory) -> None:
         self.prices = prices
+        self.sales = sales
 
     def get_avg_price(self, item: Item, item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
-        item_name = get_item_price_name(item.full_name, item_condition)
-        prices = self.prices.get(item_name)
-        sample_size = 3
+        item_name = get_item_price_name(item, item_condition)
+        sales_history = self.sales.get(item_name, [])
 
-        return mean([p.price for p in sorted(prices, key=attrgetter('price'))][0:sample_size]) if prices else None
+        return self.trim_mean(sales_history, 0.2) if sales_history else None
 
-    def get_all_prices(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
+    def get_sale_prices(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
         item_name = get_item_price_name(item.full_name, item_condition)
         return self.prices.get(item_name, [])
+
+    @staticmethod
+    def trim_mean(tlist, tperc) -> float:
+        remove_n = int(math.floor(len(tlist) * tperc / 2))
+        tlist.sort()
+        if remove_n > 0:
+            tlist = tlist[remove_n:-remove_n]
+        return reduce(lambda a, b: a + b, tlist) / float(len(tlist))
 
 
 def load_bck_prices() -> STPrices:
@@ -282,7 +284,7 @@ def load_lf_prices() -> LFPrices:
         return prices
 
 
-def load_bs_prices() -> BSPriceMap:
+def load_bs_prices() -> BSPrices:
     with open('csgo/bs/bs_prices.yaml') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -291,3 +293,10 @@ def load_bs_prices() -> BSPriceMap:
                         for float_value, price_value in price.items() if float_value and price_value]
             for item_name, price in data['prices'].items()
         }
+
+
+def load_bs_sales() -> BSSalesHistory:
+    with open('csgo/bs/bs_sales.yaml') as f:
+        data = yaml.load(f, Loader=yaml.SafeLoader)
+
+        return data['sales']
