@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 from statistics import mean
-from typing import List, Tuple, Optional, Set, Dict, NamedTuple
+from typing import List, Optional, Set, Dict, NamedTuple
 
 from csgo.collection import get_next_level_items
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
-    get_item_conversions, get_condition_from_float
+    get_item_conversions, get_condition_from_float, get_conversion_required_ranges
 from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition
@@ -214,103 +215,73 @@ def get_trade_contract_return(items: List[ContractItem],
                               price_manager: PriceManager,
                               collections: Dict[str, ItemCollection],
                               commission: float = 0.1) -> ContractReturn:
-    if len(items) != 10:
-        raise AssertionError('Contract must be of length 10')
+    validate_contract_items(items, collections)
 
-    st_track = items[0].item.st_track
-    outcomes: List[ItemWithCondition] = []
-    investment: float = 0
-    for c_item in items:
-        if c_item.item.st_track != st_track:
-            raise AssertionError(f'Item {c_item.item.full_name} has different st track value')
-        item_condition = get_condition_from_float(c_item.item_float)
-        conversions = get_item_conversions(c_item.item, item_condition, collections[c_item.item.collection_name])
-        conv_items = next((c_items for f_range, c_items in conversions.items() if c_item.item_float in f_range), None)
-        if not conv_items:
-            raise AssertionError(f'Item {c_item.item.full_name} cannot be converted')
-        for conv_item, conv_item_condition in conv_items.items():
-            outcomes.append((conv_item, conv_item_condition))
-        investment += c_item.item_price
+    avg_float: float = mean([i.item_float for i in items])
+    investment: float = sum([i.item_price for i in items])
 
-    result: float = 0
+    conversion_items = get_contract_conversion_items([i.item for i in items], avg_float, collections)
     outcome_items: List[ItemWithPrice] = []
-    for o_item, o_item_condition in outcomes:
+    result: float = 0
+    for o_item, o_item_condition in conversion_items:
         o_item_price = price_manager.get_avg_price(o_item, o_item_condition)
         if not o_item_price:
             raise AssertionError(f'Item {o_item.full_name} has no price')
         result += o_item_price
         outcome_items.append(ItemWithPrice(o_item, o_item_price, o_item_condition))
 
-    revenue = result / len(outcomes) * (1 - commission)
-    return ContractReturn(outcome_items, investment, revenue)
+    c_return = result / len(conversion_items) * (1 - commission)
+    return ContractReturn(outcome_items, investment, c_return, avg_float)
 
 
-def get_contract_candidates(price_manager: STPriceManager, time_range: PriceTimeRange,
-                            required_sold_amount: int = None,
-                            possible_outcomes_limit: int = None) -> ContractCandidatesMap:
-    res: ContractCandidatesMap = {}
-    for item_cond in ItemCondition:
-        for col_name, col in price_manager.collections.items():
-            lowest_items = price_manager.find_lowest_price_items(col_name, item_cond, time_range)
-            for item_rarity, item in lowest_items.items():
-                items_sold = price_manager.get_sold(item, item_cond, time_range)
-                nxt_items = get_next_level_items(item, col)
-                if (nxt_items
-                        and (items_sold > required_sold_amount if required_sold_amount else True)
-                        and (len(nxt_items) <= possible_outcomes_limit if possible_outcomes_limit else True)):
-                    if item_cond not in res:
-                        res[item_cond] = {}
-                    res[item_cond][item_rarity] = [item] + (res[item_cond][item_rarity]
-                                                            if item_rarity in res[item_cond] else [])
-    return res
+def validate_contract_items(items: List[ContractItem], collections: Dict[str, ItemCollection]):
+    if len(items) != 10:
+        raise AssertionError('Contract must be of length 10')
+
+    avg_float: float = mean([i.item_float for i in items])
+    rarity = items[0].item.rarity
+    st_track = items[0].item.st_track
+    for c_item in items:
+        if c_item.item.st_track != st_track:
+            raise AssertionError(f'Item {c_item.item.full_name} has different st_track value')
+        if c_item.item.rarity != rarity:
+            raise AssertionError(f'Item {c_item.item.full_name} has different rarity')
+
+        potential_float_range = get_item_conversion_float_range(c_item.item, c_item.item_float,
+                                                                collections[c_item.item.collection_name])
+        if not potential_float_range:
+            raise AssertionError(f'Item {c_item.item.full_name} cannot be converted')
+        if avg_float not in potential_float_range:
+            print(f'[WARN] {c_item.item.full_name}: '
+                  f'avg float {avg_float} is out of effective range {potential_float_range}')
 
 
-def calculate_trade_contract_return(contract_items: List[Tuple[Item, ItemCollection]],
-                                    item_condition: ItemCondition,
-                                    price_manager: STPriceManager,
-                                    price_time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
-                                    price_approximation_by_collection: bool = False,
-                                    price_approximation_by_condition: bool = False,
-                                    buy_price_reduction: float = 0.9) -> Optional[ContractReturn]:
-    if len(contract_items) != 10:
-        raise AssertionError('Contract items length must be 10')
+def get_item_conversion_float_range(item: Item,
+                                    item_float: float,
+                                    item_collection: ItemCollection) -> FloatRange:
+    item_condition = get_condition_from_float(item_float)
+    conversions = get_item_conversions(item, item_condition, item_collection)
+    return next((f_range for f_range in conversions if item_float in f_range), None)
 
-    approximated: bool = False
 
-    contract_items_values: List[float] = []
-    contract_items_expected_return: List[float] = []
-    outcome_items: List[ItemWithPrice] = []
-    for item, item_collection in contract_items:
-        item_price = price_manager.get_avg_price(item, item_condition, price_time_range)
-        if not item_price:
-            return None
-        contract_items_values.append(item_price * buy_price_reduction)
-
-        next_items = get_next_level_items(item, item_collection)
-        next_items_prices: List[float] = []
-        for n_item in next_items:
-            n_item_price = price_manager.get_avg_price(n_item, item_condition, price_time_range)
-            if not n_item_price:
-                if price_approximation_by_collection or price_approximation_by_condition:
-                    approx_prices = get_approximated_prices(n_item, item_condition,
-                                                            price_manager, price_time_range,
-                                                            price_approximation_by_collection,
-                                                            price_approximation_by_condition)
-                    approximated = True
-                    n_item_price = mean(approx_prices) if approx_prices else None
-
-            if not n_item_price:
-                return None
-            else:
-                outcome_items.append(ItemWithPrice(n_item, n_item_price, item_condition))
-                next_items_prices.append(n_item_price)
-        next_item_expected_value = sum(next_items_prices) / len(next_items_prices)
-        contract_items_expected_return.append(next_item_expected_value)
-
-    guaranteed = len(set([i.item for i in outcome_items])) == 1
-    contract_investment = sum(contract_items_values)
-    contract_expected_revenue = sum(contract_items_expected_return) / 10
-    return ContractReturn(outcome_items, contract_investment, contract_expected_revenue, approximated, guaranteed)
+def get_contract_conversion_items(items: List[Item],
+                                  avg_float: float,
+                                  collections: Dict[str, ItemCollection]) -> List[ItemWithCondition]:
+    outcomes: List[ItemWithCondition] = []
+    for item in items:
+        next_items = get_next_level_items(item, collections[item.collection_name])
+        if not next_items:
+            raise AssertionError(f'Item {item.full_name} has no conversion outcomes')
+        for target_item in next_items:
+            target_item_condition = next((
+                conv_cond
+                for conv_cond, conversion_range in get_conversion_required_ranges(target_item).items()
+                if avg_float in conversion_range
+            ), None)
+            if not target_item_condition:
+                raise AssertionError(f'Item {target_item.full_name} cannot be converted from float {avg_float}')
+            outcomes.append((target_item, target_item_condition))
+    return outcomes
 
 
 def get_approximated_prices(item: Item, item_condition: ItemCondition,
@@ -325,3 +296,11 @@ def get_approximated_prices(item: Item, item_condition: ItemCondition,
 
     return (([approx_by_collection] if approx_by_collection else []) +
             ([approx_by_condition] if approx_by_condition else []))
+
+
+def print_contract_return(c: ContractReturn):
+    counter = Counter(c.outcome_items)
+    print(f'I: {c.contract_investment:.2f} R: {c.contract_revenue:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
+    for c_res, freq in counter.items():
+        prob = freq / len(c.outcome_items) * 100
+        print(f' - {prob:.2f}% {c_res.item.full_name} ({str(c_res.item_condition)}) {c_res.item_price:.2f}')

@@ -17,6 +17,7 @@ class ContractReturn(NamedTuple):
     outcome_items: List[ItemWithPrice]
     contract_investment: float
     contract_return: float
+    avg_float: float
     approximated: bool = False
     guaranteed: bool = False
 

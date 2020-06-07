@@ -1,12 +1,11 @@
 from unittest import TestCase
 
-from csgo.contract import get_contract_candidates, calculate_trade_contract_return, \
-    STContractCalc
+from csgo.contract import STContractCalc
 from csgo.conversion import FloatRange
 from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
-from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
+from csgo.type.item import Item, ItemCollection, ItemCondition
 from csgo.type.price import PriceTimeRange, get_item_price_name
 
 
@@ -103,75 +102,3 @@ class CalculateTest(TestCase):
                        conversion_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Field-Tested)': 200})]
 
         self.assertEqual(limited_float_return, expected)
-
-    def test_get_contract_candidates(self):
-        candidates = get_contract_candidates(self.price_manager, self.time_range)
-        expected = {
-            ItemCondition.BATTLE_SCARED: {
-                ItemRarity.RESTRICTED: [self.ItemB3_1]},
-            ItemCondition.MINIMAL_WEAR: {
-                ItemRarity.RESTRICTED: [self.ItemB3_1, self.ItemA3_2],
-                ItemRarity.CLASSIFIED: [self.ItemA4_2]},
-            ItemCondition.WELL_WORN: {
-                ItemRarity.CLASSIFIED: [self.ItemA4_1]},
-            ItemCondition.FACTORY_NEW: {
-                ItemRarity.CLASSIFIED: [self.ItemA4_1]}
-        }
-        self.assertEqual(candidates, expected)
-
-    def test_contract_return_guaranteed(self):
-        item_condition = ItemCondition.FACTORY_NEW
-        buy_price_reduction = 0.8
-        res = calculate_trade_contract_return(
-            [(self.ItemA4_1, self.collections['A']) for _ in range(0, 10)], item_condition,
-            self.price_manager, self.time_range,
-            buy_price_reduction=buy_price_reduction)
-
-        expected_investment = 10 * 100 * buy_price_reduction
-        expected_return = 1000
-        expected_revenue = expected_return - expected_investment
-        expected_roi = expected_revenue / expected_investment
-
-        self.assertEqual(res.contract_investment, expected_investment)
-        self.assertEqual(res.contract_return, expected_return)
-        self.assertEqual(res.contract_revenue, expected_revenue)
-        self.assertEqual(res.contract_roi, expected_roi)
-        self.assertEqual(res.guaranteed, True)
-
-    def test_contract_return_multiple_outcomes(self):
-        item_condition = ItemCondition.MINIMAL_WEAR
-        buy_price_reduction = 0.5
-        res = calculate_trade_contract_return(
-            [(self.ItemA3_2, self.collections['A']) for _ in range(0, 10)], item_condition,
-            self.price_manager, self.time_range,
-            buy_price_reduction=buy_price_reduction)
-
-        expected_investment = 10 * 50 * buy_price_reduction
-        expected_return = (400 + 800) / 2
-        expected_revenue = expected_return - expected_investment
-        expected_roi = expected_revenue / expected_investment
-        self.assertEqual(res.contract_investment, expected_investment)
-        self.assertEqual(res.contract_return, expected_return)
-        self.assertEqual(res.contract_revenue, expected_revenue)
-        self.assertEqual(res.contract_roi, expected_roi)
-        self.assertEqual(res.guaranteed, False)
-
-    def test_contract_approx_return_multiple_collections(self):
-        item_condition = ItemCondition.MINIMAL_WEAR
-
-        buy_price_reduction = 0.5
-        items = [(self.ItemA3_2, self.collections['A']) for _ in range(0, 3)] + [
-            (self.ItemB3_1, self.collections['B']) for _ in range(0, 7)]
-        res = calculate_trade_contract_return(items, item_condition,
-                                              self.price_manager, self.time_range,
-                                              buy_price_reduction=buy_price_reduction)
-
-        expected_investment = (3 * 50 + 7 * 80) * buy_price_reduction
-        expected_return = (400 + 800) * 0.3 / 2 + (500 + 300) * 0.7 / 2
-        expected_revenue = expected_return - expected_investment
-        expected_roi = expected_revenue / expected_investment
-        self.assertEqual(res.contract_investment, expected_investment)
-        self.assertEqual(res.contract_return, expected_return)
-        self.assertEqual(res.contract_revenue, expected_revenue)
-        self.assertEqual(res.contract_roi, expected_roi)
-        self.assertEqual(res.guaranteed, False)
