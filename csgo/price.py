@@ -184,7 +184,7 @@ class LFPriceManager(PriceManager):
     def get_avg_price(self, item: Item, item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
-        item_name = get_item_price_name(item.full_name, item_condition)
+        item_name = get_item_price_name(item, item_condition)
         p = self.prices.get(item_name)
         return p.price if p else None
 

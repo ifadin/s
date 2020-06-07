@@ -175,11 +175,11 @@ def get_item_range_rois(item: Item,
                 range_items[conv_item_name] = converted_price
 
         if range_return and not conversion_result.price_warning:
-            item_return = sum(range_return) * (1 - return_commission) / len(range_return) / 10
-            item_buy_price = item_price * (1 - possible_price_discount)
+            item_return = sum(range_return) * (1 - return_commission) / len(range_return)
+            item_investment = item_price * 10 * (1 - possible_price_discount)
             guaranteed = len(next_items) == 1
             item_roi.append(ItemReturn(
-                item, item_condition, item_buy_price, item_return, item_float_range,
+                item, item_condition, item_investment, item_return, item_float_range,
                 guaranteed=guaranteed, conversion_items=range_items))
 
     return item_roi

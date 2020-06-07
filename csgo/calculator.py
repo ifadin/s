@@ -59,17 +59,17 @@ if model == Model.LF:
     prices: LFPrices = load_lf_prices()
     price_manager = LFPriceManager(prices)
     calc = LFContractCalc(collections, price_manager, required_available=1)
-
-if model == Model.BS:
-    prices: BSPrices = load_bs_prices()
-    sales = load_bs_sales()
-    price_manager = BSPriceManager(prices, sales)
-    calc = BSContractCalc(collections, price_manager)
 else:
-    prices: STPrices = load_hexa_prices() if model == Model.HX else load_bck_prices()
-    price_manager = STPriceManager(prices, collections)
-    calc = STContractCalc(collections, price_manager,
-                          required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
+    if model == Model.BS:
+        prices: BSPrices = load_bs_prices()
+        sales = load_bs_sales()
+        price_manager = BSPriceManager(prices, sales)
+        calc = BSContractCalc(collections, price_manager)
+    else:
+        prices: STPrices = load_hexa_prices() if model == Model.HX else load_bck_prices()
+        price_manager = STPriceManager(prices, collections)
+        calc = STContractCalc(collections, price_manager,
+                              required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
 
 returns: List[ItemReturn] = []
 time_range: PriceTimeRange = PriceTimeRange.DAYS_30
