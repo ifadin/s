@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from collections import Counter
+from itertools import combinations
+from operator import attrgetter
 from statistics import mean
-from typing import List, Optional, Set, Dict, NamedTuple
+from typing import List, Optional, Set, Dict, NamedTuple, Tuple
 
 from csgo.collection import get_next_level_items
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
@@ -215,7 +217,7 @@ def get_trade_contract_return(items: List[ContractItem],
                               price_manager: PriceManager,
                               collections: Dict[str, ItemCollection],
                               commission: float = 0.1) -> ContractReturn:
-    validate_contract_items(items, collections)
+    warnings = validate_contract_items(items, collections)
 
     avg_float: float = mean([i.item_float for i in items])
     investment: float = sum([i.item_price for i in items])
@@ -231,13 +233,15 @@ def get_trade_contract_return(items: List[ContractItem],
         outcome_items.append(ItemWithPrice(o_item, o_item_price, o_item_condition))
 
     c_return = result / len(conversion_items) * (1 - commission)
-    return ContractReturn(outcome_items, investment, c_return, avg_float)
+    return ContractReturn(outcome_items, investment, c_return, avg_float, warnings=warnings)
 
 
-def validate_contract_items(items: List[ContractItem], collections: Dict[str, ItemCollection]):
+def validate_contract_items(items: List[ContractItem],
+                            collections: Dict[str, ItemCollection]) -> List[str]:
     if len(items) != 10:
         raise AssertionError('Contract must be of length 10')
 
+    warnings = []
     avg_float: float = mean([i.item_float for i in items])
     rarity = items[0].item.rarity
     st_track = items[0].item.st_track
@@ -252,8 +256,9 @@ def validate_contract_items(items: List[ContractItem], collections: Dict[str, It
         if not potential_float_range:
             raise AssertionError(f'Item {c_item.item.full_name} cannot be converted')
         if avg_float not in potential_float_range:
-            print(f'[WARN] {c_item.item.full_name}: '
-                  f'avg float {avg_float} is out of effective range {potential_float_range}')
+            warnings.append(f'{c_item.item.full_name}: avg float {avg_float} '
+                            f'is out of effective range {potential_float_range}')
+    return warnings
 
 
 def get_item_conversion_float_range(item: Item,
@@ -298,9 +303,46 @@ def get_approximated_prices(item: Item, item_condition: ItemCondition,
             ([approx_by_condition] if approx_by_condition else []))
 
 
+def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
+                       collections: Dict[str, ItemCollection], commission: float):
+    item_sets = get_contract_items_sets(items)
+    for item_rarity, (basic_items, st_ct_items) in item_sets.items():
+        st = False
+        for c_items in [basic_items, st_ct_items]:
+            print(f"[{item_rarity}] {len(c_items)} {'st' if st else 'basic'}")
+            if len(c_items) >= 10:
+                contract = sorted([
+                    get_trade_contract_return(list(c), price_manager, collections, commission)
+                    for c in combinations(c_items, 10)
+                ], key=attrgetter('contract_revenue'), reverse=True)[0]
+                print_contract_return(contract)
+                print()
+            st = True
+
+
+def get_contract_items_sets(items: Set[ContractItem]) -> Dict[ItemRarity, Tuple[Set[ContractItem], Set[ContractItem]]]:
+    items_set = {}
+    for c_item in items:
+        item = c_item.item
+        r = ItemRarity(item.rarity)
+        if r not in items_set:
+            items_set[r] = (set(), set())
+
+        set_items, ct_set_items = items_set[r]
+        if item.st_track:
+            ct_set_items.add(c_item)
+        else:
+            set_items.add(c_item)
+
+    return items_set
+
+
 def print_contract_return(c: ContractReturn):
     counter = Counter(c.outcome_items)
-    print(f'I: {c.contract_investment:.2f} R: {c.contract_revenue:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
+    print(f'I:{c.contract_investment:.2f} R:{c.contract_revenue:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
+    warnings = c.warnings
+    for w in warnings:
+        print(f'[WARN] {w}')
     for c_res, freq in counter.items():
         prob = freq / len(c.outcome_items) * 100
         print(f' - {prob:.2f}% {c_res.item.full_name} ({str(c_res.item_condition)}) {c_res.item_price:.2f}')

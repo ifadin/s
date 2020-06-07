@@ -20,6 +20,7 @@ class ContractReturn(NamedTuple):
     avg_float: float
     approximated: bool = False
     guaranteed: bool = False
+    warnings: List[str] = None
 
 
 class ItemReturn(NamedTuple):
