@@ -1,7 +1,6 @@
 import html
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from operator import attrgetter
 from typing import NamedTuple, Dict, List, Tuple
 
 import requests
@@ -25,14 +24,47 @@ BSPrices = Dict[str, List[BSItemPrice]]
 BSSalesHistory = Dict[str, List[float]]
 
 
+class GetInventoryOnSaleTask:
+    def __init__(self, token_provider: TokenProvider):
+        self.token_provider = token_provider
+
+    def __call__(self, item_details: Tuple[str, ItemCondition]) -> BSPrices:
+        item_type, item_condition = item_details
+        start = time.time()
+
+        prices = {
+            item_name: item_prices
+            for item_name, item_prices in get_item_prices(item_type, item_condition, self.token_provider).items()
+            if item_prices and item_prices[0].item_rarity.lower() != 'covert'
+        }
+        end = time.time()
+        print(f'Updated {item_type} ({str(item_condition)}) in {(end - start):.2f}s')
+        return prices
+
+
+class GetSalesHistoryTask:
+    def __init__(self, token_provider: TokenProvider):
+        self.token_provider = token_provider
+
+    def __call__(self, item_name: str) -> Tuple[str, List[float]]:
+        print(f'Updating {item_name}')
+
+        sales = get_item_price_history(item_name, self.token_provider)
+        return item_name, sales[0:10]
+
+
 def get_inventory(query: str, api_key: str, token: str,
                   page: int = 1, per_page=480) -> Response:
     res = requests.get(f'https://bitskins.com/api/v1/get_inventory_on_sale/?api_key={api_key}&'
                        f'app_id=730&market_hash_name={query}&code={token}&'
                        f'is_souvenir=-1&'
                        f'page={page}&per_page={per_page}')
-    res.raise_for_status()
-    check_api_status(res)
+    if res.status_code == 429:
+        time.sleep(3)
+        return get_inventory(query, api_key, token, page, per_page)
+    else:
+        res.raise_for_status()
+        check_api_status(res)
 
     return res
 
@@ -119,24 +151,14 @@ def update_bs_prices():
         'P250', 'P90', 'PP-Bizon', 'R8 Revolver', 'SCAR-20', 'SG 553', 'SSG 08', 'Sawed-Off', 'Tec-9', 'UMP-45',
         'USP-S', 'XM1014'
     ]
-    last_tier_sample_limit = 8
-    price_map: BSPrices = {}
-    for t in item_types:
-        for i in ItemCondition:
-            print(f'Updating {t} ({str(i)}) ', end='')
-            start = time.time()
+    items: List[Tuple[str, ItemCondition]] = [(t, i) for i in ItemCondition for t in item_types]
 
-            prices = {
-                item_name: (item_prices
-                            if item_prices and item_prices[0].item_rarity.lower() != 'covert'
-                            else sorted(item_prices, key=attrgetter('price'))[0:last_tier_sample_limit])
-                for item_name, item_prices in get_item_prices(t, i, token_provider).items()
-            }
-            price_map = {**price_map, **prices}
-            end = time.time()
-            print(f'({(end - start):.2f}s)')
-
-    save_prices(price_map)
+    print(f'Updating {len(item_types)} item types...')
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        price_map: BSPrices = {}
+        for p in executor.map(GetInventoryOnSaleTask(token_provider), items, chunksize=5):
+            price_map = {**price_map, **p}
+        save_prices(price_map)
 
 
 def update_bs_sales_history():
@@ -151,16 +173,5 @@ def update_bs_sales_history():
                     items.append(item_name)
 
     with ThreadPoolExecutor(max_workers=5) as executor:
-        sales_history: BSSalesHistory = dict(executor.map(GetSalesHistory(token_provider), items, chunksize=5))
+        sales_history: BSSalesHistory = dict(executor.map(GetSalesHistoryTask(token_provider), items, chunksize=5))
         save_sales_history(sales_history)
-
-
-class GetSalesHistory:
-    def __init__(self, token_provider: TokenProvider):
-        self.token_provider = token_provider
-
-    def __call__(self, item_name: str) -> Tuple[str, List[float]]:
-        print(f'Updating {item_name}')
-
-        sales = get_item_price_history(item_name, self.token_provider)
-        return item_name, sales[0:10]

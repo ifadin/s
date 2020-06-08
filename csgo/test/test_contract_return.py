@@ -76,7 +76,7 @@ class CalculateTest(TestCase):
         calc = STContractCalc(self.collections, self.price_manager)
         standard_float_return = calc.get_item_returns(self.ItemA3_2, self.time_range)
         expected = [
-            ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 50, 60.0, FloatRange(0.07, 0.15),
+            ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 500, 600, FloatRange(0.07, 0.15),
                        guaranteed=False,
                        conversion_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
         self.assertEqual(standard_float_return, expected)
@@ -85,19 +85,19 @@ class CalculateTest(TestCase):
         limited_float_return = calc.get_item_returns(self.ItemB3_1, self.time_range)
 
         expected = [
-            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 5, 10.75, FloatRange(0.45, 0.56),
+            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 107.5, FloatRange(0.45, 0.56),
                        guaranteed=False,
                        conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Field-Tested)': 200}),
-            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 5, 1.75, FloatRange(0.56, 0.7),
+            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 17.5, FloatRange(0.56, 0.7),
                        guaranteed=False,
                        conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Well-Worn)': 20}),
-            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 5, 1.25, FloatRange(0.7, 1),
+            ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 12.5, FloatRange(0.7, 1),
                        guaranteed=False,
                        conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Battle-Scarred)': 10}),
-            ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 80, 40.0, FloatRange(0.07, 0.09999999999999998),
+            ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 800, 400, FloatRange(0.07, 0.09999999999999998),
                        guaranteed=False,
                        conversion_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Minimal Wear)': 300}),
-            ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 80, 35.0, FloatRange(0.09999999999999998, 0.15),
+            ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 800, 350, FloatRange(0.09999999999999998, 0.15),
                        guaranteed=False,
                        conversion_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Field-Tested)': 200})]
 
