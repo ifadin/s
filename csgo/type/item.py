@@ -21,6 +21,10 @@ def to_st_track(item: Item) -> Item:
     return Item(item.name, item.rarity, item.collection_name, item.min_float, item.max_float, st_track=True)
 
 
+def to_basic(item: Item) -> Item:
+    return Item(item.name, item.rarity, item.collection_name, item.min_float, item.max_float, st_track=False)
+
+
 class ItemCollection(NamedTuple):
     name: str
     items: List[Item]

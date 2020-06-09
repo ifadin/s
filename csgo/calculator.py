@@ -8,7 +8,7 @@ from enum import Enum
 from .bs.update import BSPrices
 from .collection import load_collections
 from .contract import BSContractCalc, STContractCalc, LFContractCalc, ContractCalc
-from .conversion import FloatRange, get_condition_range
+from .conversion import FloatRange, get_condition_range, ConversionMap
 from .price import STPriceManager, load_bck_prices, load_hexa_prices, load_lf_prices, LFPriceManager, load_bs_prices, \
     BSPriceManager, load_bs_sales
 from .type.contract import ItemReturn
@@ -55,16 +55,18 @@ else:
     print(f'Loading model {model.name}')
 
 collections = load_collections()
+conversion_map = ConversionMap(collections)
+
 if model == Model.LF:
     prices: LFPrices = load_lf_prices()
     price_manager = LFPriceManager(prices)
-    calc = LFContractCalc(collections, price_manager, required_available=1)
+    calc = LFContractCalc(conversion_map, price_manager, required_available=1)
 else:
     if model == Model.BS:
         prices: BSPrices = load_bs_prices()
         sales = load_bs_sales()
         price_manager = BSPriceManager(prices, sales)
-        calc = BSContractCalc(collections, price_manager)
+        calc = BSContractCalc(conversion_map, price_manager)
     else:
         prices: STPrices = load_hexa_prices() if model == Model.HX else load_bck_prices()
         price_manager = STPriceManager(prices, collections)
@@ -87,10 +89,10 @@ for i in sorted(returns,
                 key=operator.attrgetter('item.rarity', 'float_range.min_value', 'float_range.max_value',
                                         'item_revenue'),
                 reverse=False):
-    if i.item_revenue > 1 and len(i.conversion_items) <= 30:
+    if i.item_revenue > 1 and len(i.output_items) <= 30:
         guaranteed = '(100%) ' if i.guaranteed else ''
         item_range = FloatRange(get_condition_range(i.item_condition).min_value, i.float_range.max_value)
         print(f'{guaranteed}[{i.item.rarity}] {i.item_float} {i.float_range} '
               f'{i.item.full_name} ({str(i.item_condition)}) {i.item_investment:.2f}: '
               f'{i.item_revenue:.2f} ({i.item_roi * 100:.0f}%):')
-        pretty_print_items(i.conversion_items)
+        pretty_print_items(i.output_items)

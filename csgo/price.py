@@ -208,7 +208,7 @@ class BSPriceManager(PriceManager):
 
         return self.trim_mean(sales_history, 0.2) if sales_history else None
 
-    def get_sale_prices(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
         item_name = get_item_price_name(item.full_name, item_condition)
         return self.prices.get(item_name, [])
 

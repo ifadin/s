@@ -1,7 +1,7 @@
 from typing import NamedTuple, Dict, List, Set
 
 from csgo.collection import get_next_level_items
-from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition
+from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition, to_basic, to_st_track
 
 eps = 0.000000000001
 
@@ -10,6 +10,10 @@ class FloatRange(NamedTuple):
     min_value: float
     max_value: float
 
+    @property
+    def item_condition(self) -> ItemCondition:
+        return next((c for c in ItemCondition if is_in_float_range(self, get_condition_range(c))))
+
     def __contains__(self, value: float) -> bool:
         return self.min_value < value < self.max_value
 
@@ -17,7 +21,7 @@ class FloatRange(NamedTuple):
         return f'[{self.min_value}, {self.max_value}]'
 
 
-ItemConversions = Dict[FloatRange, Dict[Item, ItemCondition]]
+ConversionRules = Dict[FloatRange, Dict[Item, ItemCondition]]
 
 
 def is_in_float_range(src_float_range: FloatRange, target_float_range: FloatRange) -> bool:
@@ -96,7 +100,7 @@ def get_item_to_item_conversions(item: Item,
     return res
 
 
-def get_item_conversions(item: Item, item_condition: ItemCondition, item_collection: ItemCollection) -> ItemConversions:
+def get_item_conversions(item: Item, item_condition: ItemCondition, item_collection: ItemCollection) -> ConversionRules:
     next_items = get_next_level_items(item, item_collection)
     if not next_items:
         return {}
@@ -109,7 +113,7 @@ def get_item_conversions(item: Item, item_condition: ItemCondition, item_collect
             range_markers_set.add(float_range.min_value)
             range_markers_set.add(float_range.max_value)
 
-    item_conversion: ItemConversions = {}
+    item_conversion: ConversionRules = {}
     range_markers = sorted(list(range_markers_set))
     for marker_index in range(0, len(range_markers) - 1):
         item_float_range = FloatRange(range_markers[marker_index], range_markers[marker_index + 1])
@@ -120,3 +124,35 @@ def get_item_conversions(item: Item, item_condition: ItemCondition, item_collect
                 item_conversion[item_float_range][i] = i_cond
 
     return item_conversion
+
+
+class ConversionMap:
+
+    def __init__(self, collections: Dict[str, ItemCollection]) -> None:
+        self._conversion_map: Dict[Item, ConversionRules] = self.build_conversion_map(collections)
+
+    @classmethod
+    def build_conversion_map(cls, collections: Dict[str, ItemCollection]) -> Dict[Item, ConversionRules]:
+        conversion_map = {}
+        for collection_name, collection in collections.items():
+            for item in collection.items:
+                for item_condition in get_item_possible_conditions(item):
+                    conversions = get_item_conversions(item, item_condition, collections[item.collection_name])
+                    if conversions:
+                        if item not in conversion_map:
+                            conversion_map[item] = {}
+                        else:
+                            conversion_map[item] = {**conversion_map[item], **conversions}
+
+        return conversion_map
+
+    def get_rules(self, item) -> ConversionRules:
+        return (
+            self._conversion_map.get(item, {})
+            if not item.st_track
+            else {
+                float_range: {
+                    to_st_track(c_item): c_item_condition
+                    for c_item, c_item_condition in conversion_items.items()
+                } for float_range, conversion_items in self._conversion_map.get(to_basic(item), {}).items()
+            })

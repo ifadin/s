@@ -4,6 +4,8 @@ from csgo.conversion import FloatRange
 from csgo.type.item import Item, ItemCondition
 from csgo.type.price import ItemWithPrice
 
+OutputItems = Dict[str, float]
+
 
 class ContractReturn(NamedTuple):
     @property
@@ -31,7 +33,7 @@ class ItemReturn(NamedTuple):
     float_range: FloatRange
     item_float: float = None
     guaranteed: bool = False
-    conversion_items: Dict[str, float] = None
+    output_items: OutputItems = None
 
     @property
     def item_revenue(self) -> float:

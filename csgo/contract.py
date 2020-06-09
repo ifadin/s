@@ -3,13 +3,13 @@ from collections import Counter
 from itertools import combinations
 from operator import attrgetter
 from statistics import mean
-from typing import List, Optional, Set, Dict, NamedTuple, Tuple
+from typing import List, Optional, Set, Dict, NamedTuple
 
 from csgo.collection import get_next_level_items
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
-    get_item_conversions, get_condition_from_float, get_conversion_required_ranges
+    get_item_conversions, get_condition_from_float, get_condition_range, get_conversion_required_ranges, ConversionMap
 from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager
-from csgo.type.contract import ContractReturn, ItemReturn
+from csgo.type.contract import ContractReturn, ItemReturn, OutputItems
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition
 from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice
 
@@ -39,39 +39,34 @@ class ContractCalc(ABC):
 
 class BSContractCalc(ContractCalc):
 
-    def __init__(self, collections: Dict[str, ItemCollection], price_manager: BSPriceManager,
+    def __init__(self, conversion_map: ConversionMap, price_manager: BSPriceManager,
                  sale_commission: float = 0.1) -> None:
-        self.collections = collections
+        self.conversion_map = conversion_map
         self.price_manager = price_manager
         self.sale_commission = sale_commission
 
     def get_item_returns(self, item: Item, price_time_range: PriceTimeRange = None) -> List[ItemReturn]:
-        item_returns = []
-        item_collection = self.collections[item.collection_name]
-        for item_condition in get_item_possible_conditions(item):
-            conversions = get_item_conversions(item, item_condition, item_collection)
-            for item_range, conversion_items in conversions.items():
-                guaranteed = len(conversion_items) == 1
-                item_return = get_conversion_items_return(conversion_items, self.price_manager)
-                if item_return:
-                    for item_price in self.price_manager.get_sale_prices(item, item_condition):
-                        if item_price.float_value in item_range:
-                            conv_items_with_price: Dict[str, float] = {
-                                get_item_price_name(c_item, c_item_condition):
-                                    self.price_manager.get_avg_price(c_item, c_item_condition)
-                                for c_item, c_item_condition in conversion_items.items()
-                            }
-                            item_investment = item_price.price * 10
-                            item_returns.append(
-                                ItemReturn(item,
-                                           item_condition,
-                                           item_investment,
-                                           item_return * (1 - self.sale_commission),
-                                           item_range,
-                                           item_float=item_price.float_value,
-                                           guaranteed=guaranteed,
-                                           conversion_items=conv_items_with_price))
-        return item_returns
+        returns: List[ItemReturn] = []
+        conversion_rules = self.conversion_map.get_rules(item)
+        for conversion_range, conversion_items in conversion_rules.items():
+            item_condition = conversion_range.item_condition
+            contract_return = get_conversion_items_return(conversion_items, self.price_manager)
+
+            if contract_return:
+                for item_on_sale in self.price_manager.get_items_on_sale(item, item_condition):
+                    if item_on_sale.float_value in conversion_range:
+                        guaranteed = len(conversion_items) == 1
+                        output_items = to_output_items(conversion_items, self.price_manager)
+                        item_investment = item_on_sale.price * 10
+                        item_return = contract_return * (1 - self.sale_commission)
+
+                        returns.append(ItemReturn(
+                            item, item_condition,
+                            item_investment, item_return, conversion_range,
+                            item_float=item_on_sale.float_value, guaranteed=guaranteed, output_items=output_items
+                        ))
+
+        return returns
 
 
 class STContractCalc(ContractCalc):
@@ -104,26 +99,36 @@ class STContractCalc(ContractCalc):
 
 class LFContractCalc(ContractCalc):
 
-    def __init__(self, collections: Dict[str, ItemCollection],
-                 price_manager: LFPriceManager,
+    def __init__(self, conversion_map: ConversionMap, price_manager: LFPriceManager,
                  required_available: int = 0,
                  return_commission: float = 0.05) -> None:
-        self.collections = collections
+        self.conversion_map = conversion_map
         self.price_manager = price_manager
         self.required_available = required_available
         self.return_commission = return_commission
 
-    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange) -> List[ItemReturn]:
-        item_collection = self.collections[item.collection_name]
-
-        item_roi: List[ItemReturn] = []
-        for item_condition in get_item_possible_conditions(item):
+    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange = None) -> List[ItemReturn]:
+        returns: List[ItemReturn] = []
+        conversion_rules = self.conversion_map.get_rules(item)
+        for conversion_range, conversion_items in conversion_rules.items():
+            item_condition = conversion_range.item_condition
             items_available = self.price_manager.get_available(item, item_condition)
-            if items_available and items_available >= self.required_available:
-                item_roi += get_item_range_rois(item, item_condition, item_collection, self.price_manager,
-                                                None, 0, self.return_commission)
 
-        return item_roi
+            if items_available and items_available >= self.required_available:
+                item_price = self.price_manager.get_avg_price(item, item_condition)
+                if item_price:
+                    investment = item_price * 10
+                    item_return = get_conversion_items_return(conversion_items, self.price_manager)
+
+                    if item_return:
+                        guaranteed = len(conversion_items) == 1
+                        output_items = to_output_items(conversion_items, self.price_manager)
+                        returns.append(ItemReturn(
+                            item, item_condition,
+                            investment, item_return * (1 - self.return_commission), conversion_range,
+                            guaranteed=guaranteed, output_items=output_items
+                        ))
+        return returns
 
 
 def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
@@ -136,6 +141,11 @@ def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
             return None
         total_return += item_price
     return total_return / len(conversion_items)
+
+
+def to_output_items(conversion_items: Dict[Item, ItemCondition], price_manager: PriceManager) -> OutputItems:
+    return {get_item_price_name(item, item_condition): price_manager.get_avg_price(item, item_condition)
+            for item, item_condition in conversion_items.items()}
 
 
 def get_item_range_rois(item: Item,
@@ -180,7 +190,7 @@ def get_item_range_rois(item: Item,
             guaranteed = len(next_items) == 1
             item_roi.append(ItemReturn(
                 item, item_condition, item_investment, item_return, item_float_range,
-                guaranteed=guaranteed, conversion_items=range_items))
+                guaranteed=guaranteed, output_items=range_items))
 
     return item_roi
 
@@ -216,8 +226,9 @@ def get_item_conversion_result(item: Item,
 def get_trade_contract_return(items: List[ContractItem],
                               price_manager: PriceManager,
                               collections: Dict[str, ItemCollection],
-                              commission: float = 0.1) -> ContractReturn:
-    warnings = validate_contract_items(items, collections)
+                              commission: float = 0.1,
+                              strict: bool = True) -> ContractReturn:
+    warnings = validate_contract_items(items, collections, strict)
 
     avg_float: float = mean([i.item_float for i in items])
     investment: float = sum([i.item_price for i in items])
@@ -237,8 +248,9 @@ def get_trade_contract_return(items: List[ContractItem],
 
 
 def validate_contract_items(items: List[ContractItem],
-                            collections: Dict[str, ItemCollection]) -> List[str]:
-    if len(items) != 10:
+                            collections: Dict[str, ItemCollection],
+                            strict: bool = True) -> List[str]:
+    if strict and len(items) != 10:
         raise AssertionError('Contract must be of length 10')
 
     warnings = []
@@ -304,35 +316,46 @@ def get_approximated_prices(item: Item, item_condition: ItemCondition,
 
 
 def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
-                       collections: Dict[str, ItemCollection], commission: float):
+                       collections: Dict[str, ItemCollection],
+                       commission: float,
+                       strict: bool = True):
     item_sets = get_contract_items_sets(items)
-    for item_rarity, (basic_items, st_ct_items) in item_sets.items():
-        st = False
-        for c_items in [basic_items, st_ct_items]:
-            print(f"[{item_rarity}] {len(c_items)} {'st' if st else 'basic'}")
-            if len(c_items) >= 10:
-                contract = sorted([
-                    get_trade_contract_return(list(c), price_manager, collections, commission)
-                    for c in combinations(c_items, 10)
-                ], key=attrgetter('contract_revenue'), reverse=True)[0]
-                print_contract_return(contract)
-                print()
-            st = True
+    for item_rarity, condition_set in item_sets.items():
+        for item_condition, item_set in condition_set.items():
+            st = False
+            for c_items in [item_set['basic'], item_set['st']]:
+                avg_float = mean([i.item_float for i in c_items]) if c_items else 0
+                print(f"[{item_rarity}] {str(item_condition)}: {len(c_items)} {'st' if st else 'basic'} ({avg_float})")
+                if 0 < len(c_items) and (not strict or len(c_items) >= 10):
+                    contract = sorted([
+                        get_trade_contract_return(list(c), price_manager, collections, commission, strict)
+                        for c in combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
+                    ], key=attrgetter('contract_revenue'), reverse=True)[0]
+                    print_contract_return(contract)
+                    print()
+                st = True
 
 
-def get_contract_items_sets(items: Set[ContractItem]) -> Dict[ItemRarity, Tuple[Set[ContractItem], Set[ContractItem]]]:
+ContractItemsSet = Dict[ItemRarity, Dict[ItemCondition, Dict[str, Set[ContractItem]]]]
+
+
+def get_contract_items_sets(items: Set[ContractItem]) -> ContractItemsSet:
     items_set = {}
     for c_item in items:
         item = c_item.item
         r = ItemRarity(item.rarity)
         if r not in items_set:
-            items_set[r] = (set(), set())
+            items_set[r] = {}
 
-        set_items, ct_set_items = items_set[r]
-        if item.st_track:
-            ct_set_items.add(c_item)
-        else:
-            set_items.add(c_item)
+        for item_condition in ItemCondition:
+            if c_item.item_float in get_condition_range(item_condition):
+                if item_condition not in items_set[r]:
+                    items_set[r][item_condition] = {'basic': set(), 'st': set()}
+
+                if item.st_track:
+                    items_set[r][item_condition]['st'].add(c_item)
+                else:
+                    items_set[r][item_condition]['basic'].add(c_item)
 
     return items_set
 
