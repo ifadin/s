@@ -47,6 +47,20 @@ class ItemCondition(IntEnum):
         }
         return names[self]
 
+    @classmethod
+    def from_short_str(cls, value: str):
+        if value is None:
+            return None
+
+        names = {
+            'bs': cls.BATTLE_SCARED,
+            'ww': cls.WELL_WORN,
+            'ft': cls.FIELD_TESTED,
+            'mw': cls.MINIMAL_WEAR,
+            'fn': cls.FACTORY_NEW
+        }
+        return names.get(value.lower())
+
 
 class ItemRarity(IntEnum):
     CONSUMER_GRADE = 0
@@ -57,6 +71,20 @@ class ItemRarity(IntEnum):
     COVERT = 5
     EXTRAORDINARY = 6
     CONTRABAND = 7
+
+    @classmethod
+    def from_short_str(cls, value: str):
+        if value is None:
+            return None
+
+        names = {
+            'wc': cls.CONSUMER_GRADE,
+            'wu': cls.INDUSTRIAL_GRADE,
+            'wr': cls.MIL_SPEC_GRADE,
+            'wm': cls.RESTRICTED,
+            'wa': cls.COVERT
+        }
+        return names.get(value.lower())
 
 
 ItemWithCondition = Tuple[Item, ItemCondition]

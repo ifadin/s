@@ -1,7 +1,7 @@
 import html
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import NamedTuple, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 import requests
 import yaml
@@ -10,17 +10,8 @@ from requests import Response
 from csgo.bs.token import TokenProvider
 from csgo.collection import load_collections
 from csgo.type.item import ItemCondition, to_st_track
-from csgo.type.price import get_item_price_name
+from csgo.type.price import get_item_price_name, PriceEntry, ItemPrices
 
-
-class BSItemPrice(NamedTuple):
-    market_hash_name: str
-    price: float
-    float_value: float
-    item_rarity: str = None
-
-
-BSPrices = Dict[str, List[BSItemPrice]]
 BSSalesHistory = Dict[str, List[float]]
 
 
@@ -28,7 +19,7 @@ class GetInventoryOnSaleTask:
     def __init__(self, token_provider: TokenProvider):
         self.token_provider = token_provider
 
-    def __call__(self, item_details: Tuple[str, ItemCondition]) -> BSPrices:
+    def __call__(self, item_details: Tuple[str, ItemCondition]) -> ItemPrices:
         item_type, item_condition = item_details
         start = time.time()
 
@@ -82,7 +73,7 @@ def get_history(market_hash_name: str, api_key: str, token: str) -> Response:
     return res
 
 
-def update_price_map(price_map: BSPrices, prices: List[BSItemPrice]):
+def update_price_map(price_map: ItemPrices, prices: List[PriceEntry]):
     for p in prices:
         item_name = p.market_hash_name
         if item_name not in price_map:
@@ -90,13 +81,13 @@ def update_price_map(price_map: BSPrices, prices: List[BSItemPrice]):
         price_map[item_name] += [p]
 
 
-def get_prices_from_response(res: Response) -> List[BSItemPrice]:
-    return [BSItemPrice(i['market_hash_name'], i['price'], i['float_value'], i['item_rarity'])
+def get_prices_from_response(res: Response) -> List[PriceEntry]:
+    return [PriceEntry(i['market_hash_name'], i['price'], i['float_value'], i['item_rarity'])
             for i in res.json().get('data', {}).get('items', [])]
 
 
 def get_item_prices(item_type: str, item_condition: ItemCondition, token_provider: TokenProvider,
-                    per_page=480) -> BSPrices:
+                    per_page=480) -> ItemPrices:
     token = token_provider.get_token()
     api_key = token_provider.get_api_key()
 
@@ -129,7 +120,7 @@ def check_api_status(res: Response):
         raise AssertionError(f'Request was unsuccessful: {body}')
 
 
-def save_prices(prices_map: BSPrices):
+def save_prices(prices_map: ItemPrices):
     with open('csgo/bs/bs_prices.yaml', 'w') as f:
         yaml.dump({'prices': {
             item_name: {p.float_value: p.price for p in item_prices}
@@ -155,7 +146,7 @@ def update_bs_prices():
 
     print(f'Updating {len(item_types)} item types...')
     with ThreadPoolExecutor(max_workers=5) as executor:
-        price_map: BSPrices = {}
+        price_map: ItemPrices = {}
         for p in executor.map(GetInventoryOnSaleTask(token_provider), items, chunksize=5):
             price_map = {**price_map, **p}
         save_prices(price_map)

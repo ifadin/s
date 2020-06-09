@@ -9,7 +9,8 @@
 ```
 
 ```shell script
-    http "https://loot.farm/fullprice.json" > csgo/lf_prices.json
+  http "https://loot.farm/fullprice.json" > csgo/lf_sales.json
+  http "https://loot.farm/botsInventory_730.json" > csgo/lf_prices.json
 ```
 
 ## Data sources

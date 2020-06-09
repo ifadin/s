@@ -8,12 +8,12 @@ from typing import Dict, Optional, List
 
 import yaml
 
-from csgo.bs.update import BSPrices, BSItemPrice, BSSalesHistory
+from csgo.bs.update import BSSalesHistory
 from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
-    get_price_time_range_from_hexa_string, LFPrices, LFItemPrice, get_item_price_name
+    get_price_time_range_from_hexa_string, LFSales, LFItemPrice, get_item_price_name, PriceEntry, ItemPrices
 
 RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
@@ -28,13 +28,19 @@ class PriceManager(ABC):
                       with_price_fallback: bool = True) -> Optional[float]:
         pass
 
+    @abstractmethod
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        pass
 
-class STPriceManager(PriceManager):
+    @abstractmethod
+    def load(self):
+        pass
 
-    def __init__(self,
-                 prices: STPrices,
-                 collections: Dict[str, ItemCollection]) -> None:
-        self.prices = prices
+
+class STPriceManager(PriceManager, ABC):
+
+    def __init__(self, collections: Dict[str, ItemCollection]) -> None:
+        self._prices: STPrices = None
         self.collections = collections
         self.condition_increase_ratios = self.calculate_condition_increase_price_ratios()
 
@@ -86,7 +92,7 @@ class STPriceManager(PriceManager):
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
         name = get_item_price_name(item.full_name, item_condition)
-        p = self.prices.get(name)
+        p = self._prices.get(name)
         if p is not None:
             time_ranges = [t for t in PriceTimeRange if t >= time_range] if with_price_fallback else [time_range]
             for t_range in time_ranges:
@@ -99,7 +105,7 @@ class STPriceManager(PriceManager):
                  item_condition: ItemCondition,
                  time_range: PriceTimeRange = PriceTimeRange.DAYS_30) -> Optional[int]:
         name = get_item_price_name(item.full_name, item_condition)
-        p = self.prices.get(name)
+        p = self._prices.get(name)
         if p is not None:
             return int(p.prices[time_range].sold) if time_range in p.prices and p.prices[time_range].sold else None
 
@@ -109,7 +115,7 @@ class STPriceManager(PriceManager):
                 item_condition: ItemCondition,
                 time_range: PriceTimeRange = PriceTimeRange.DAYS_30) -> Optional[float]:
         name = get_item_price_name(item.full_name, item_condition)
-        p = self.prices.get(name)
+        p = self._prices.get(name)
         if p is not None:
             return p.prices[time_range].standard_deviation if time_range in p.prices else None
 
@@ -176,41 +182,76 @@ class STPriceManager(PriceManager):
                 if approx_price_left or approx_price_right else None)
 
 
+class HXPriceManager(STPriceManager):
+
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        raise NotImplementedError()
+
+    def load(self):
+        self._prices = load_hexa_prices()
+        return self
+
+
+class BCKPriceManager(STPriceManager):
+
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        raise NotImplementedError()
+
+    def load(self):
+        self._prices = load_bck_prices()
+        return self
+
+
 class LFPriceManager(PriceManager):
 
-    def __init__(self, prices: LFPrices) -> None:
-        self.prices = prices
+    def __init__(self, ) -> None:
+        self._sales: LFSales = None
+        self._prices: ItemPrices = None
 
     def get_avg_price(self, item: Item, item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
         item_name = get_item_price_name(item, item_condition)
-        p = self.prices.get(item_name)
+        p = self._sales.get(item_name)
         return p.price if p else None
 
     def get_available(self, item: Item, item_condition: ItemCondition) -> Optional[int]:
         item_name = get_item_price_name(item.full_name, item_condition)
-        p = self.prices.get(item_name)
+        p = self._sales.get(item_name)
         return p.tradable + p.reservable if p else None
+
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        item_name = get_item_price_name(item.full_name, item_condition)
+        return self._prices.get(item_name, [])
+
+    def load(self):
+        self._sales = load_lf_sales()
+        self._prices = load_lf_prices()
+        return self
 
 
 class BSPriceManager(PriceManager):
 
-    def __init__(self, prices: BSPrices, sales: BSSalesHistory) -> None:
-        self.prices = prices
-        self.sales = sales
+    def __init__(self) -> None:
+        self._prices: ItemPrices = None
+        self._sales: BSSalesHistory = None
 
     def get_avg_price(self, item: Item, item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
         item_name = get_item_price_name(item, item_condition)
-        sales_history = self.sales.get(item_name, [])
+        sales_history = self._sales.get(item_name, [])
 
         return self.trim_mean(sales_history, 0.2) if sales_history else None
 
-    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[BSItemPrice]:
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
         item_name = get_item_price_name(item.full_name, item_condition)
-        return self.prices.get(item_name, [])
+        return self._prices.get(item_name, [])
+
+    def load(self):
+        self._prices = load_bs_prices()
+        self._sales = load_bs_sales()
+        return self
 
     @staticmethod
     def trim_mean(tlist, tperc) -> float:
@@ -271,11 +312,43 @@ def load_hexa_prices() -> STPrices:
         return prices
 
 
-def load_lf_prices() -> LFPrices:
+def load_lf_prices() -> ItemPrices:
     with open('csgo/lf_prices.json') as f:
         data = json.loads(f.read())
+        prices: ItemPrices = {}
+        for item_details in data['result'].values():
+            item_n = item_details.get('n')
+            item_e = item_details.get('e')
+            item_p = item_details.get('p')
+            item_pst = item_details.get('pst')
+            if item_n and item_e and item_p:
 
-        prices: LFPrices = {}
+                item_rarity = ItemRarity.from_short_str(item_details.get('t', {}).get('r'))
+
+                item_prices: List[PriceEntry] = []
+                for items in item_details.get('u', {}).values():
+                    for i in items:
+                        item_name = item_n + f" ({str(ItemCondition.from_short_str(item_e))})"
+                        item_price = float(item_p / 100)
+                        item_f = str(i['f'])
+                        item_float = int(item_f.split(':')[0]) / 100000
+                        item_st = i.get('st') == 1
+                        if item_st:
+                            item_name = f'StatTrak™ {item_name}'
+                            item_price = float(item_pst / 100)
+                        item_prices.append(PriceEntry(item_name, item_price, item_float, item_rarity))
+                if item_prices:
+                    if item_name not in prices:
+                        prices[item_name] = []
+                    prices[item_name] += item_prices
+        return prices
+
+
+def load_lf_sales() -> LFSales:
+    with open('csgo/lf_sales.json') as f:
+        data = json.loads(f.read())
+
+        prices: LFSales = {}
         for price_obj in data:
             item_name = price_obj['name']
             prices[item_name] = LFItemPrice(item_name, price_obj['price'] / 100, price_obj['have'], price_obj['max'],
@@ -284,12 +357,12 @@ def load_lf_prices() -> LFPrices:
         return prices
 
 
-def load_bs_prices() -> BSPrices:
+def load_bs_prices() -> ItemPrices:
     with open('csgo/bs/bs_prices.yaml') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return {
-            item_name: [BSItemPrice(item_name, float(price_value), float(float_value))
+            item_name: [PriceEntry(item_name, float(price_value), float(float_value))
                         for float_value, price_value in price.items() if float_value and price_value]
             for item_name, price in data['prices'].items()
         }

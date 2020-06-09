@@ -8,7 +8,7 @@ from typing import List, Optional, Set, Dict, NamedTuple
 from csgo.collection import get_next_level_items
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
     get_item_conversions, get_condition_from_float, get_condition_range, get_conversion_required_ranges, ConversionMap
-from csgo.price import STPriceManager, LFPriceManager, PriceManager, BSPriceManager
+from csgo.price import STPriceManager, PriceManager, LFPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn, OutputItems
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition
 from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice
@@ -39,7 +39,7 @@ class ContractCalc(ABC):
 
 class BSContractCalc(ContractCalc):
 
-    def __init__(self, conversion_map: ConversionMap, price_manager: BSPriceManager,
+    def __init__(self, conversion_map: ConversionMap, price_manager: PriceManager,
                  sale_commission: float = 0.1) -> None:
         self.conversion_map = conversion_map
         self.price_manager = price_manager
@@ -97,24 +97,21 @@ class STContractCalc(ContractCalc):
         return item_roi
 
 
-class LFContractCalc(ContractCalc):
+class LFContractCalc(BSContractCalc):
 
     def __init__(self, conversion_map: ConversionMap, price_manager: LFPriceManager,
-                 required_available: int = 0,
-                 return_commission: float = 0.05) -> None:
-        self.conversion_map = conversion_map
+                 sale_commission: float = 0.05) -> None:
+        super().__init__(conversion_map, price_manager, sale_commission)
         self.price_manager = price_manager
-        self.required_available = required_available
-        self.return_commission = return_commission
 
-    def get_item_returns(self, item: Item, price_time_range: PriceTimeRange = None) -> List[ItemReturn]:
+    def get_potential_item_returns(self, item: Item, required_available: int = 0) -> List[ItemReturn]:
         returns: List[ItemReturn] = []
         conversion_rules = self.conversion_map.get_rules(item)
         for conversion_range, conversion_items in conversion_rules.items():
             item_condition = conversion_range.item_condition
             items_available = self.price_manager.get_available(item, item_condition)
 
-            if items_available and items_available >= self.required_available:
+            if items_available and items_available >= required_available:
                 item_price = self.price_manager.get_avg_price(item, item_condition)
                 if item_price:
                     investment = item_price * 10
@@ -125,7 +122,7 @@ class LFContractCalc(ContractCalc):
                         output_items = to_output_items(conversion_items, self.price_manager)
                         returns.append(ItemReturn(
                             item, item_condition,
-                            investment, item_return * (1 - self.return_commission), conversion_range,
+                            investment, item_return * (1 - self.sale_commission), conversion_range,
                             guaranteed=guaranteed, output_items=output_items
                         ))
         return returns

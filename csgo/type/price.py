@@ -1,8 +1,8 @@
-from typing import NamedTuple, Dict, Optional, Union
+from typing import NamedTuple, Dict, Optional, Union, List
 
 from enum import IntEnum
 
-from csgo.type.item import Item, ItemCondition
+from csgo.type.item import Item, ItemCondition, ItemRarity
 
 
 class PriceTimeRange(IntEnum):
@@ -12,6 +12,16 @@ class PriceTimeRange(IntEnum):
     DAYS_90 = 3
     DAYS_365 = 4
     ALL_TIME = 5
+
+
+class PriceEntry(NamedTuple):
+    market_hash_name: str
+    price: float
+    float_value: float
+    item_rarity: Union[str, ItemRarity] = None
+
+
+ItemPrices = Dict[str, List[PriceEntry]]
 
 
 class ItemWithPrice(NamedTuple):
@@ -68,7 +78,7 @@ class LFItemPrice(NamedTuple):
     reservable: int
 
 
-LFPrices = Dict[str, LFItemPrice]
+LFSales = Dict[str, LFItemPrice]
 
 
 def get_item_price_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:

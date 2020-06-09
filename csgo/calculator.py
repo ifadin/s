@@ -5,15 +5,13 @@ from typing import List, Dict
 
 from enum import Enum
 
-from .bs.update import BSPrices
 from .collection import load_collections
 from .contract import BSContractCalc, STContractCalc, LFContractCalc, ContractCalc
 from .conversion import FloatRange, get_condition_range, ConversionMap
-from .price import STPriceManager, load_bck_prices, load_hexa_prices, load_lf_prices, LFPriceManager, load_bs_prices, \
-    BSPriceManager, load_bs_sales
+from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager
 from .type.contract import ItemReturn
 from .type.item import to_st_track, ItemRarity, Item
-from .type.price import STPrices, LFPrices, PriceTimeRange
+from .type.price import PriceTimeRange
 
 
 def pretty_print_items(items: Dict[str, float]):
@@ -22,7 +20,7 @@ def pretty_print_items(items: Dict[str, float]):
 
 
 class Model(Enum):
-    BP = 'BP'
+    BCK = 'BCK'
     BS = 'BS'
     HX = 'HX'
     LF = 'LF'
@@ -31,7 +29,7 @@ class Model(Enum):
     def from_str(value: str):
         names = {
             'hx': Model.HX,
-            'bp': Model.BP,
+            'bck': Model.BCK,
             'bs': Model.BS,
             'lf': Model.LF
         }
@@ -58,20 +56,19 @@ collections = load_collections()
 conversion_map = ConversionMap(collections)
 
 if model == Model.LF:
-    prices: LFPrices = load_lf_prices()
-    price_manager = LFPriceManager(prices)
-    calc = LFContractCalc(conversion_map, price_manager, required_available=1)
-else:
-    if model == Model.BS:
-        prices: BSPrices = load_bs_prices()
-        sales = load_bs_sales()
-        price_manager = BSPriceManager(prices, sales)
-        calc = BSContractCalc(conversion_map, price_manager)
-    else:
-        prices: STPrices = load_hexa_prices() if model == Model.HX else load_bck_prices()
-        price_manager = STPriceManager(prices, collections)
-        calc = STContractCalc(collections, price_manager,
-                              required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
+    price_manager = LFPriceManager().load()
+    calc = LFContractCalc(conversion_map, price_manager)
+if model == Model.BS:
+    price_manager = BSPriceManager().load()
+    calc = BSContractCalc(conversion_map, price_manager)
+if model == Model.BCK:
+    price_manager = BCKPriceManager(collections).load()
+    calc = STContractCalc(collections, price_manager,
+                          required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
+if model == Model.HX:
+    price_manager = HXPriceManager(collections).load()
+    calc = STContractCalc(collections, price_manager,
+                          required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
 
 returns: List[ItemReturn] = []
 time_range: PriceTimeRange = PriceTimeRange.DAYS_30
