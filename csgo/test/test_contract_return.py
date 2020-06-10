@@ -1,11 +1,11 @@
 from unittest import TestCase
 
 from csgo.contract import STContractCalc
-from csgo.conversion import FloatRange
 from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
 from csgo.type.item import Item, ItemCollection, ItemCondition
+from csgo.type.float import FloatRange
 from csgo.type.price import PriceTimeRange, get_item_price_name
 
 

@@ -19,6 +19,12 @@ class PriceEntry(NamedTuple):
     price: float
     float_value: float
     item_rarity: Union[str, ItemRarity] = None
+    item_name: str = None
+    st_track: bool = False
+
+    @property
+    def item_condition(self) -> ItemCondition:
+        return ItemCondition.from_float(self.float_value)
 
 
 ItemPrices = Dict[str, List[PriceEntry]]
@@ -28,6 +34,10 @@ class ItemWithPrice(NamedTuple):
     item: Item
     item_price: float
     item_condition: ItemCondition
+
+    @property
+    def market_name(self):
+        return self.item.full_name + f' ({str(self.item_condition)})'
 
 
 def get_price_time_range_from_bck_string(value: str) -> Optional[PriceTimeRange]:

@@ -1,8 +1,9 @@
 from unittest import TestCase
 
-from csgo.conversion import FloatRange, get_conversion_required_ranges, get_condition_from_float, \
+from csgo.conversion import get_conversion_required_ranges, get_condition_from_float, \
     get_item_possible_conditions, get_item_condition_ranges, get_item_to_item_conversions
 from csgo.type.item import Item, ItemCondition
+from csgo.type.float import FloatRange
 
 
 class ConversionTest(TestCase):

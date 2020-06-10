@@ -7,10 +7,11 @@ from enum import Enum
 
 from .collection import load_collections
 from .contract import BSContractCalc, STContractCalc, LFContractCalc, ContractCalc
-from .conversion import FloatRange, get_condition_range, ConversionMap
+from .conversion import get_condition_range, ConversionMap
 from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager
 from .type.contract import ItemReturn
 from .type.item import to_st_track, ItemRarity, Item
+from .type.float import FloatRange
 from .type.price import PriceTimeRange
 
 

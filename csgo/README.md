@@ -9,8 +9,11 @@
 ```
 
 ```shell script
-  http "https://loot.farm/fullprice.json" > csgo/lf_sales.json
-  http "https://loot.farm/botsInventory_730.json" > csgo/lf_prices.json
+  set -a && source .env && set +a
+  http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vZnVsbHByaWNlLmpzb24=" | base64 -d)" > csgo/lf_sales.json
+  http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vYm90c0ludmVudG9yeV83MzAuanNvbg==" | base64 -d)" > csgo/lf_prices.json
+  http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vZ2V0SW52X25ldy5waHA/Z2FtZT03MzA=" | base64 -d)" cookie:"PHPSESSID=$LF_SESSION_ID" > csgo/lf/lf_inv.json
+  http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vZ2V0UmVzZXJ2ZXMucGhw" | base64 -d)" cookie:"PHPSESSID=$LF_SESSION_ID" > csgo/lf/lf_rsv.json
 ```
 
 ## Data sources

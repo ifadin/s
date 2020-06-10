@@ -1,17 +1,18 @@
 from abc import ABC, abstractmethod
 from collections import Counter
 from itertools import combinations
-from operator import attrgetter
+from operator import attrgetter, itemgetter
 from statistics import mean
 from typing import List, Optional, Set, Dict, NamedTuple
 
-from csgo.collection import get_next_level_items
-from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, FloatRange, \
-    get_item_conversions, get_condition_from_float, get_condition_range, get_conversion_required_ranges, ConversionMap
+from csgo.collection import get_next_level_items, get_item_from_collection
+from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, get_item_conversions, \
+    get_condition_from_float, get_condition_range, get_conversion_required_ranges, ConversionMap
 from csgo.price import STPriceManager, PriceManager, LFPriceManager
-from csgo.type.contract import ContractReturn, ItemReturn, OutputItems
-from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition
-from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice
+from csgo.type.contract import ContractReturn, ItemReturn, OutputItems, ContractItem
+from csgo.type.float import FloatRange
+from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition, to_st_track
+from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice, PriceEntry
 
 ContractCandidatesMap = Dict[ItemCondition, Dict[ItemRarity, List[Item]]]
 
@@ -22,12 +23,6 @@ class ItemConversionResult(NamedTuple):
     item_conversions: Dict[str, Dict[FloatRange, float]]
     range_markers_set: Set[float]
     price_warning: bool = None
-
-
-class ContractItem(NamedTuple):
-    item: Item
-    item_price: float
-    item_float: float
 
 
 class ContractCalc(ABC):
@@ -223,12 +218,13 @@ def get_item_conversion_result(item: Item,
 def get_trade_contract_return(items: List[ContractItem],
                               price_manager: PriceManager,
                               collections: Dict[str, ItemCollection],
-                              commission: float = 0.1,
+                              buy_reduction: float = 1,
+                              sale_commission: float = 0.1,
                               strict: bool = True) -> ContractReturn:
     warnings = validate_contract_items(items, collections, strict)
 
     avg_float: float = mean([i.item_float for i in items])
-    investment: float = sum([i.item_price for i in items])
+    investment: float = sum([i.item_price * buy_reduction for i in items])
 
     conversion_items = get_contract_conversion_items([i.item for i in items], avg_float, collections)
     outcome_items: List[ItemWithPrice] = []
@@ -240,8 +236,8 @@ def get_trade_contract_return(items: List[ContractItem],
         result += o_item_price
         outcome_items.append(ItemWithPrice(o_item, o_item_price, o_item_condition))
 
-    c_return = result / len(conversion_items) * (1 - commission)
-    return ContractReturn(outcome_items, investment, c_return, avg_float, warnings=warnings)
+    c_return = result / len(conversion_items) * (1 - sale_commission)
+    return ContractReturn(items, outcome_items, investment, c_return, avg_float, warnings=warnings)
 
 
 def validate_contract_items(items: List[ContractItem],
@@ -314,7 +310,8 @@ def get_approximated_prices(item: Item, item_condition: ItemCondition,
 
 def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                        collections: Dict[str, ItemCollection],
-                       commission: float,
+                       buy_reduction: float,
+                       sale_commission: float,
                        strict: bool = True):
     item_sets = get_contract_items_sets(items)
     for item_rarity, condition_set in item_sets.items():
@@ -325,7 +322,9 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                 print(f"[{item_rarity}] {str(item_condition)}: {len(c_items)} {'st' if st else 'basic'} ({avg_float})")
                 if 0 < len(c_items) and (not strict or len(c_items) >= 10):
                     contract = sorted([
-                        get_trade_contract_return(list(c), price_manager, collections, commission, strict)
+                        get_trade_contract_return(
+                            list(c), price_manager, collections,
+                            buy_reduction=buy_reduction, sale_commission=sale_commission, strict=strict)
                         for c in combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
                     ], key=attrgetter('contract_revenue'), reverse=True)[0]
                     print_contract_return(contract)
@@ -359,10 +358,22 @@ def get_contract_items_sets(items: Set[ContractItem]) -> ContractItemsSet:
 
 def print_contract_return(c: ContractReturn):
     counter = Counter(c.outcome_items)
-    print(f'I:{c.contract_investment:.2f} R:{c.contract_revenue:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
+    print(f'I:{c.contract_investment:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
+    for in_item in c.source_items:
+        print(f' - {in_item.market_name} {in_item.item_price:.2f} {in_item.item_float}')
+    print('\t\t\t||')
+    print('\t\t\t\\/')
     warnings = c.warnings
     for w in warnings:
         print(f'[WARN] {w}')
-    for c_res, freq in counter.items():
+    print(f'R:{c.contract_return:.2f}')
+    for o_item, freq in sorted(counter.items(), key=itemgetter(1), reverse=True):
         prob = freq / len(c.outcome_items) * 100
-        print(f' - {prob:.2f}% {c_res.item.full_name} ({str(c_res.item_condition)}) {c_res.item_price:.2f}')
+        print(f' - {prob:.2f}% {o_item.market_name} {o_item.item_price:.2f}')
+
+
+def to_contract_item(p: PriceEntry, collections: Dict[str, ItemCollection]) -> ContractItem:
+    item = get_item_from_collection(p.item_name, collections)
+    if p.st_track:
+        item = to_st_track(item)
+    return ContractItem(item, p.price, p.float_value)

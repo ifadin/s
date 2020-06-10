@@ -10,6 +10,7 @@ import yaml
 
 from csgo.bs.update import BSSalesHistory
 from csgo.collection import get_next_level_items, get_prev_level_items
+from csgo.type.float import get_float_value
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
@@ -315,33 +316,37 @@ def load_hexa_prices() -> STPrices:
 def load_lf_prices() -> ItemPrices:
     with open('csgo/lf_prices.json') as f:
         data = json.loads(f.read())
-        prices: ItemPrices = {}
-        for item_details in data['result'].values():
-            item_n = item_details.get('n')
-            item_e = item_details.get('e')
-            item_p = item_details.get('p')
-            item_pst = item_details.get('pst')
-            if item_n and item_e and item_p:
+        return to_lf_price_entries(data['result'])
 
-                item_rarity = ItemRarity.from_short_str(item_details.get('t', {}).get('r'))
 
-                item_prices: List[PriceEntry] = []
-                for items in item_details.get('u', {}).values():
-                    for i in items:
-                        item_name = item_n + f" ({str(ItemCondition.from_short_str(item_e))})"
-                        item_price = float(item_p / 100)
-                        item_f = str(i['f'])
-                        item_float = int(item_f.split(':')[0]) / 100000
-                        item_st = i.get('st') == 1
-                        if item_st:
-                            item_name = f'StatTrak™ {item_name}'
-                            item_price = float(item_pst / 100)
-                        item_prices.append(PriceEntry(item_name, item_price, item_float, item_rarity))
-                if item_prices:
-                    if item_name not in prices:
-                        prices[item_name] = []
-                    prices[item_name] += item_prices
-        return prices
+def to_lf_price_entries(data: dict) -> ItemPrices:
+    prices: ItemPrices = {}
+    for item_details in data.values():
+        item_n = item_details.get('n')
+        item_e = item_details.get('e')
+        item_p = item_details.get('p')
+        item_pst = item_details.get('pst')
+        if item_n and item_e and (item_p or item_pst):
+            item_name = item_n + f" ({str(ItemCondition.from_short_str(item_e))})"
+            item_rarity = ItemRarity.from_short_str(item_details.get('t', {}).get('r'))
+
+            item_u = item_details.get('u', {})
+            for items in (item_u.values() if isinstance(item_u, dict) else [item_u]):
+                for i in items:
+                    item_f = str(i['f'])
+                    item_float = int(item_f.split(':')[0]) / 100000
+                    if not item_float:
+                        item_float = get_float_value(i['id'], i['l'])
+                    item_st = i.get('st') == 1
+
+                    market_name = f'StatTrak™ {item_name}' if item_st else item_name
+                    item_price = float(item_pst / 100) if item_st else float(item_p / 100)
+                    p = PriceEntry(market_name, item_price, item_float, item_rarity,
+                                   item_name=item_n, st_track=item_st)
+                    if market_name not in prices:
+                        prices[market_name] = []
+                    prices[market_name] += [p]
+    return prices
 
 
 def load_lf_sales() -> LFSales:

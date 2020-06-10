@@ -1,31 +1,12 @@
-from typing import NamedTuple, Dict, List, Set
+from typing import Dict, List, Set
 
 from csgo.collection import get_next_level_items
 from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition, to_basic, to_st_track
+from csgo.type.float import FloatRange, is_in_float_range
 
 eps = 0.000000000001
 
-
-class FloatRange(NamedTuple):
-    min_value: float
-    max_value: float
-
-    @property
-    def item_condition(self) -> ItemCondition:
-        return next((c for c in ItemCondition if is_in_float_range(self, get_condition_range(c))))
-
-    def __contains__(self, value: float) -> bool:
-        return self.min_value < value < self.max_value
-
-    def __str__(self) -> str:
-        return f'[{self.min_value}, {self.max_value}]'
-
-
 ConversionRules = Dict[FloatRange, Dict[Item, ItemCondition]]
-
-
-def is_in_float_range(src_float_range: FloatRange, target_float_range: FloatRange) -> bool:
-    return target_float_range.min_value <= src_float_range.min_value and src_float_range.max_value <= target_float_range.max_value
 
 
 def get_condition_range(cond: ItemCondition) -> FloatRange:
