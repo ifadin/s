@@ -223,8 +223,8 @@ def get_trade_contract_return(items: List[ContractItem],
                               strict: bool = True) -> ContractReturn:
     warnings = validate_contract_items(items, collections, strict)
 
-    avg_float: float = mean([i.item_float for i in items])
-    investment: float = sum([i.item_price * buy_reduction for i in items])
+    avg_float: float = mean([i.price_entry.float_value for i in items])
+    investment: float = sum([i.price_entry.price for i in items]) * buy_reduction
 
     conversion_items = get_contract_conversion_items([i.item for i in items], avg_float, collections)
     outcome_items: List[ItemWithPrice] = []
@@ -247,7 +247,7 @@ def validate_contract_items(items: List[ContractItem],
         raise AssertionError('Contract must be of length 10')
 
     warnings = []
-    avg_float: float = mean([i.item_float for i in items])
+    avg_float: float = mean([i.price_entry.float_value for i in items])
     rarity = items[0].item.rarity
     st_track = items[0].item.st_track
     for c_item in items:
@@ -256,7 +256,7 @@ def validate_contract_items(items: List[ContractItem],
         if c_item.item.rarity != rarity:
             raise AssertionError(f'Item {c_item.item.full_name} has different rarity')
 
-        potential_float_range = get_item_conversion_float_range(c_item.item, c_item.item_float,
+        potential_float_range = get_item_conversion_float_range(c_item.item, c_item.price_entry.float_value,
                                                                 collections[c_item.item.collection_name])
         if not potential_float_range:
             raise AssertionError(f'Item {c_item.item.full_name} cannot be converted')
@@ -312,13 +312,19 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                        collections: Dict[str, ItemCollection],
                        buy_reduction: float,
                        sale_commission: float,
-                       strict: bool = True):
+                       strict: bool = True,
+                       withdrawable_in: int = None):
+    def filter_withdrawable(its: Set[ContractItem]):
+        if not withdrawable_in:
+            return its
+        return {i for i in its if not i.price_entry.withdrawable_in or i.price_entry.withdrawable_in < withdrawable_in}
+
     item_sets = get_contract_items_sets(items)
     for item_rarity, condition_set in item_sets.items():
         for item_condition, item_set in condition_set.items():
             st = False
-            for c_items in [item_set['basic'], item_set['st']]:
-                avg_float = mean([i.item_float for i in c_items]) if c_items else 0
+            for c_items in [filter_withdrawable(item_set['basic']), filter_withdrawable(item_set['st'])]:
+                avg_float = mean([i.price_entry.float_value for i in c_items]) if c_items else 0
                 print(f"[{item_rarity}] {str(item_condition)}: {len(c_items)} {'st' if st else 'basic'} ({avg_float})")
                 if 0 < len(c_items) and (not strict or len(c_items) >= 10):
                     contract = sorted([
@@ -326,7 +332,7 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                             list(c), price_manager, collections,
                             buy_reduction=buy_reduction, sale_commission=sale_commission, strict=strict)
                         for c in combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
-                    ], key=attrgetter('contract_revenue'), reverse=True)[0]
+                    ], key=attrgetter('contract_revenue', 'avg_float'), reverse=True)[0]
                     print_contract_return(contract)
                     print()
                 st = True
@@ -344,7 +350,7 @@ def get_contract_items_sets(items: Set[ContractItem]) -> ContractItemsSet:
             items_set[r] = {}
 
         for item_condition in ItemCondition:
-            if c_item.item_float in get_condition_range(item_condition):
+            if c_item.price_entry.float_value in get_condition_range(item_condition):
                 if item_condition not in items_set[r]:
                     items_set[r][item_condition] = {'basic': set(), 'st': set()}
 
@@ -360,7 +366,9 @@ def print_contract_return(c: ContractReturn):
     counter = Counter(c.outcome_items)
     print(f'I:{c.contract_investment:.2f} ROI:{c.contract_roi * 100:.0f}% F:{c.avg_float}')
     for in_item in c.source_items:
-        print(f' - {in_item.market_name} {in_item.item_price:.2f} {in_item.item_float}')
+        withdrawable_in = f'({in_item.price_entry.withdrawable_in / 24:.1f}d) ' if in_item.price_entry.withdrawable_in else ''
+        print(f' - {withdrawable_in}{in_item.price_entry.market_hash_name} '
+              f'{in_item.price_entry.price:.2f} {in_item.price_entry.float_value}')
     print('\t\t\t||')
     print('\t\t\t\\/')
     warnings = c.warnings
@@ -376,4 +384,4 @@ def to_contract_item(p: PriceEntry, collections: Dict[str, ItemCollection]) -> C
     item = get_item_from_collection(p.item_name, collections)
     if p.st_track:
         item = to_st_track(item)
-    return ContractItem(item, p.price, p.float_value)
+    return ContractItem(item, p)

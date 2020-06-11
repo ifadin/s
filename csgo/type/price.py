@@ -21,10 +21,7 @@ class PriceEntry(NamedTuple):
     item_rarity: Union[str, ItemRarity] = None
     item_name: str = None
     st_track: bool = False
-
-    @property
-    def item_condition(self) -> ItemCondition:
-        return ItemCondition.from_float(self.float_value)
+    withdrawable_in: int = None
 
 
 ItemPrices = Dict[str, List[PriceEntry]]

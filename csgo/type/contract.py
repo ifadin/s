@@ -1,24 +1,15 @@
 from typing import NamedTuple, List, Dict
 
-from csgo.type.float import FloatRange, get_item_condition_from_float
+from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCondition
-from csgo.type.price import ItemWithPrice
+from csgo.type.price import ItemWithPrice, PriceEntry
 
 OutputItems = Dict[str, float]
 
 
 class ContractItem(NamedTuple):
     item: Item
-    item_price: float
-    item_float: float
-
-    @property
-    def item_condition(self) -> ItemCondition:
-        return get_item_condition_from_float(self.item_float)
-
-    @property
-    def market_name(self):
-        return self.item.full_name + f' ({str(self.item_condition)})'
+    price_entry: PriceEntry
 
 
 class ContractReturn(NamedTuple):

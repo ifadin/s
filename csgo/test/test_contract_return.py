@@ -4,8 +4,8 @@ from csgo.contract import STContractCalc
 from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
-from csgo.type.item import Item, ItemCollection, ItemCondition
 from csgo.type.float import FloatRange
+from csgo.type.item import Item, ItemCollection, ItemCondition
 from csgo.type.price import PriceTimeRange, get_item_price_name
 
 
@@ -78,7 +78,7 @@ class CalculateTest(TestCase):
         expected = [
             ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 500, 600, FloatRange(0.07, 0.15),
                        guaranteed=False,
-                       conversion_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
+                       output_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
         self.assertEqual(standard_float_return, expected)
 
         calc = STContractCalc(self.collections, self.price_manager, possible_price_discount=0)
@@ -87,18 +87,18 @@ class CalculateTest(TestCase):
         expected = [
             ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 107.5, FloatRange(0.45, 0.56),
                        guaranteed=False,
-                       conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Field-Tested)': 200}),
+                       output_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Field-Tested)': 200}),
             ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 17.5, FloatRange(0.56, 0.7),
                        guaranteed=False,
-                       conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Well-Worn)': 20}),
+                       output_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Well-Worn)': 20}),
             ItemReturn(self.ItemB3_1, ItemCondition.BATTLE_SCARED, 50, 12.5, FloatRange(0.7, 1),
                        guaranteed=False,
-                       conversion_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Battle-Scarred)': 10}),
+                       output_items={'item4b-1 (Battle-Scarred)': 15, 'item4b-2 (Battle-Scarred)': 10}),
             ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 800, 400, FloatRange(0.07, 0.09999999999999998),
                        guaranteed=False,
-                       conversion_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Minimal Wear)': 300}),
+                       output_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Minimal Wear)': 300}),
             ItemReturn(self.ItemB3_1, ItemCondition.MINIMAL_WEAR, 800, 350, FloatRange(0.09999999999999998, 0.15),
                        guaranteed=False,
-                       conversion_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Field-Tested)': 200})]
+                       output_items={'item4b-1 (Minimal Wear)': 500, 'item4b-2 (Field-Tested)': 200})]
 
         self.assertEqual(limited_float_return, expected)

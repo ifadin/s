@@ -38,10 +38,16 @@ class PriceManager(ABC):
         pass
 
 
-class STPriceManager(PriceManager, ABC):
+class STPriceManager(PriceManager):
 
-    def __init__(self, collections: Dict[str, ItemCollection]) -> None:
-        self._prices: STPrices = None
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        pass
+
+    def load(self):
+        pass
+
+    def __init__(self, prices: STPrices, collections: Dict[str, ItemCollection]) -> None:
+        self._prices: STPrices = prices
         self.collections = collections
         self.condition_increase_ratios = self.calculate_condition_increase_price_ratios()
 
@@ -314,9 +320,17 @@ def load_hexa_prices() -> STPrices:
 
 
 def load_lf_prices() -> ItemPrices:
-    with open('csgo/lf_prices.json') as f:
-        data = json.loads(f.read())
-        return to_lf_price_entries(data['result'])
+    prices: ItemPrices = {}
+
+    with open('csgo/lf/lf_prices.json') as p, open('csgo/lf/lf_auctions.json') as a:
+        prices = to_lf_price_entries(json.loads(p.read())['result'])
+        lf_auctions = to_lf_price_entries(json.loads(a.read())['result'])
+        for item_name, price_entries in lf_auctions.items():
+            if item_name not in prices:
+                prices[item_name] = []
+            prices[item_name] += price_entries
+
+    return prices
 
 
 def to_lf_price_entries(data: dict) -> ItemPrices:
@@ -333,24 +347,38 @@ def to_lf_price_entries(data: dict) -> ItemPrices:
             item_u = item_details.get('u', {})
             for items in (item_u.values() if isinstance(item_u, dict) else [item_u]):
                 for i in items:
-                    item_f = str(i['f'])
-                    item_float = int(item_f.split(':')[0]) / 100000
+                    item_f = i['f']
+                    item_float = (int(item_f.split(':')[0]) / 100000) if isinstance(item_f, str) else item_f
                     if not item_float:
                         item_float = get_float_value(i['id'], i['l'])
                     item_st = i.get('st') == 1
+                    item_td = i.get('td')
 
                     market_name = f'StatTrak™ {item_name}' if item_st else item_name
                     item_price = float(item_pst / 100) if item_st else float(item_p / 100)
                     p = PriceEntry(market_name, item_price, item_float, item_rarity,
-                                   item_name=item_n, st_track=item_st)
+                                   item_name=item_n, st_track=item_st, withdrawable_in=item_td)
                     if market_name not in prices:
                         prices[market_name] = []
                     prices[market_name] += [p]
     return prices
 
 
+def load_lf_auctions() -> ItemPrices:
+    with open('csgo/lf/lf_auctions.json') as f:
+        data = json.loads(f.read())
+
+        prices: LFSales = {}
+        for price_obj in data:
+            item_name = price_obj['name']
+            prices[item_name] = LFItemPrice(item_name, price_obj['price'] / 100, price_obj['have'], price_obj['max'],
+                                            price_obj['rate'] / 100, price_obj['tr'], price_obj['res'])
+
+        return prices
+
+
 def load_lf_sales() -> LFSales:
-    with open('csgo/lf_sales.json') as f:
+    with open('csgo/lf/lf_sales.json') as f:
         data = json.loads(f.read())
 
         prices: LFSales = {}
