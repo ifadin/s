@@ -10,7 +10,7 @@ from requests import Response
 from csgo.bs.token import TokenProvider
 from csgo.collection import load_collections
 from csgo.type.item import ItemCondition, to_st_track
-from csgo.type.price import get_item_price_name, PriceEntry, ItemPrices
+from csgo.type.price import get_market_name, PriceEntry, ItemPrices
 
 BSSalesHistory = Dict[str, List[float]]
 
@@ -160,7 +160,7 @@ def update_bs_sales_history():
             st_item = to_st_track(item)
             for i in [item, st_item]:
                 for item_condition in ItemCondition:
-                    item_name = get_item_price_name(i, item_condition)
+                    item_name = get_market_name(i, item_condition)
                     items.append(item_name)
 
     with ThreadPoolExecutor(max_workers=5) as executor:

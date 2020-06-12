@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from csgo.contract import STContractCalc
+from csgo.contract import STItemReturnCalc
 from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.contract import ItemReturn
 from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCollection, ItemCondition
-from csgo.type.price import PriceTimeRange, get_item_price_name
+from csgo.type.price import PriceTimeRange, get_market_name
 
 
 class CalculateTest(TestCase):
@@ -44,36 +44,36 @@ class CalculateTest(TestCase):
     }
     time_range: PriceTimeRange = PriceTimeRange[PriceTimeRange.DAYS_30.name]
     prices = {
-        get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 1000),
-        get_item_price_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 100),
-        get_item_price_name('item4-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 200),
+        get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 1000),
+        get_market_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 100),
+        get_market_name('item4-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(time_range, 200),
 
-        get_item_price_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 100),
-        get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 10),
-        get_item_price_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 20),
+        get_market_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 100),
+        get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 10),
+        get_market_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 20),
 
-        get_item_price_name('item4-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 800),
-        get_item_price_name('item4-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 400),
-        get_item_price_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 50),
+        get_market_name('item4-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 800),
+        get_market_name('item4-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 400),
+        get_market_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 50),
 
-        get_item_price_name('item4b-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 500),
-        get_item_price_name('item4b-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 300),
-        get_item_price_name('item3b-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 80),
+        get_market_name('item4b-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 500),
+        get_market_name('item4b-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 300),
+        get_market_name('item3b-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(time_range, 80),
 
-        get_item_price_name('item4b-1', ItemCondition.FIELD_TESTED): get_avg_price_entry(time_range, 300),
-        get_item_price_name('item4b-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(time_range, 200),
+        get_market_name('item4b-1', ItemCondition.FIELD_TESTED): get_avg_price_entry(time_range, 300),
+        get_market_name('item4b-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(time_range, 200),
 
-        get_item_price_name('item4b-1', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 25),
-        get_item_price_name('item4b-2', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 20),
+        get_market_name('item4b-1', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 25),
+        get_market_name('item4b-2', ItemCondition.WELL_WORN): get_avg_price_entry(time_range, 20),
 
-        get_item_price_name('item4b-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 15),
-        get_item_price_name('item4b-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 10),
-        get_item_price_name('item3b-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 5)
+        get_market_name('item4b-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 15),
+        get_market_name('item4b-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 10),
+        get_market_name('item3b-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(time_range, 5)
     }
     price_manager = STPriceManager(prices, collections)
 
     def test_get_item_conversion_return(self):
-        calc = STContractCalc(self.collections, self.price_manager)
+        calc = STItemReturnCalc(self.collections, self.price_manager)
         standard_float_return = calc.get_item_returns(self.ItemA3_2, self.time_range)
         expected = [
             ItemReturn(self.ItemA3_2, ItemCondition.MINIMAL_WEAR, 500, 600, FloatRange(0.07, 0.15),
@@ -81,7 +81,7 @@ class CalculateTest(TestCase):
                        output_items={'item4-1 (Minimal Wear)': 800, 'item4-2 (Minimal Wear)': 400})]
         self.assertEqual(standard_float_return, expected)
 
-        calc = STContractCalc(self.collections, self.price_manager, possible_price_discount=0)
+        calc = STItemReturnCalc(self.collections, self.price_manager, possible_price_discount=0)
         limited_float_return = calc.get_item_returns(self.ItemB3_1, self.time_range)
 
         expected = [

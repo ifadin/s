@@ -6,7 +6,7 @@ from typing import List, Dict
 from enum import Enum
 
 from .collection import load_collections
-from .contract import BSContractCalc, STContractCalc, LFContractCalc, ContractCalc
+from .contract import BSItemReturnCalc, STItemReturnCalc, LFContractCalc, ItemReturnCalc
 from .conversion import get_condition_range, ConversionMap
 from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager
 from .type.contract import ItemReturn
@@ -39,7 +39,7 @@ class Model(Enum):
 
 
 class GetItemReturns:
-    def __init__(self, calc: ContractCalc, time_range):
+    def __init__(self, calc: ItemReturnCalc, time_range):
         self.calc = calc
         self.time_range = time_range
 
@@ -61,15 +61,15 @@ if model == Model.LF:
     calc = LFContractCalc(conversion_map, price_manager)
 if model == Model.BS:
     price_manager = BSPriceManager().load()
-    calc = BSContractCalc(conversion_map, price_manager)
+    calc = BSItemReturnCalc(conversion_map, price_manager)
 if model == Model.BCK:
     price_manager = BCKPriceManager(collections).load()
-    calc = STContractCalc(collections, price_manager,
-                          required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
+    calc = STItemReturnCalc(collections, price_manager,
+                            required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
 if model == Model.HX:
     price_manager = HXPriceManager(collections).load()
-    calc = STContractCalc(collections, price_manager,
-                          required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
+    calc = STItemReturnCalc(collections, price_manager,
+                            required_sold_amount=10, possible_price_discount=0.1, return_commission=0.09)
 
 returns: List[ItemReturn] = []
 time_range: PriceTimeRange = PriceTimeRange.DAYS_30

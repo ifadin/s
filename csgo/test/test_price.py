@@ -3,7 +3,7 @@ from unittest import TestCase
 from csgo.price import STPriceManager
 from csgo.test.utils import get_avg_price_entry
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
-from csgo.type.price import PriceTimeRange, get_item_price_name
+from csgo.type.price import PriceTimeRange, get_market_name
 
 
 class CalculateTest(TestCase):
@@ -22,25 +22,25 @@ class CalculateTest(TestCase):
     time_range: PriceTimeRange = PriceTimeRange[PriceTimeRange.DAYS_30.name]
 
     def test_get_item_price_name(self):
-        name = get_item_price_name('item-1', ItemCondition.BATTLE_SCARED)
+        name = get_market_name('item-1', ItemCondition.BATTLE_SCARED)
 
         self.assertEqual(name, 'item-1 (Battle-Scarred)')
 
     def test_price_approximation_top_level_item(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
-            get_item_price_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
-            get_item_price_name('item4-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item4-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
 
-            get_item_price_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 100),
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
-            get_item_price_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
+            get_market_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
 
-            get_item_price_name('item4-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 500),
-            get_item_price_name('item4-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
+            get_market_name('item4-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 500),
+            get_market_name('item4-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
 
-            get_item_price_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 27),
-            get_item_price_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 37)
+            get_market_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 27),
+            get_market_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 37)
 
         }
 
@@ -57,19 +57,19 @@ class CalculateTest(TestCase):
 
     def test_price_approximation_lowest_level_item(self):
         prices = {
-            get_item_price_name('item2-4', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
-            get_item_price_name('item3-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
-            get_item_price_name('item3-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 400),
-            get_item_price_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 500),
+            get_market_name('item2-4', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item3-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
+            get_market_name('item3-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 400),
+            get_market_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 500),
 
-            get_item_price_name('item2-4', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
-            get_item_price_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
-            get_item_price_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 50),
+            get_market_name('item2-4', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
+            get_market_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
+            get_market_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 50),
 
-            get_item_price_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 500),
-            get_item_price_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
-            get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
+            get_market_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 500),
+            get_market_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
+            get_market_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
         price_manager = STPriceManager(prices, self.collections)
@@ -78,22 +78,22 @@ class CalculateTest(TestCase):
 
     def test_price_approximation_mid_level_item(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
-            get_item_price_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
-            get_item_price_name('item3-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
-            get_item_price_name('item3-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 400),
-            get_item_price_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
+            get_market_name('item3-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 200),
+            get_market_name('item3-2', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 400),
+            get_market_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
 
-            get_item_price_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 600),
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
-            get_item_price_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
-            get_item_price_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
+            get_market_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 600),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
+            get_market_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
+            get_market_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
 
-            get_item_price_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
-            get_item_price_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 125),
-            get_item_price_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
-            get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
+            get_market_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
+            get_market_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 125),
+            get_market_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
+            get_market_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
         price_manager = STPriceManager(prices, self.collections)
@@ -107,19 +107,19 @@ class CalculateTest(TestCase):
 
     def test_price_approximation_with_missing_reference_info(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
-            get_item_price_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
-            get_item_price_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
+            get_market_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
 
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
-            get_item_price_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
-            get_item_price_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
+            get_market_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
+            get_market_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
 
-            get_item_price_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
-            get_item_price_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 125),
-            get_item_price_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
-            get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
+            get_market_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
+            get_market_name('item3-1', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 125),
+            get_market_name('item3-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 250),
+            get_market_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
         price_manager = STPriceManager(prices, self.collections)
@@ -133,17 +133,17 @@ class CalculateTest(TestCase):
 
     def test_price_approximation_with_missing_level_info(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
-            get_item_price_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
-            get_item_price_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item4-1', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 800),
+            get_market_name('item3-3', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 100),
 
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
-            get_item_price_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
-            get_item_price_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 400),
+            get_market_name('item3-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 30),
+            get_market_name('item3-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item3-3', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 10),
 
-            get_item_price_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
-            get_item_price_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
+            get_market_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 550),
+            get_market_name('item3-3', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 320)
         }
         item_condition = ItemCondition.MINIMAL_WEAR
         price_manager = STPriceManager(prices, self.collections)
@@ -155,20 +155,20 @@ class CalculateTest(TestCase):
 
     def test_condition_increase_ratios(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 100),
-            get_item_price_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 500),
-            get_item_price_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 900),
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item5', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 500),
+            get_market_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 900),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
 
-            get_item_price_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 30),
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 90),
-            get_item_price_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
-            get_item_price_name('item4-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
+            get_market_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 30),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 90),
+            get_market_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
+            get_market_name('item4-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
 
-            get_item_price_name('item2-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item2-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
-            get_item_price_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
+            get_market_name('item2-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item2-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
+            get_market_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
         }
 
         price_manager = STPriceManager(prices, self.collections)
@@ -187,20 +187,20 @@ class CalculateTest(TestCase):
 
     def test_approx_price_by_rarity(self):
         prices = {
-            get_item_price_name('item5', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 100),
-            get_item_price_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 500),
-            get_item_price_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 900),
-            get_item_price_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
+            get_market_name('item5', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 100),
+            get_market_name('item5', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 500),
+            get_market_name('item5', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 900),
+            get_market_name('item5', ItemCondition.FACTORY_NEW): get_avg_price_entry(self.time_range, 1000),
 
-            get_item_price_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 30),
-            get_item_price_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 90),
-            get_item_price_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
-            get_item_price_name('item4-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
+            get_market_name('item4-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 30),
+            get_market_name('item4-1', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 90),
+            get_market_name('item4-2', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item4-2', ItemCondition.WELL_WORN): get_avg_price_entry(self.time_range, 40),
+            get_market_name('item4-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
 
-            get_item_price_name('item2-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
-            get_item_price_name('item2-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
-            get_item_price_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
+            get_market_name('item2-1', ItemCondition.BATTLE_SCARED): get_avg_price_entry(self.time_range, 20),
+            get_market_name('item2-2', ItemCondition.FIELD_TESTED): get_avg_price_entry(self.time_range, 60),
+            get_market_name('item2-2', ItemCondition.MINIMAL_WEAR): get_avg_price_entry(self.time_range, 80)
         }
 
         price_manager = STPriceManager(prices, self.collections)

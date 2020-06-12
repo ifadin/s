@@ -25,6 +25,7 @@ class PriceEntry(NamedTuple):
 
 
 ItemPrices = Dict[str, List[PriceEntry]]
+ItemSales = Dict[str, float]
 
 
 class ItemWithPrice(NamedTuple):
@@ -88,6 +89,6 @@ class LFItemPrice(NamedTuple):
 LFSales = Dict[str, LFItemPrice]
 
 
-def get_item_price_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
+def get_market_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
     item_name = item_name.full_name if isinstance(item_name, Item) else item_name
     return f'{item_name} ({str(item_condition)})'

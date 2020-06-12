@@ -12,7 +12,7 @@ from csgo.price import STPriceManager, PriceManager, LFPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn, OutputItems, ContractItem
 from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition, to_st_track
-from csgo.type.price import PriceTimeRange, get_item_price_name, ItemWithPrice, PriceEntry
+from csgo.type.price import PriceTimeRange, get_market_name, ItemWithPrice, PriceEntry
 
 ContractCandidatesMap = Dict[ItemCondition, Dict[ItemRarity, List[Item]]]
 
@@ -25,14 +25,14 @@ class ItemConversionResult(NamedTuple):
     price_warning: bool = None
 
 
-class ContractCalc(ABC):
+class ItemReturnCalc(ABC):
 
     @abstractmethod
     def get_item_returns(self, item: Item, price_time_range: PriceTimeRange) -> List[ItemReturn]:
         pass
 
 
-class BSContractCalc(ContractCalc):
+class BSItemReturnCalc(ItemReturnCalc):
 
     def __init__(self, conversion_map: ConversionMap, price_manager: PriceManager,
                  sale_commission: float = 0.1) -> None:
@@ -64,7 +64,7 @@ class BSContractCalc(ContractCalc):
         return returns
 
 
-class STContractCalc(ContractCalc):
+class STItemReturnCalc(ItemReturnCalc):
 
     def __init__(self, collections: Dict[str, ItemCollection],
                  price_manager: STPriceManager,
@@ -92,7 +92,7 @@ class STContractCalc(ContractCalc):
         return item_roi
 
 
-class LFContractCalc(BSContractCalc):
+class LFContractCalc(BSItemReturnCalc):
 
     def __init__(self, conversion_map: ConversionMap, price_manager: LFPriceManager,
                  sale_commission: float = 0.05) -> None:
@@ -136,7 +136,7 @@ def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
 
 
 def to_output_items(conversion_items: Dict[Item, ItemCondition], price_manager: PriceManager) -> OutputItems:
-    return {get_item_price_name(item, item_condition): price_manager.get_avg_price(item, item_condition)
+    return {get_market_name(item, item_condition): price_manager.get_avg_price(item, item_condition)
             for item, item_condition in conversion_items.items()}
 
 
