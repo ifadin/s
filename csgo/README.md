@@ -17,6 +17,11 @@
   http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vZ2V0UmVzZXJ2ZXMucGhw" | base64 -d)" cookie:"PHPSESSID=$LF_SESSION_ID" > csgo/lf/lf_rsv.json
 ```
 
+DM:
+```shell script
+    python -c 'from csgo.inventory import update_dm; update_dm()'
+```
+
 ## Data sources
 
 https://github.com/cs-idb/cs-idb/blob/master/data

@@ -380,7 +380,7 @@ def to_lf_price_entries(data: dict) -> ItemPrices:
                     market_name = f'StatTrak™ {item_name}' if item_st else item_name
                     item_price = float(item_pst / 100) if item_st else float(item_p / 100)
                     p = PriceEntry(market_name, item_price, item_float, item_rarity,
-                                   item_name=item_n, st_track=item_st, withdrawable_in=item_td)
+                                   item_name=item_n, withdrawable_in=item_td)
                     if market_name not in prices:
                         prices[market_name] = []
                     prices[market_name] += [p]

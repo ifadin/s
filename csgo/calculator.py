@@ -4,8 +4,6 @@ import sys
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, Dict
 
-from enum import Enum
-
 from .collection import load_collections, get_next_level_items
 from .contract import BSItemReturnCalc, STItemReturnCalc, LFItemReturnCalc, ItemReturnCalc, DMItemReturnCalc
 from .conversion import get_condition_range, ConversionMap
@@ -13,32 +11,13 @@ from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManag
 from .type.contract import ItemReturn
 from .type.float import FloatRange
 from .type.item import to_st_track, ItemRarity, Item, ItemCondition
+from .type.model import Model
 from .type.price import PriceTimeRange
 
 
 def pretty_print_items(items: Dict[str, float]):
     for item_name, item_price in items.items():
         print(f'\t - {item_name}: {item_price}')
-
-
-class Model(Enum):
-    BCK = 'BCK'
-    BS = 'BS'
-    DM = 'DM'
-    HX = 'HX'
-    LF = 'LF'
-
-    @staticmethod
-    def from_str(value: str):
-        names = {
-            'bck': Model.BCK,
-            'bs': Model.BS,
-            'dm': Model.DM,
-            'hx': Model.HX,
-            'lf': Model.LF
-        }
-
-        return names.get(value.lower())
 
 
 Links = {

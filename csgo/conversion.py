@@ -1,8 +1,8 @@
 from typing import Dict, List, Set
 
 from csgo.collection import get_next_level_items
-from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition, to_basic, to_st_track
 from csgo.type.float import FloatRange, is_in_float_range
+from csgo.type.item import ItemCondition, Item, ItemCollection, ItemWithCondition, to_basic, to_st_track
 
 eps = 0.000000000001
 
@@ -126,7 +126,7 @@ class ConversionMap:
 
         return conversion_map
 
-    def get_rules(self, item) -> ConversionRules:
+    def get_rules(self, item: Item) -> ConversionRules:
         return (
             self._conversion_map.get(item, {})
             if not item.st_track

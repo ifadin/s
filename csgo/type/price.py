@@ -20,9 +20,12 @@ class PriceEntry(NamedTuple):
     float_value: float
     item_rarity: Union[str, ItemRarity] = None
     item_name: str = None
-    st_track: bool = False
     withdrawable_in: int = None
     item_id: str = None
+
+    @property
+    def st_track(self) -> bool:
+        return self.market_hash_name.startswith('StatTrak™ ')
 
 
 ItemPrices = Dict[str, List[PriceEntry]]
