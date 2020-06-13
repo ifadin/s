@@ -11,7 +11,7 @@ from .conversion import get_condition_range, ConversionMap
 from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager, DMPriceManager
 from .type.contract import ItemReturn
 from .type.float import FloatRange
-from .type.item import to_st_track, ItemRarity, Item
+from .type.item import to_st_track, ItemRarity, Item, ItemCondition
 from .type.price import PriceTimeRange
 
 
@@ -91,13 +91,14 @@ with ThreadPoolExecutor(max_workers=10) as executor:
     returns = list((r for res in executor.map(GetItemReturns(calc, time_range), items, chunksize=10) for r in res))
 
 for i in sorted(returns,
-                key=operator.attrgetter('item.rarity', 'float_range.min_value', 'float_range.max_value',
-                                        'item_revenue'),
+                key=operator.attrgetter('item.rarity', 'item_condition', 'float_range.min_value',
+                                        'float_range.max_value', 'item_revenue'),
                 reverse=False):
     if i.item_revenue > 1 and len(i.output_items) <= 30:
         guaranteed = '(100%) ' if i.guaranteed else ''
+        item_cond = ItemCondition.to_short_str(i.item_condition)
         item_range = FloatRange(get_condition_range(i.item_condition).min_value, i.float_range.max_value)
-        print(f'{guaranteed}[{i.item.rarity}] {i.item_float} {i.float_range} '
+        print(f'{guaranteed}[{i.item.rarity}] {item_cond} {i.item_float} {i.float_range} '
               f'{i.item.full_name} ({str(i.item_condition)}) {i.item_investment:.2f}: '
               f'{i.item_revenue:.2f} ({i.item_roi * 100:.0f}%):')
         pretty_print_items(i.output_items)

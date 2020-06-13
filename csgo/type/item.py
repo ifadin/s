@@ -62,6 +62,17 @@ class ItemCondition(IntEnum):
         }
         return names.get(value.lower())
 
+    @classmethod
+    def to_short_str(cls, value) -> str:
+        names = {
+            cls.BATTLE_SCARED: 'BS',
+            cls.WELL_WORN: 'WW',
+            cls.FIELD_TESTED: 'FT',
+            cls.MINIMAL_WEAR: 'MW',
+            cls.FACTORY_NEW: 'FN'
+        }
+        return names[value]
+
 
 class ItemRarity(IntEnum):
     CONSUMER_GRADE = 0
