@@ -26,7 +26,7 @@ def load_collections() -> Dict[str, ItemCollection]:
             col_name: ItemCollection(col_name, [
                 Item(item_name, item_details['rarity'], col_name, item_details['min_float'], item_details['max_float'])
                 for item_name, item_details
-                in col_details['items'].items()])
+                in col_details['items'].items()], col_details['st_track'])
             for col_name, col_details
             in res['collections'].items()
         }

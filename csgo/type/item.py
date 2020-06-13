@@ -28,6 +28,7 @@ def to_basic(item: Item) -> Item:
 class ItemCollection(NamedTuple):
     name: str
     items: List[Item]
+    st_track: bool = None
 
 
 class ItemCondition(IntEnum):

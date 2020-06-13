@@ -2,6 +2,7 @@ import base64
 import html
 import os
 import re
+import time
 from abc import ABC, abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from statistics import mean
@@ -49,16 +50,16 @@ class DMUpdater(Updater):
         for collection in self.collections.values():
             for item in collection.items:
                 if item.rarity > ItemRarity.MIL_SPEC_GRADE:
-                    for i in [item, to_st_track(item)]:
+                    for i in ([item, to_st_track(item)] if collection.st_track else [item]):
                         for item_condition in get_item_possible_conditions(i):
                             market_name = get_market_name(i, item_condition)
                             items.append(market_name)
         return items
 
     def request_sales(self, items: List[str]) -> ItemSales:
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             return dict(((item_name, item_price) for item_name, item_price
-                         in executor.map(DMGetSalesTask(self), items, chunksize=5) if item_price))
+                         in executor.map(DMGetSalesTask(self), items, chunksize=10) if item_price))
 
     @classmethod
     def request_sale_price(cls, market_name: str) -> Response:
@@ -76,20 +77,26 @@ class DMGetSalesTask:
     def __init__(self, updater: DMUpdater):
         self.updater = updater
 
-    def __call__(self, market_name: str) -> Tuple[str, float]:
-        print(f'Updating {market_name}')
+    def __call__(self, market_name: str, attempt=0) -> Tuple[str, float]:
+        print(f'Updating {market_name}' + (f' ({attempt})' if attempt else ''))
+        try:
+            p = self.updater.request_sale_price(market_name).json()
+            ref_prices = []
+            d3 = p.get('d3', {}).get('amount')
+            d7 = p.get('d7', {}).get('amount')
+            d7p = p.get('d7plus', {}).get('amount')
+            ref_prices += [float(d3) / 100] if d3 else []
+            ref_prices += [float(d7) / 100] if d7 else []
+            ref_prices += [float(d7p) / 100] if d7p else []
 
-        p = self.updater.request_sale_price(market_name).json()
-        ref_prices = []
-        d3 = p.get('d3', {}).get('amount')
-        d7 = p.get('d7', {}).get('amount')
-        d7p = p.get('d7plus', {}).get('amount')
-        ref_prices += [float(d3) / 100] if d3 else []
-        ref_prices += [float(d7) / 100] if d7 else []
-        ref_prices += [float(d7p) / 100] if d7p else []
-
-        price = mean(ref_prices) if ref_prices else None
-        return market_name, price
+            price = mean(ref_prices) if ref_prices else None
+            return market_name, price
+        except Exception as e:
+            if attempt > 5:
+                raise e
+            print(e)
+            time.sleep(3)
+            return self(market_name, attempt + 1)
 
 
 def update_dm():
