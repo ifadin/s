@@ -1,7 +1,7 @@
 import html
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import requests
 import yaml
@@ -10,9 +10,7 @@ from requests import Response
 from csgo.bs.token import TokenProvider
 from csgo.collection import load_collections
 from csgo.type.item import ItemCondition, to_st_track
-from csgo.type.price import get_market_name, PriceEntry, ItemPrices
-
-BSSalesHistory = Dict[str, List[float]]
+from csgo.type.price import get_market_name, PriceEntry, ItemPrices, BSSalesHistory
 
 
 class GetInventoryOnSaleTask:

@@ -26,6 +26,7 @@ class PriceEntry(NamedTuple):
 
 ItemPrices = Dict[str, List[PriceEntry]]
 ItemSales = Dict[str, float]
+BSSalesHistory = Dict[str, List[float]]
 
 
 class ItemWithPrice(NamedTuple):
@@ -36,27 +37,6 @@ class ItemWithPrice(NamedTuple):
     @property
     def market_name(self):
         return self.item.full_name + f' ({str(self.item_condition)})'
-
-
-def get_price_time_range_from_bck_string(value: str) -> Optional[PriceTimeRange]:
-    names = {
-        '24_hours': PriceTimeRange.HOURS_24,
-        '7_days': PriceTimeRange.DAYS_7,
-        '30_days': PriceTimeRange.DAYS_30,
-        'all_time': PriceTimeRange.ALL_TIME
-    }
-    return names.get(value)
-
-
-def get_price_time_range_from_hexa_string(value: str) -> Optional[PriceTimeRange]:
-    names = {
-        '1': PriceTimeRange.HOURS_24,
-        '7': PriceTimeRange.DAYS_7,
-        '30': PriceTimeRange.DAYS_30,
-        '90': PriceTimeRange.DAYS_90,
-        '365': PriceTimeRange.DAYS_365
-    }
-    return names.get(value)
 
 
 class STItemPriceDetails(NamedTuple):
@@ -92,3 +72,24 @@ LFSales = Dict[str, LFItemPrice]
 def get_market_name(item_name: Union[str, Item], item_condition: ItemCondition) -> str:
     item_name = item_name.full_name if isinstance(item_name, Item) else item_name
     return f'{item_name} ({str(item_condition)})'
+
+
+def get_price_time_range_from_bck_string(value: str) -> Optional[PriceTimeRange]:
+    names = {
+        '24_hours': PriceTimeRange.HOURS_24,
+        '7_days': PriceTimeRange.DAYS_7,
+        '30_days': PriceTimeRange.DAYS_30,
+        'all_time': PriceTimeRange.ALL_TIME
+    }
+    return names.get(value)
+
+
+def get_price_time_range_from_hexa_string(value: str) -> Optional[PriceTimeRange]:
+    names = {
+        '1': PriceTimeRange.HOURS_24,
+        '7': PriceTimeRange.DAYS_7,
+        '30': PriceTimeRange.DAYS_30,
+        '90': PriceTimeRange.DAYS_90,
+        '365': PriceTimeRange.DAYS_365
+    }
+    return names.get(value)

@@ -8,13 +8,13 @@ from typing import Dict, Optional, List
 
 import yaml
 
-from csgo.bs.update import BSSalesHistory
 from csgo.collection import get_next_level_items, get_prev_level_items
 from csgo.type.float import get_float_value
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
-    get_price_time_range_from_hexa_string, LFSales, LFItemPrice, get_market_name, PriceEntry, ItemPrices
+    get_price_time_range_from_hexa_string, LFSales, LFItemPrice, get_market_name, PriceEntry, ItemPrices, \
+    BSSalesHistory, ItemSales
 
 RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
@@ -269,6 +269,29 @@ class BSPriceManager(PriceManager):
         return reduce(lambda a, b: a + b, tlist) / float(len(tlist))
 
 
+class DMPriceManager(PriceManager):
+
+    def __init__(self, ) -> None:
+        self._sales: ItemSales = None
+        self._prices: ItemPrices = None
+
+    def get_avg_price(self, item: Item, item_condition: ItemCondition,
+                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
+                      with_price_fallback: bool = True) -> Optional[float]:
+        item_name = get_market_name(item, item_condition)
+        p = self._sales.get(item_name)
+        return p if p else None
+
+    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
+        item_name = get_market_name(item.full_name, item_condition)
+        return self._prices.get(item_name, [])
+
+    def load(self):
+        self._sales = load_dm_sales()
+        self._prices = load_dm_prices()
+        return self
+
+
 def load_bck_prices() -> STPrices:
     def get_price_details(price: dict) -> STItemPriceDetails:
         return STItemPriceDetails(average=float(price['average']),
@@ -364,19 +387,6 @@ def to_lf_price_entries(data: dict) -> ItemPrices:
     return prices
 
 
-def load_lf_auctions() -> ItemPrices:
-    with open('csgo/lf/lf_auctions.json') as f:
-        data = json.loads(f.read())
-
-        prices: LFSales = {}
-        for price_obj in data:
-            item_name = price_obj['name']
-            prices[item_name] = LFItemPrice(item_name, price_obj['price'] / 100, price_obj['have'], price_obj['max'],
-                                            price_obj['rate'] / 100, price_obj['tr'], price_obj['res'])
-
-        return prices
-
-
 def load_lf_sales() -> LFSales:
     with open('csgo/lf/lf_sales.json') as f:
         data = json.loads(f.read())
@@ -403,6 +413,24 @@ def load_bs_prices() -> ItemPrices:
 
 def load_bs_sales() -> BSSalesHistory:
     with open('csgo/bs/bs_sales.yaml') as f:
+        data = yaml.load(f, Loader=yaml.SafeLoader)
+
+        return data['sales']
+
+
+def load_dm_prices() -> ItemPrices:
+    with open('csgo/dm/dm_prices.yaml') as f:
+        data = yaml.load(f, Loader=yaml.SafeLoader)
+
+        return {
+            item_name: [PriceEntry(item_name, float(price_value), float(float_value))
+                        for float_value, price_value in prices.items() if float_value and price_value]
+            for item_name, prices in data['prices'].items()
+        }
+
+
+def load_dm_sales() -> ItemSales:
+    with open('csgo/dm/dm_sales.yaml') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return data['sales']

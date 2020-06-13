@@ -5,13 +5,13 @@ from typing import List, Dict
 
 from enum import Enum
 
-from .collection import load_collections
-from .contract import BSItemReturnCalc, STItemReturnCalc, LFContractCalc, ItemReturnCalc
+from .collection import load_collections, get_next_level_items
+from .contract import BSItemReturnCalc, STItemReturnCalc, LFItemReturnCalc, ItemReturnCalc, DMItemReturnCalc
 from .conversion import get_condition_range, ConversionMap
-from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager
+from .price import LFPriceManager, BSPriceManager, BCKPriceManager, HXPriceManager, DMPriceManager
 from .type.contract import ItemReturn
-from .type.item import to_st_track, ItemRarity, Item
 from .type.float import FloatRange
+from .type.item import to_st_track, ItemRarity, Item
 from .type.price import PriceTimeRange
 
 
@@ -23,15 +23,17 @@ def pretty_print_items(items: Dict[str, float]):
 class Model(Enum):
     BCK = 'BCK'
     BS = 'BS'
+    DM = 'DM'
     HX = 'HX'
     LF = 'LF'
 
     @staticmethod
     def from_str(value: str):
         names = {
-            'hx': Model.HX,
             'bck': Model.BCK,
             'bs': Model.BS,
+            'dm': Model.DM,
+            'hx': Model.HX,
             'lf': Model.LF
         }
 
@@ -56,12 +58,15 @@ else:
 collections = load_collections()
 conversion_map = ConversionMap(collections)
 
-if model == Model.LF:
-    price_manager = LFPriceManager().load()
-    calc = LFContractCalc(conversion_map, price_manager)
 if model == Model.BS:
     price_manager = BSPriceManager().load()
     calc = BSItemReturnCalc(conversion_map, price_manager)
+if model == Model.DM:
+    price_manager = DMPriceManager().load()
+    calc = DMItemReturnCalc(conversion_map, price_manager)
+if model == Model.LF:
+    price_manager = LFPriceManager().load()
+    calc = LFItemReturnCalc(conversion_map, price_manager)
 if model == Model.BCK:
     price_manager = BCKPriceManager(collections).load()
     calc = STItemReturnCalc(collections, price_manager,
@@ -76,9 +81,11 @@ time_range: PriceTimeRange = PriceTimeRange.DAYS_30
 items: List[Item] = []
 for col_name, collection in collections.items():
     for item in collection.items:
-        if item.rarity < ItemRarity.COVERT:
+        if item.rarity < ItemRarity.COVERT and get_next_level_items(item, collection):
             items.append(item)
-            items.append(to_st_track(item))
+            if collection.st_track:
+                items.append(to_st_track(item))
+print(f'{len(items)} items to process')
 
 with ThreadPoolExecutor(max_workers=10) as executor:
     returns = list((r for res in executor.map(GetItemReturns(calc, time_range), items, chunksize=10) for r in res))

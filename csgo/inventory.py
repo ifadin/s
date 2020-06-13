@@ -55,7 +55,8 @@ class LFInventoryManager:
 
         for item_id, item_details in items.get('result', {}).items():
             for i in item_details.get('u', []):
-                i['f'] = get_float_value(i['id'], i['l'])
+                if i.get('l') and i.get('id'):
+                    i['f'] = get_float_value(i['id'], i['l'])
         with open(file_path, 'w') as f:
             f.write(json.dumps(items))
 

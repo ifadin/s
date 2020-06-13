@@ -8,7 +8,7 @@ from typing import List, Optional, Set, Dict, NamedTuple
 from csgo.collection import get_next_level_items, get_item_from_collection
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, get_item_conversions, \
     get_condition_from_float, get_condition_range, get_conversion_required_ranges, ConversionMap
-from csgo.price import STPriceManager, PriceManager, LFPriceManager
+from csgo.price import STPriceManager, PriceManager, LFPriceManager, DMPriceManager
 from csgo.type.contract import ContractReturn, ItemReturn, OutputItems, ContractItem
 from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition, to_st_track
@@ -92,7 +92,7 @@ class STItemReturnCalc(ItemReturnCalc):
         return item_roi
 
 
-class LFContractCalc(BSItemReturnCalc):
+class LFItemReturnCalc(BSItemReturnCalc):
 
     def __init__(self, conversion_map: ConversionMap, price_manager: LFPriceManager,
                  sale_commission: float = 0.05) -> None:
@@ -121,6 +121,14 @@ class LFContractCalc(BSItemReturnCalc):
                             guaranteed=guaranteed, output_items=output_items
                         ))
         return returns
+
+
+class DMItemReturnCalc(BSItemReturnCalc):
+
+    def __init__(self, conversion_map: ConversionMap, price_manager: DMPriceManager,
+                 sale_commission: float = 0) -> None:
+        super().__init__(conversion_map, price_manager, sale_commission)
+        self.price_manager = price_manager
 
 
 def get_conversion_items_return(conversion_items: Dict[Item, ItemCondition],
