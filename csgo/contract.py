@@ -50,7 +50,6 @@ class BSItemReturnCalc(ItemReturnCalc):
             if contract_return:
                 for item_on_sale in self.price_manager.get_items_on_sale(item, item_condition):
                     if item_on_sale.float_value in conversion_range:
-                        guaranteed = len(conversion_items) == 1
                         output_items = to_output_items(conversion_items, self.price_manager)
                         item_investment = item_on_sale.price * 10
                         item_return = contract_return * (1 - self.sale_commission)
@@ -58,7 +57,7 @@ class BSItemReturnCalc(ItemReturnCalc):
                         returns.append(ItemReturn(
                             item, item_condition,
                             item_investment, item_return, conversion_range,
-                            item_float=item_on_sale.float_value, guaranteed=guaranteed, output_items=output_items
+                            item_float=item_on_sale.float_value, output_items=output_items, item_id=item_on_sale.item_id
                         ))
 
         return returns
@@ -113,12 +112,11 @@ class LFItemReturnCalc(BSItemReturnCalc):
                     item_return = get_conversion_items_return(conversion_items, self.price_manager)
 
                     if item_return:
-                        guaranteed = len(conversion_items) == 1
                         output_items = to_output_items(conversion_items, self.price_manager)
                         returns.append(ItemReturn(
                             item, item_condition,
                             investment, item_return * (1 - self.sale_commission), conversion_range,
-                            guaranteed=guaranteed, output_items=output_items
+                            output_items=output_items
                         ))
         return returns
 
@@ -187,10 +185,8 @@ def get_item_range_rois(item: Item,
         if range_return and not conversion_result.price_warning:
             item_return = sum(range_return) * (1 - return_commission) / len(range_return)
             item_investment = item_price * 10 * (1 - possible_price_discount)
-            guaranteed = len(next_items) == 1
             item_roi.append(ItemReturn(
-                item, item_condition, item_investment, item_return, item_float_range,
-                guaranteed=guaranteed, output_items=range_items))
+                item, item_condition, item_investment, item_return, item_float_range, output_items=range_items))
 
     return item_roi
 

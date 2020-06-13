@@ -423,9 +423,10 @@ def load_dm_prices() -> ItemPrices:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return {
-            item_name: [PriceEntry(item_name, float(price_value), float(float_value))
-                        for float_value, price_value in prices.items() if float_value and price_value]
-            for item_name, prices in data['prices'].items()
+            item_name: [PriceEntry(item_name, float(price_value), float(float_value), item_id=item_id)
+                        for item_id, price_details in item_details.items()
+                        for float_value, price_value in price_details.items() if float_value and price_value]
+            for item_name, item_details in data['prices'].items()
         }
 
 

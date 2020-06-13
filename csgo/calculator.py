@@ -1,3 +1,4 @@
+import base64
 import operator
 import sys
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -38,6 +39,11 @@ class Model(Enum):
         }
 
         return names.get(value.lower())
+
+
+Links = {
+    Model.DM: base64.b64decode('aHR0cHM6Ly9kbWFya2V0LmNvbT91c2VyT2ZmZXJJZD0='.encode()).decode()
+}
 
 
 class GetItemReturns:
@@ -101,4 +107,7 @@ for i in sorted(returns,
         print(f'{guaranteed}[{i.item.rarity}] {item_cond} {i.item_float} {i.float_range} '
               f'{i.item.full_name} ({str(i.item_condition)}) {i.item_investment:.2f}: '
               f'{i.item_revenue:.2f} ({i.item_roi * 100:.0f}%):')
+        link = Links.get(model)
+        if link and i.item_id:
+            print(f'{link}{i.item_id}')
         pretty_print_items(i.output_items)

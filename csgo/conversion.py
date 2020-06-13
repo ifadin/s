@@ -122,8 +122,7 @@ class ConversionMap:
                     if conversions:
                         if item not in conversion_map:
                             conversion_map[item] = {}
-                        else:
-                            conversion_map[item] = {**conversion_map[item], **conversions}
+                        conversion_map[item] = {**conversion_map[item], **conversions}
 
         return conversion_map
 

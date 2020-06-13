@@ -27,8 +27,13 @@ class ContractReturn(NamedTuple):
     contract_return: float
     avg_float: float
     approximated: bool = False
-    guaranteed: bool = False
     warnings: List[str] = None
+
+    @property
+    def guaranteed(self) -> bool:
+        if len(set(self.outcome_items)) == 1:
+            return True
+        return False
 
 
 class ItemReturn(NamedTuple):
@@ -38,8 +43,8 @@ class ItemReturn(NamedTuple):
     item_return: float
     float_range: FloatRange
     item_float: float = None
-    guaranteed: bool = False
     output_items: OutputItems = None
+    item_id: str = None
 
     @property
     def item_revenue(self) -> float:
@@ -48,3 +53,9 @@ class ItemReturn(NamedTuple):
     @property
     def item_roi(self) -> float:
         return self.item_revenue / self.item_investment
+
+    @property
+    def guaranteed(self) -> bool:
+        if len(self.output_items) == 1:
+            return True
+        return False

@@ -22,6 +22,7 @@ class PriceEntry(NamedTuple):
     item_name: str = None
     st_track: bool = False
     withdrawable_in: int = None
+    item_id: str = None
 
 
 ItemPrices = Dict[str, List[PriceEntry]]
