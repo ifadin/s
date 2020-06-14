@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from csgo.updater import Updater
+from csgo.interface.updater import Updater
 
 
 class UpdaterTest(TestCase):

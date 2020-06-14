@@ -1,8 +1,10 @@
 apache-airflow[s3,gcp_api]
 click
+grequests
 overpass
-requests
-PyGithub
 pandas
+PyGithub
 pyotp
 PyYaml
+requests
+tqdm

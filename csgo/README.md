@@ -8,6 +8,12 @@
   http "https://api.hexa.one/market/prices/730?key=<api_key>" > csgo/hexa_prices.json
 ```
 
+BS
+```shell script
+    python -c 'from csgo.update import update_bs_sales; update_bs_sales()'
+```
+
+LF
 ```shell script
   set -a && source .env && set +a
   http "$(echo "aHR0cHM6Ly9sb290LmZhcm0vZnVsbHByaWNlLmpzb24=" | base64 -d)" > csgo/lf/lf_sales.json

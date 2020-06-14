@@ -14,24 +14,37 @@ from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
     get_price_time_range_from_hexa_string, LFSales, LFItemPrice, get_market_name, PriceEntry, ItemPrices, \
-    BSSalesHistory, ItemSales
+    ItemSales
 
 RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
 
 
+def trim_mean(tlist, tperc) -> float:
+    remove_n = int(math.floor(len(tlist) * tperc / 2))
+    tlist.sort()
+    if remove_n > 0:
+        tlist = tlist[remove_n:-remove_n]
+    return reduce(lambda a, b: a + b, tlist) / float(len(tlist))
+
+
 class PriceManager(ABC):
 
-    @abstractmethod
-    def get_avg_price(self, item: Item,
-                      item_condition: ItemCondition,
+    def __init__(self) -> None:
+        self.prices: ItemPrices = None
+        self.sales: ItemSales = None
+
+    def get_avg_price(self, item: Item, item_condition: ItemCondition,
                       time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
                       with_price_fallback: bool = True) -> Optional[float]:
-        pass
+        item_name = get_market_name(item, item_condition)
+        p = self.sales.get(item_name)
 
-    @abstractmethod
+        return p if p else None
+
     def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
-        pass
+        item_name = get_market_name(item.full_name, item_condition)
+        return self.prices.get(item_name, [])
 
     @abstractmethod
     def load(self):
@@ -47,6 +60,7 @@ class STPriceManager(PriceManager):
         pass
 
     def __init__(self, prices: STPrices, collections: Dict[str, ItemCollection]) -> None:
+        super().__init__()
         self._prices: STPrices = prices
         self.collections = collections
         self.condition_increase_ratios = self.calculate_condition_increase_price_ratios()
@@ -211,84 +225,30 @@ class BCKPriceManager(STPriceManager):
 
 class LFPriceManager(PriceManager):
 
-    def __init__(self, ) -> None:
-        self._sales: LFSales = None
-        self._prices: ItemPrices = None
-
-    def get_avg_price(self, item: Item, item_condition: ItemCondition,
-                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
-                      with_price_fallback: bool = True) -> Optional[float]:
-        item_name = get_market_name(item, item_condition)
-        p = self._sales.get(item_name)
-        return p.price if p else None
-
     def get_available(self, item: Item, item_condition: ItemCondition) -> Optional[int]:
         item_name = get_market_name(item.full_name, item_condition)
-        p = self._sales.get(item_name)
+        p = self.sales.get(item_name)
         return p.tradable + p.reservable if p else None
 
-    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
-        item_name = get_market_name(item.full_name, item_condition)
-        return self._prices.get(item_name, [])
-
     def load(self):
-        self._sales = load_lf_sales()
-        self._prices = load_lf_prices()
+        self.sales = load_lf_sales()
+        self.prices = load_lf_prices()
         return self
 
 
 class BSPriceManager(PriceManager):
 
-    def __init__(self) -> None:
-        self._prices: ItemPrices = None
-        self._sales: BSSalesHistory = None
-
-    def get_avg_price(self, item: Item, item_condition: ItemCondition,
-                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
-                      with_price_fallback: bool = True) -> Optional[float]:
-        item_name = get_market_name(item, item_condition)
-        sales_history = self._sales.get(item_name, [])
-
-        return self.trim_mean(sales_history, 0.2) if sales_history else None
-
-    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
-        item_name = get_market_name(item.full_name, item_condition)
-        return self._prices.get(item_name, [])
-
     def load(self):
-        self._prices = load_bs_prices()
-        self._sales = load_bs_sales()
+        self.prices = load_bs_prices()
+        self.sales = load_bs_sales()
         return self
-
-    @staticmethod
-    def trim_mean(tlist, tperc) -> float:
-        remove_n = int(math.floor(len(tlist) * tperc / 2))
-        tlist.sort()
-        if remove_n > 0:
-            tlist = tlist[remove_n:-remove_n]
-        return reduce(lambda a, b: a + b, tlist) / float(len(tlist))
 
 
 class DMPriceManager(PriceManager):
 
-    def __init__(self, ) -> None:
-        self._sales: ItemSales = None
-        self._prices: ItemPrices = None
-
-    def get_avg_price(self, item: Item, item_condition: ItemCondition,
-                      time_range: PriceTimeRange = PriceTimeRange.DAYS_30,
-                      with_price_fallback: bool = True) -> Optional[float]:
-        item_name = get_market_name(item, item_condition)
-        p = self._sales.get(item_name)
-        return p if p else None
-
-    def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
-        item_name = get_market_name(item.full_name, item_condition)
-        return self._prices.get(item_name, [])
-
     def load(self):
-        self._sales = load_dm_sales()
-        self._prices = load_dm_prices()
+        self.sales = load_dm_sales()
+        self.prices = load_dm_prices()
         return self
 
 
@@ -400,26 +360,8 @@ def load_lf_sales() -> LFSales:
         return prices
 
 
-def load_bs_prices() -> ItemPrices:
-    with open('csgo/bs/bs_prices.yaml') as f:
-        data = yaml.load(f, Loader=yaml.SafeLoader)
-
-        return {
-            item_name: [PriceEntry(item_name, float(price_value), float(float_value))
-                        for float_value, price_value in price.items() if float_value and price_value]
-            for item_name, price in data['prices'].items()
-        }
-
-
-def load_bs_sales() -> BSSalesHistory:
-    with open('csgo/bs/bs_sales.yaml') as f:
-        data = yaml.load(f, Loader=yaml.SafeLoader)
-
-        return data['sales']
-
-
-def load_dm_prices() -> ItemPrices:
-    with open('csgo/dm/dm_prices.yaml') as f:
+def load_item_prices(file_path: str) -> ItemPrices:
+    with open(file_path) as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return {
@@ -430,8 +372,24 @@ def load_dm_prices() -> ItemPrices:
         }
 
 
-def load_dm_sales() -> ItemSales:
-    with open('csgo/dm/dm_sales.yaml') as f:
+def load_item_sales(file_path: str) -> ItemSales:
+    with open(file_path) as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return data['sales']
+
+
+def load_bs_prices() -> ItemPrices:
+    return load_item_prices('csgo/bs/bs_prices.yaml')
+
+
+def load_bs_sales() -> ItemSales:
+    return load_item_sales('csgo/bs/bs_sales.yaml')
+
+
+def load_dm_prices() -> ItemPrices:
+    return load_item_prices('csgo/dm/dm_prices.yaml')
+
+
+def load_dm_sales() -> ItemSales:
+    return load_item_sales('csgo/dm/dm_sales.yaml')

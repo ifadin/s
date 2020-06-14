@@ -1,36 +1,18 @@
 import base64
 import html
 import os
-import re
 import time
-from abc import ABC, abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from statistics import mean
 from typing import Dict, Tuple, List, NamedTuple
 
 import requests
-import yaml
 from requests import Response
 
-from csgo.collection import load_collections, get_next_level_items
-from csgo.contract import get_conversion_items_return
-from csgo.conversion import get_item_possible_conditions, ConversionMap
+from csgo.interface.updater import Updater
 from csgo.price import DMPriceManager
-from csgo.type.item import ItemCollection, ItemRarity, to_st_track, Item, ItemCondition
-from csgo.type.price import get_market_name, ItemSales
-
-
-class Updater(ABC):
-
-    @abstractmethod
-    def update_sales(self):
-        pass
-
-    @classmethod
-    def get_file_name(cls, item_name: str, file_type: str = 'json') -> str:
-        n = re.sub('\\s\\|\\s', '_', item_name.lower())
-
-        return re.sub("[-`'\\s]", '_', n) + f'.{file_type}'
+from csgo.type.item import ItemCollection
+from csgo.type.price import ItemSales
 
 
 class DMItemPrice(NamedTuple):
@@ -50,48 +32,7 @@ class DMUpdater(Updater):
     sales_file = os.path.join('csgo', 'dm', 'dm_sales.yaml')
 
     def __init__(self, collections: Dict[str, ItemCollection], relaxation_delta: float = 1.3) -> None:
-        self.collections = collections
-        self.conversion_map = ConversionMap(self.collections)
-        self.price_manager = DMPriceManager().load()
-        self.relaxation_delta = relaxation_delta
-
-    def get_items_for_price_update(self) -> Dict[str, float]:
-        items = {}
-        for collection in self.collections.values():
-            for item in collection.items:
-                if (ItemRarity.MIL_SPEC_GRADE <= item.rarity < ItemRarity.COVERT and
-                        get_next_level_items(item, collection)):
-                    for i in ([item, to_st_track(item)] if collection.st_track else [item]):
-                        ref_prices = self.get_item_ref_prices(i)
-                        for item_condition in get_item_possible_conditions(i):
-                            market_name = get_market_name(i, item_condition)
-                            ref_price = ref_prices.get(item_condition)
-                            items[market_name] = ref_price
-        return items
-
-    def get_item_ref_prices(self, item: Item) -> Dict[ItemCondition, float]:
-        ref_prices = {}
-        conversion_rules = self.conversion_map.get_rules(item)
-        for conversion_range, conversion_items in conversion_rules.items():
-            item_condition = conversion_range.item_condition
-            item_return = get_conversion_items_return(conversion_items, self.price_manager)
-            if item_return:
-                item_ref_price = item_return / 10 * self.relaxation_delta
-                if item_ref_price > ref_prices.get(item_condition, 0):
-                    ref_prices[item_condition] = item_ref_price
-
-        return ref_prices
-
-    def get_items_for_sale_update(self) -> List[str]:
-        items: List[str] = []
-        for collection in self.collections.values():
-            for item in collection.items:
-                if item.rarity > ItemRarity.MIL_SPEC_GRADE:
-                    for i in ([item, to_st_track(item)] if collection.st_track else [item]):
-                        for item_condition in get_item_possible_conditions(i):
-                            market_name = get_market_name(i, item_condition)
-                            items.append(market_name)
-        return items
+        super().__init__(collections, DMPriceManager().load(), relaxation_delta)
 
     def request_prices(self, items: Dict[str, float]) -> DMPrices:
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -108,40 +49,6 @@ class DMUpdater(Updater):
         res = requests.get(url + ('' if '?' in url else '?') + f'&title={html.escape(market_name)}')
         res.raise_for_status()
         return res
-
-    @classmethod
-    def save_prices(cls, prices: DMPrices, file_name: str):
-        with open(file_name, 'w') as f:
-            yaml.dump({'prices': {
-                item_name: {p.item_id: {p.item_float: p.item_price} for p in item_prices}
-                for item_name, item_prices in prices.items()
-            }}, f, default_flow_style=False)
-
-    @classmethod
-    def save_sales(cls, sales: ItemSales, file_name: str):
-        with open(file_name, 'w') as f:
-            yaml.dump({'sales': sales}, f, default_flow_style=False)
-
-    def update_prices(self):
-        start = time.time()
-
-        items_for_prices = self.get_items_for_price_update()
-        print(f'Updating {len(items_for_prices)} items price information...')
-        prices = self.request_prices(items_for_prices)
-        print(f'Found {sum([len(p) for p in prices.values()])} prices for {len(prices)} items')
-        self.save_prices(prices, self.prices_file)
-        end = time.time()
-        print(f'Finished in {end - start:2f}s')
-
-    def update_sales(self):
-        start = time.time()
-
-        items_for_sales = self.get_items_for_sale_update()
-        print(f'Updating {len(items_for_sales)} items sales information...')
-        sales = self.request_sales(items_for_sales)
-        self.save_sales(sales, self.sales_file)
-        end = time.time()
-        print(f'Finished in {end - start:2f}s')
 
 
 class DMGetPricesTask:
@@ -208,15 +115,3 @@ class DMGetSalesTask:
             print(e)
             time.sleep(3)
             return self(market_name, attempt + 1)
-
-
-def update_dm_prices():
-    collections = load_collections()
-    updater = DMUpdater(collections)
-    updater.update_prices()
-
-
-def update_dm_sales():
-    collections = load_collections()
-    updater = DMUpdater(collections)
-    updater.update_sales()
