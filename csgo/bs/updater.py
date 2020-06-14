@@ -48,7 +48,7 @@ class BSUpdater(Updater):
             'method': 'GET',
             'url': self.request_inventory_on_sale(item_name, ref_price, per_page=per_page),
             'auth': auth
-        } for item_name, ref_price in items.items() if item_name.lower()[0] in {'m'}]
+        } for item_name, ref_price in items.items()]
 
         with tqdm(total=len(processing_requests)) as pbar:
             while processing_requests:
@@ -82,8 +82,9 @@ class BSUpdater(Updater):
                             pbar.update(1)
 
                 for exc in exceptions_generator:
-                    print(f'ERROR : {exc}')
+                    tqdm.write(f'[ERROR] {exc}')
 
+                tqdm.write(f'Additional {len(additional_requests)} requests required')
                 processing_requests = additional_requests
 
         return prices
@@ -118,8 +119,9 @@ class BSUpdater(Updater):
                         tqdm.write(f'Updated {item_name} with {sale_price} ({res.elapsed.seconds}s)')
 
                 for exc in exceptions_generator:
-                    print(f'ERROR : {exc}')
+                    tqdm.write(f'[ERROR] {exc}')
 
+                tqdm.write(f'Additional {len(additional_requests)} requests required')
                 processing_requests = additional_requests
 
         return sales
@@ -127,9 +129,6 @@ class BSUpdater(Updater):
     @classmethod
     def check_request(cls, res: Response, requests_queue, auth: AuthBase):
         if res.status_code in [429, 401]:
-            item_name = parse_qs(urlparse(res.request.url).query)['market_hash_name'][0]
-            tqdm.write(f'[WARN] rescheduling {item_name}')
-
             requests_queue.append({'method': 'GET', 'url': res.request.url, 'auth': auth})
             return False
         else:

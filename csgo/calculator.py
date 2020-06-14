@@ -21,6 +21,7 @@ def pretty_print_items(items: Dict[str, float]):
 
 
 Links = {
+    Model.BS: base64.b64decode('aHR0cHM6Ly9iaXRza2lucy5jb20vdmlld19pdGVtP2FwcF9pZD03MzAmaXRlbV9pZD0='.encode()).decode(),
     Model.DM: base64.b64decode('aHR0cHM6Ly9kbWFya2V0LmNvbT91c2VyT2ZmZXJJZD0='.encode()).decode()
 }
 
