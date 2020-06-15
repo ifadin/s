@@ -28,8 +28,19 @@ class PriceEntry(NamedTuple):
         return self.market_hash_name.startswith('StatTrak™ ')
 
 
-ItemPrices = Dict[str, List[PriceEntry]]
-ItemSales = Dict[str, float]
+class SaleEntry(NamedTuple):
+    item_name: str
+    price: float
+    updated_at: int
+
+
+class PriceDetails(NamedTuple):
+    prices: List[PriceEntry]
+    updated_at: int
+
+
+ItemPrices = Dict[str, PriceDetails]
+ItemSales = Dict[str, SaleEntry]
 BSSalesHistory = Dict[str, List[float]]
 
 

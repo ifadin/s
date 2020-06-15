@@ -13,8 +13,8 @@ from csgo.type.float import get_float_value
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \
-    get_price_time_range_from_hexa_string, LFSales, LFItemPrice, get_market_name, PriceEntry, ItemPrices, \
-    ItemSales
+    get_price_time_range_from_hexa_string, get_market_name, PriceEntry, ItemPrices, \
+    ItemSales, SaleEntry, PriceDetails
 
 RarityConditionIncreasePriceRatios = Dict[ItemRarity, Dict[ItemCondition, float]]
 RarityItemMap = Dict[ItemRarity, Optional[Item]]
@@ -40,11 +40,11 @@ class PriceManager(ABC):
         item_name = get_market_name(item, item_condition)
         p = self.sales.get(item_name)
 
-        return p if p else None
+        return p.price if p else None
 
     def get_items_on_sale(self, item: Item, item_condition: ItemCondition) -> List[PriceEntry]:
         item_name = get_market_name(item.full_name, item_condition)
-        return self.prices.get(item_name, [])
+        return self.prices[item_name].prices if self.prices.get(item_name) and self.prices[item_name].prices else []
 
     @abstractmethod
     def load(self):
@@ -347,15 +347,14 @@ def to_lf_price_entries(data: dict) -> ItemPrices:
     return prices
 
 
-def load_lf_sales() -> LFSales:
+def load_lf_sales() -> ItemSales:
     with open('csgo/lf/lf_sales.json') as f:
         data = json.loads(f.read())
 
-        prices: LFSales = {}
+        prices: ItemSales = {}
         for price_obj in data:
             item_name = price_obj['name']
-            prices[item_name] = LFItemPrice(item_name, price_obj['price'] / 100, price_obj['have'], price_obj['max'],
-                                            price_obj['rate'] / 100, price_obj['tr'], price_obj['res'])
+            prices[item_name] = price_obj['price'] / 100
 
         return prices
 
@@ -365,10 +364,12 @@ def load_item_prices(file_path: str) -> ItemPrices:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         return {
-            item_name: [PriceEntry(item_name, float(price_value), float(float_value), item_id=item_id)
-                        for item_id, price_details in item_details.items()
-                        for float_value, price_value in price_details.items() if float_value and price_value]
-            for item_name, item_details in data['prices'].items()
+            item_name: PriceDetails([
+                PriceEntry(item_name, float(price_details['p']), float(price_details['f']),
+                           item_id=item_id, withdrawable_in=price_details.get('w'))
+                for item_id, price_details in item_details.get('prices', {}).items()
+                if price_details.get('p') and price_details.get('f')
+            ], item_details.get('u')) for item_name, item_details in data.get('items', {}).items()
         }
 
 
@@ -376,7 +377,10 @@ def load_item_sales(file_path: str) -> ItemSales:
     with open(file_path) as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
-        return data['sales']
+        return {
+            item_name: SaleEntry(item_name, item_details.get('p'), item_details['u'])
+            for item_name, item_details in data.get('sales', {}).items()
+        }
 
 
 def load_bs_prices() -> ItemPrices:

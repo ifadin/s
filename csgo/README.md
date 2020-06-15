@@ -34,7 +34,10 @@ LF
 
 DM:
 ```shell script
-    python -c 'from csgo.inventory import update_dm; update_dm()'
+  python -c 'from csgo.update import update_dm_prices; update_dm_prices()'    
+  python -c 'from csgo.update import update_dm_sales; update_dm_sales()'
+  python -c 'from csgo.inventory import update_dm; update_dm()'
+  python3 -m csgo.reco dm
 ```
 
 ## Data sources
