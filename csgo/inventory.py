@@ -1,4 +1,5 @@
 import base64
+import itertools
 import json
 import os
 from abc import ABC, abstractmethod
@@ -27,8 +28,9 @@ class LFInventoryManager(InventoryManager):
     inv_file = os.path.join('csgo', 'lf', 'lf_inv.json')
     rsv_file = os.path.join('csgo', 'lf', 'lf_rsv.json')
 
-    def get_inventory(self) -> List[PriceEntry]:
-        return self.get_owned_items() + self.get_reserved_items()
+    @classmethod
+    def get_inventory(cls) -> List[PriceEntry]:
+        return cls.get_owned_items() + cls.get_reserved_items()
 
     @classmethod
     def get_owned_items(cls) -> List[PriceEntry]:
@@ -51,13 +53,15 @@ class LFInventoryManager(InventoryManager):
 
     @classmethod
     def to_price_entries(cls, res: Response) -> List[PriceEntry]:
-        return [i for items in to_lf_price_entries(res.json().get('result', {})).values() for i in items]
+        return [p for price_details in to_lf_price_entries(res.json().get('result', {})).values()
+                for p in price_details.prices]
 
     @classmethod
     def _load_items_from_file(cls, file_path: str) -> List[PriceEntry]:
         with open(file_path) as f:
             data = json.loads(f.read())
-            return [i for items in to_lf_price_entries(data.get('result', {})).values() for i in items]
+            return [p for price_details in to_lf_price_entries(data.get('result', {})).values()
+                    for p in price_details.prices]
 
     @classmethod
     def query_and_save(cls, url: str, file_path: str):
@@ -74,31 +78,55 @@ class LFInventoryManager(InventoryManager):
 class DMInventoryManager(InventoryManager):
     inv_url = base64.b64decode('aHR0cHM6Ly9hcGkuZG1hcmtldC5jb20vZXhjaGFuZ2UvdjEvdXN'
                                'lci9pdGVtcz9nYW1lSWQ9YThkYiZsaW1pdD0xMDAmY3VycmVuY3k9VVNE'.encode()).decode()
+    sls_url = base64.b64decode('aHR0cHM6Ly9hcGkuZG1hcmtldC5jb20vZXhjaGFuZ2UvdjEvdXNlci9vZmZlcnM/Z2FtZUlkPWE4'
+                               'ZGImY3VycmVuY3k9VVNEJmxpbWl0PTEwMA=='.encode()).decode()
     inv_file = os.path.join('csgo', 'dm', 'dm_inv.yaml')
+    sls_file = os.path.join('csgo', 'dm', 'dm_sls.yaml')
 
-    def get_inventory(self) -> List[PriceEntry]:
+    def get_inventory(self, in_market: bool = None) -> List[PriceEntry]:
+        own = self.get_own_inventory()
+        on_sales = self.get_on_sales_inventory()
+        if in_market is not None:
+            return [i for i in itertools.chain(own, on_sales) if i.in_market == in_market]
+        return own + on_sales
+
+    def get_own_inventory(self) -> List[PriceEntry]:
         with open(self.inv_file) as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
-            return [PriceEntry(item['title'], item['price'], item['float_value'],
-                               item_id=item_id, item_name=item['name'])
-                    for item_id, item in data.get('inventory').items()]
+            return [
+                PriceEntry(item['t'], item['p'] * 1.2, item['f'],
+                           item_id=item_id, item_name=item['n'], in_market=item.get('m'), withdrawable_in=item.get('w'))
+                for item_id, item in data.get('inventory').items()
+            ]
+
+    def get_on_sales_inventory(self) -> List[PriceEntry]:
+        with open(self.sls_file) as f:
+            data = yaml.load(f, Loader=yaml.SafeLoader)
+            return [
+                PriceEntry(item['t'], item['p'] - 1, item['f'],
+                           item_id=item_id, item_name=item['n'], in_market=item.get('m'), withdrawable_in=item.get('w'))
+                for item_id, item in data.get('inventory').items()
+            ]
 
     @classmethod
     def query_and_save(cls, url: str, file_path: str):
         items = {}
         for item in cls._query_items(url).json().get('objects', []):
-            if item['inMarket']:
-                float_value = item['extra'].get('floatValue')
-                inspect_link = item['extra'].get('inspectInGame')
-                if not float_value and inspect_link:
-                    float_value = get_float_value_from_link(inspect_link)
-                item_id = item['extra']['linkId']
-                item_price = cls.get_dm_item_sale_price(item['recommendedPrice'])
-                item_name = item['extra']['name']
-                if item_price and float_value:
-                    items[item_id] = {
-                        'name': item_name, 'price': item_price, 'float_value': float_value, 'title': item['title']
-                    }
+            float_value = item['extra'].get('floatValue')
+            inspect_link = item['extra'].get('inspectInGame')
+            if not float_value and inspect_link:
+                float_value = get_float_value_from_link(inspect_link)
+            item_id = item['extra']['linkId']
+            item_p = item.get('price').get('USD')
+            item_price = cls.get_dm_item_sale_price(item['recommendedPrice']) if not item_p else float(item_p) / 100
+            item_name = item['extra']['name']
+            in_market = item.get('inMarket')
+            t_lock = item['extra'].get('tradeLockDuration')
+            withdrawable_in = int(t_lock / 3600) if t_lock else None
+            if item_price and float_value:
+                items[item_id] = {**{
+                    'n': item_name, 'p': item_price, 'f': float_value, 't': item['title'], 'm': in_market
+                }, **({'w': withdrawable_in} if withdrawable_in else {})}
 
         with open(file_path, 'w') as f:
             yaml.dump({'inventory': items}, f, default_flow_style=False)
@@ -129,7 +157,10 @@ class DMInventoryManager(InventoryManager):
 
 def update_lf():
     LFInventoryManager.query_and_save(LFInventoryManager.inv_url, LFInventoryManager.inv_file)
+    if not LFInventoryManager.get_owned_items():
+        raise AssertionError('Own inventory is empty')
 
 
 def update_dm():
     DMInventoryManager.query_and_save(DMInventoryManager.inv_url, DMInventoryManager.inv_file)
+    DMInventoryManager.query_and_save(DMInventoryManager.sls_url, DMInventoryManager.sls_file)

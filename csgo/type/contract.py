@@ -1,4 +1,4 @@
-from typing import NamedTuple, List, Dict
+from typing import NamedTuple, List, Dict, Set
 
 from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCondition
@@ -27,7 +27,7 @@ class ContractReturn(NamedTuple):
     contract_return: float
     avg_float: float
     approximated: bool = False
-    warnings: List[str] = None
+    warnings: Set[str] = None
 
     @property
     def guaranteed(self) -> bool:

@@ -226,9 +226,7 @@ class BCKPriceManager(STPriceManager):
 class LFPriceManager(PriceManager):
 
     def get_available(self, item: Item, item_condition: ItemCondition) -> Optional[int]:
-        item_name = get_market_name(item.full_name, item_condition)
-        p = self.sales.get(item_name)
-        return p.tradable + p.reservable if p else None
+        raise NotImplementedError()
 
     def load(self):
         self.sales = load_lf_sales()
@@ -306,17 +304,21 @@ def load_lf_prices() -> ItemPrices:
     prices: ItemPrices = {}
 
     with open('csgo/lf/lf_prices.json') as p, open('csgo/lf/lf_auctions.json') as a:
-        prices = to_lf_price_entries(json.loads(p.read())['result'])
-        lf_auctions = to_lf_price_entries(json.loads(a.read())['result'])
-        for item_name, price_entries in lf_auctions.items():
+        p_data = json.loads(p.read())
+        a_data = json.loads(a.read())
+        p_updated_at = p_data.get('timestamp')
+        a_updated_at = a_data.get('timestamp')
+        prices = to_lf_price_entries(p_data['result'], p_updated_at)
+        lf_auctions = to_lf_price_entries(a_data['result'], a_updated_at)
+        for item_name, price_details in lf_auctions.items():
             if item_name not in prices:
-                prices[item_name] = []
-            prices[item_name] += price_entries
+                prices[item_name] = PriceDetails([], a_updated_at)
+            prices[item_name] = PriceDetails(prices[item_name].prices + price_details.prices, a_updated_at)
 
     return prices
 
 
-def to_lf_price_entries(data: dict) -> ItemPrices:
+def to_lf_price_entries(data: dict, updated_at: int = None) -> ItemPrices:
     prices: ItemPrices = {}
     for item_details in data.values():
         item_n = item_details.get('n')
@@ -342,8 +344,8 @@ def to_lf_price_entries(data: dict) -> ItemPrices:
                     p = PriceEntry(market_name, item_price, item_float, item_rarity,
                                    item_name=item_n, withdrawable_in=item_td)
                     if market_name not in prices:
-                        prices[market_name] = []
-                    prices[market_name] += [p]
+                        prices[market_name] = PriceDetails([], updated_at)
+                    prices[market_name] = PriceDetails(prices[market_name].prices + [p], updated_at)
     return prices
 
 
@@ -354,7 +356,7 @@ def load_lf_sales() -> ItemSales:
         prices: ItemSales = {}
         for price_obj in data:
             item_name = price_obj['name']
-            prices[item_name] = price_obj['price'] / 100
+            prices[item_name] = SaleEntry(item_name, price_obj['price'] / 100, None)
 
         return prices
 

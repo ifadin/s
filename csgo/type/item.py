@@ -1,6 +1,9 @@
+import base64
 from typing import NamedTuple, List, Tuple
 
 from enum import IntEnum
+
+ST_PREFIX = base64.b64decode('U3RhdFRyYWvihKIg'.encode()).decode()
 
 
 class Item(NamedTuple):
@@ -13,7 +16,7 @@ class Item(NamedTuple):
 
     @property
     def full_name(self) -> str:
-        st_track = 'StatTrak™ ' if self.st_track else ''
+        st_track = ST_PREFIX if self.st_track else ''
         return f'{st_track}{self.name}'
 
 

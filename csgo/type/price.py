@@ -2,7 +2,7 @@ from typing import NamedTuple, Dict, Optional, Union, List
 
 from enum import IntEnum
 
-from csgo.type.item import Item, ItemCondition, ItemRarity
+from csgo.type.item import Item, ItemCondition, ItemRarity, ST_PREFIX
 
 
 class PriceTimeRange(IntEnum):
@@ -22,10 +22,11 @@ class PriceEntry(NamedTuple):
     item_name: str = None
     withdrawable_in: int = None
     item_id: str = None
+    in_market: bool = None
 
     @property
     def st_track(self) -> bool:
-        return self.market_hash_name.startswith('StatTrak™ ')
+        return self.market_hash_name.startswith(ST_PREFIX)
 
 
 class SaleEntry(NamedTuple):

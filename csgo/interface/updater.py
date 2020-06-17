@@ -1,7 +1,7 @@
 import re
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, Set, List, Optional, Iterator
+from typing import Dict, Set, List, Optional
 
 import yaml
 from requests import Response
@@ -15,6 +15,7 @@ from csgo.conversion import ConversionMap, get_item_possible_conditions
 from csgo.price import PriceManager, load_item_sales, load_item_prices
 from csgo.type.item import Item, ItemCondition, ItemCollection, ItemRarity, to_st_track
 from csgo.type.price import get_market_name, ItemPrices, ItemSales, PriceEntry, SaleEntry, PriceDetails
+from csgo.util import get_batches
 
 
 def get_item_ref_prices(item: Item, conversion_map: ConversionMap, price_manager: PriceManager,
@@ -127,7 +128,7 @@ class Updater(ABC):
             'auth': self.auth
         } for item_name, ref_price in items.items()]
 
-        for requests_batch in self.get_batches(processing_requests, self.batch_size):
+        for requests_batch in get_batches(processing_requests, self.batch_size):
             while requests_batch:
                 additional_requests = []
                 rate_limited = False
@@ -170,7 +171,7 @@ class Updater(ABC):
             'method': 'GET', 'url': self.get_item_sales_url(market_name), 'auth': self.auth
         } for market_name in items]
 
-        for requests_batch in self.get_batches(processing_requests, self.batch_size):
+        for requests_batch in get_batches(processing_requests, self.batch_size):
             while requests_batch:
                 additional_requests = []
 
@@ -196,12 +197,6 @@ class Updater(ABC):
                 requests_batch = additional_requests
 
         return sales
-
-    @classmethod
-    def get_batches(cls, items_to_process: list, size: int = None) -> Iterator[List]:
-        size = size if size else len(items_to_process)
-        for i in range(0, len(items_to_process), size):
-            yield items_to_process[i:i + size]
 
     @classmethod
     def user_rate_limit_strategy(cls, res: Response, requests_queue, auth: AuthBase,
@@ -270,7 +265,7 @@ class Updater(ABC):
         print(f'Updating {len(items_for_update)} items price information...')
         prices = item_prices
         with tqdm(total=len(items_for_update)) as pbar:
-            for items_batch in self.get_batches(list(items_for_update.items()), 100):
+            for items_batch in get_batches(list(items_for_update.items()), 100):
                 items = dict(items_batch)
                 new_prices = self.request_prices(items)
                 prices = {**prices, **new_prices}
@@ -293,7 +288,7 @@ class Updater(ABC):
         print(f'Updating {len(items_for_update)} items sales information...')
         sales = item_sales
         with tqdm(total=len(items_for_update)) as pbar:
-            for items_batch in self.get_batches(list(items_for_update), 100):
+            for items_batch in get_batches(list(items_for_update), 100):
                 items = set(items_batch)
                 new_sales = self.request_sales(items)
                 sales = {**sales, **new_sales}
