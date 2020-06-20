@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from collections import Counter
-from concurrent.futures.thread import ThreadPoolExecutor
 from itertools import combinations
 from operator import attrgetter, itemgetter
 from statistics import mean
-from typing import List, Optional, Set, Dict, NamedTuple, Tuple
+from typing import List, Optional, Set, Dict, NamedTuple, Iterable, Tuple
 
 from csgo.collection import get_next_level_items, get_item_from_collection
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, get_item_conversions, \
@@ -14,7 +13,6 @@ from csgo.type.contract import ContractReturn, ItemReturn, OutputItems, Contract
 from csgo.type.float import FloatRange
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity, ItemWithCondition, to_st_track
 from csgo.type.price import PriceTimeRange, get_market_name, ItemWithPrice, PriceEntry
-from csgo.util import get_batches
 
 ContractCandidatesMap = Dict[ItemCondition, Dict[ItemRarity, List[Item]]]
 
@@ -226,7 +224,7 @@ def get_trade_contract_return(items: List[ContractItem],
                               collections: Dict[str, ItemCollection],
                               buy_reduction: float = 1,
                               sale_commission: float = 0.1,
-                              strict: bool = True) -> Optional[ContractReturn]:
+                              strict: bool = True) -> Tuple[Optional[ContractReturn], Set[str]]:
     warnings = validate_contract_items(items, collections, strict)
 
     avg_float: float = mean([i.price_entry.float_value for i in items])
@@ -239,12 +237,12 @@ def get_trade_contract_return(items: List[ContractItem],
         o_item_price = price_manager.get_avg_price(o_item, o_item_condition)
         if not o_item_price:
             warnings.add(f'Price for {o_item.full_name} not found, calculation skipped')
-            return None
+            return None, warnings
         result += o_item_price
         outcome_items.append(ItemWithPrice(o_item, o_item_price, o_item_condition))
 
     c_return = result / len(conversion_items) * (1 - sale_commission)
-    return ContractReturn(items, outcome_items, investment, c_return, avg_float, warnings=warnings)
+    return ContractReturn(items, outcome_items, investment, c_return, avg_float, warnings=warnings), warnings
 
 
 def validate_contract_items(items: List[ContractItem],
@@ -275,7 +273,7 @@ def validate_contract_items(items: List[ContractItem],
 
 def get_item_conversion_float_range(item: Item,
                                     item_float: float,
-                                    item_collection: ItemCollection) -> FloatRange:
+                                    item_collection: ItemCollection) -> Optional[FloatRange]:
     item_condition = get_condition_from_float(item_float)
     conversions = get_item_conversions(item, item_condition, item_collection)
     return next((f_range for f_range in conversions if item_float in f_range), None)
@@ -322,58 +320,66 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                        strict: bool = True,
                        withdrawable_in: int = None):
     item_sets = get_contract_items_sets(items)
-    print_items_set_details(item_sets, withdrawable_in)
+    print_items_set_details(item_sets, collections, withdrawable_in)
     print()
     for item_rarity, condition_set in sorted(item_sets.items(), key=itemgetter(0)):
-        basic_items = {
-            i for (basic_items, _) in condition_set.values() for i in filter_withdrawable(basic_items, withdrawable_in)
-        }
-        st_items = {
-            i for (_, st_items) in condition_set.values() for i in filter_withdrawable(st_items, withdrawable_in)
-        }
-        st = False
-        for c_items in [basic_items, st_items]:
-            if 0 < len(c_items) and (not strict or len(c_items) >= 10):
-                combi = list(combinations(c_items, 10 if len(c_items) >= 10 else len(c_items)))
-                batches = get_batches(combi, 1000)
-                print(f'[{item_rarity}]{" ST" if st else ""} ({len(combi)}):')
-                with ThreadPoolExecutor(max_workers=10) as executor:
-                    results = (c for batch_results in executor.map(
-                        CalculateContractTask(collections, price_manager, buy_reduction, sale_commission, strict),
-                        batches) for c in batch_results)
-                contract = sorted(
-                    (r for r in results if r),
-                    key=attrgetter('contract_revenue', 'avg_float'), reverse=True
-                )[0]
-                print_contract_return(contract)
-                print()
-            st = True
+        for item_condition, (basic_items, st_items) in sorted(condition_set.items(), key=itemgetter(0)):
+            next_cond_b_items, next_cond_st_items = (
+                condition_set.get(ItemCondition(item_condition - 1), (set(), set()))
+                if item_condition != ItemCondition.BATTLE_SCARED else (set(), set()))
+            b_candidates = set(filter_withdrawable(get_contract_candidates(basic_items, next_cond_b_items, collections),
+                                                   withdrawable_in))
+            st_candidates = set(filter_withdrawable(get_contract_candidates(st_items, next_cond_st_items, collections),
+                                                    withdrawable_in))
+
+            st = False
+            for c_items in [b_candidates, st_candidates]:
+                if 0 < len(c_items) and (not strict or len(c_items) >= 10):
+
+                    item_combinations = combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
+                    if item_combinations:
+                        print(f'[{item_rarity}]{" ST" if st else ""} {str(item_condition)}:')
+                        contracts_results = []
+                        for comb in item_combinations:
+                            c, warnings = get_trade_contract_return(
+                                comb, price_manager, collections,
+                                buy_reduction=buy_reduction, sale_commission=sale_commission, strict=strict
+                            )
+                            if c:
+                                contracts_results.append(c)
+                        if contracts_results:
+                            contract = sorted(contracts_results,
+                                              key=attrgetter('contract_revenue', 'avg_float'), reverse=True)[0]
+                            print_contract_return(contract)
+                            print()
+                        else:
+                            print('None')
+                st = True
 
 
-class CalculateContractTask:
+def get_underperforming_items(items: Iterable[ContractItem],
+                              collections: Dict[str, ItemCollection]) -> Dict[ContractItem, FloatRange]:
+    if not items:
+        return {}
+    avg_float: float = mean([i.price_entry.float_value for i in items])
+    underperforming = {}
+    for i in items:
+        potential_float_range = get_item_conversion_float_range(i.item, i.price_entry.float_value,
+                                                                collections[i.item.collection_name])
+        if potential_float_range and avg_float >= potential_float_range.max_value:
+            underperforming[i] = potential_float_range
+    return underperforming
 
-    def __init__(self,
-                 collections: Dict[str, ItemCollection],
-                 price_manager: PriceManager,
-                 buy_reduction: float,
-                 sale_commission: float,
-                 strict: bool) -> None:
-        self.collections = collections
-        self.price_manager = price_manager
-        self.buy_reduction = buy_reduction
-        self.sale_commission = sale_commission
-        self.strict = strict
 
-    def __call__(self, item_batches: List[List[ContractItem]]) -> List[ContractReturn]:
-        returns = []
-        for items in item_batches:
-            c = get_trade_contract_return(
-                items, self.price_manager, self.collections,
-                buy_reduction=self.buy_reduction, sale_commission=self.sale_commission, strict=self.strict)
-            if c:
-                returns.append(c)
+def get_contract_candidates(items: Set[ContractItem],
+                            next_level_items: Set[ContractItem],
+                            collections: Dict[str, ItemCollection]) -> Iterable[ContractItem]:
+    u = get_underperforming_items(items, collections)
+    candidates = set(items).difference(u.keys()) if len(u) <= int(len(items) / 2) else set(u.keys())
+    if len(candidates) == 10:
+        return candidates
 
-        return returns
+    return candidates | set(sorted(next_level_items, key=attrgetter('price_entry.float_value'))[0:10 - len(candidates)])
 
 
 ContractItemsSet = Dict[ItemRarity, Dict[ItemCondition, Tuple[Set[ContractItem], Set[ContractItem]]]]
@@ -384,6 +390,7 @@ def get_contract_items_sets(items: Set[ContractItem]) -> ContractItemsSet:
     for c_item in items:
         item = c_item.item
         r = ItemRarity(item.rarity)
+
         if r not in items_set:
             items_set[r] = {}
 
@@ -426,18 +433,21 @@ def print_contract_return(c: ContractReturn):
         print(f' - {prob:.2f}% {o_item.market_name} {o_item.item_price:.2f}')
 
 
-def print_items_set_details(items_set: ContractItemsSet, withdrawable_in: int = None):
+def print_items_set_details(items_set: ContractItemsSet, collections: Dict[str, ItemCollection],
+                            withdrawable_in: int = None):
     for item_rarity, items_by_condition in sorted(items_set.items(), key=itemgetter(0)):
         for item_condition, (basic_items, st_items) in sorted(items_by_condition.items(), key=itemgetter(0)):
             st = False
-            for items in [filter_withdrawable(basic_items, withdrawable_in),
-                          filter_withdrawable(st_items, withdrawable_in)]:
+            for items in [set(filter_withdrawable(basic_items, withdrawable_in)),
+                          set(filter_withdrawable(st_items, withdrawable_in))]:
                 avg_float = mean([i.price_entry.float_value for i in items]) if items else 0
                 print(f"[{item_rarity}] {str(item_condition)}: {len(items)} {'st' if st else 'basic'} ({avg_float})")
+                for r in get_underperforming_items(items, collections).values():
+                    print(f'\t- avg float is out of the range {r}')
                 st = True
 
 
-def filter_withdrawable(items: Set[ContractItem], withdrawable_in: int = None):
+def filter_withdrawable(items: Iterable[ContractItem], withdrawable_in: int = None) -> Iterable[ContractItem]:
     if not withdrawable_in:
         return items
-    return {i for i in items if not i.price_entry.withdrawable_in or i.price_entry.withdrawable_in < withdrawable_in}
+    return (i for i in items if not i.price_entry.withdrawable_in or i.price_entry.withdrawable_in < withdrawable_in)
