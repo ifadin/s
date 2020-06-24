@@ -249,7 +249,7 @@ class Updater(ABC):
                 for item_name, s in sales.items()
             }}, f, default_flow_style=False)
 
-    def update_prices(self, cache_expiration_hours: int = 24):
+    def update_prices(self, cache_expiration_hours: int = 2):
         start = time.time()
 
         item_prices = load_item_prices(self.prices_file)

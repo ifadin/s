@@ -21,7 +21,8 @@ def pretty_print_items(items: Dict[str, float]):
 
 
 Links = {
-    Model.BS: base64.b64decode('aHR0cHM6Ly9iaXRza2lucy5jb20vdmlld19pdGVtP2FwcF9pZD03MzAmaXRlbV9pZD0='.encode()).decode(),
+    Model.BS: base64.b64decode(
+        'aHR0cHM6Ly9iaXRza2lucy5jb20vdmlld19pdGVtP2FwcF9pZD03MzAmaXRlbV9pZD0='.encode()).decode(),
     Model.DM: base64.b64decode('aHR0cHM6Ly9kbWFya2V0LmNvbT91c2VyT2ZmZXJJZD0='.encode()).decode()
 }
 
@@ -80,7 +81,7 @@ for i in sorted(returns,
                 key=operator.attrgetter('item.rarity', 'item_condition', 'float_range.min_value',
                                         'float_range.max_value', 'item_revenue'),
                 reverse=False):
-    if i.item_revenue > 1 and len(i.output_items) <= 30:
+    if i.item_roi > 0.05 and i.item_revenue > 1:
         guaranteed = '(100%) ' if i.guaranteed else ''
         item_cond = ItemCondition.to_short_str(i.item_condition)
         item_range = FloatRange(get_condition_range(i.item_condition).min_value, i.float_range.max_value)

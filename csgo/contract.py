@@ -327,33 +327,29 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
             next_cond_b_items, next_cond_st_items = (
                 condition_set.get(ItemCondition(item_condition - 1), (set(), set()))
                 if item_condition != ItemCondition.BATTLE_SCARED else (set(), set()))
-            b_candidates = set(filter_withdrawable(get_contract_candidates(basic_items, next_cond_b_items, collections),
-                                                   withdrawable_in))
-            st_candidates = set(filter_withdrawable(get_contract_candidates(st_items, next_cond_st_items, collections),
-                                                    withdrawable_in))
 
             st = False
-            for c_items in [b_candidates, st_candidates]:
-                if 0 < len(c_items) and (not strict or len(c_items) >= 10):
-
+            for c_items in [basic_items, st_items]:
+                if c_items:
                     item_combinations = combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
-                    if item_combinations:
-                        print(f'[{item_rarity}]{" ST" if st else ""} {str(item_condition)}:')
-                        contracts_results = []
-                        for comb in item_combinations:
+                    contracts_results = []
+                    for comb in item_combinations:
+                        next_items = next_cond_st_items if st else next_cond_b_items
+                        candidates = set(filter_withdrawable(
+                            get_contract_candidates(comb, next_items, collections), withdrawable_in))
+                        if candidates and (len(candidates) == 10 if strict else True):
                             c, warnings = get_trade_contract_return(
                                 comb, price_manager, collections,
                                 buy_reduction=buy_reduction, sale_commission=sale_commission, strict=strict
                             )
                             if c:
                                 contracts_results.append(c)
-                        if contracts_results:
-                            contract = sorted(contracts_results,
-                                              key=attrgetter('contract_revenue', 'avg_float'), reverse=True)[0]
-                            print_contract_return(contract)
-                            print()
-                        else:
-                            print('None')
+                    if contracts_results:
+                        print(f'[{item_rarity}]{" ST" if st else ""} {str(item_condition)}:')
+                        contract = sorted(contracts_results,
+                                          key=attrgetter('contract_revenue', 'avg_float'), reverse=True)[0]
+                        print_contract_return(contract)
+                        print()
                 st = True
 
 
@@ -376,10 +372,12 @@ def get_contract_candidates(items: Set[ContractItem],
                             collections: Dict[str, ItemCollection]) -> Iterable[ContractItem]:
     u = get_underperforming_items(items, collections)
     candidates = set(items).difference(u.keys()) if len(u) <= int(len(items) / 2) else set(u.keys())
-    if len(candidates) == 10:
+    if not candidates:
+        return []
+    if len(candidates) >= 10:
         return candidates
-
-    return candidates | set(sorted(next_level_items, key=attrgetter('price_entry.float_value'))[0:10 - len(candidates)])
+    extra = sorted(next_level_items, key=attrgetter('price_entry.float_value'))[0:10 - len(items) + len(u)]
+    return candidates | set(extra)
 
 
 ContractItemsSet = Dict[ItemRarity, Dict[ItemCondition, Tuple[Set[ContractItem], Set[ContractItem]]]]

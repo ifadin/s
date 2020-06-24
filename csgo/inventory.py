@@ -103,7 +103,7 @@ class DMInventoryManager(InventoryManager):
         with open(self.sls_file) as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
             return [
-                PriceEntry(item['t'], item['p'] - 1, item['f'],
+                PriceEntry(item['t'], item['p'] - 2, item['f'],
                            item_id=item_id, item_name=item['n'], in_market=item.get('m'), withdrawable_in=item.get('w'))
                 for item_id, item in data.get('inventory').items()
             ]
