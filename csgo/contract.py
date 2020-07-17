@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from collections import Counter
+from concurrent.futures.thread import ThreadPoolExecutor
 from itertools import combinations
 from operator import attrgetter, itemgetter
 from statistics import mean
 from typing import List, Optional, Set, Dict, NamedTuple, Iterable, Tuple
+
+from tqdm import tqdm
 
 from csgo.collection import get_next_level_items, get_item_from_collection
 from csgo.conversion import get_item_to_item_conversions, get_item_possible_conditions, get_item_conversions, \
@@ -313,12 +316,14 @@ def get_approximated_prices(item: Item, item_condition: ItemCondition,
             ([approx_by_condition] if approx_by_condition else []))
 
 
-def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
+def get_best_contracts(items: Set[ContractItem],
+                       price_manager: PriceManager,
                        collections: Dict[str, ItemCollection],
                        buy_reduction: float,
                        sale_commission: float,
                        strict: bool = True,
-                       withdrawable_in: int = None):
+                       withdrawable_in: int = None,
+                       in_market: bool = None):
     item_sets = get_contract_items_sets(items)
     print_items_set_details(item_sets, collections, withdrawable_in)
     print()
@@ -331,19 +336,17 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
             st = False
             for c_items in [basic_items, st_items]:
                 if c_items:
-                    item_combinations = combinations(c_items, 10 if len(c_items) >= 10 else len(c_items))
-                    contracts_results = []
-                    for comb in item_combinations:
-                        next_items = next_cond_st_items if st else next_cond_b_items
-                        candidates = set(filter_withdrawable(
-                            get_contract_candidates(comb, next_items, collections), withdrawable_in))
-                        if candidates and (len(candidates) == 10 if strict else True):
-                            c, warnings = get_trade_contract_return(
-                                comb, price_manager, collections,
-                                buy_reduction=buy_reduction, sale_commission=sale_commission, strict=strict
-                            )
-                            if c:
-                                contracts_results.append(c)
+                    applicable_items = set(filter_applicable(c_items, withdrawable_in, in_market))
+                    next_items = next_cond_st_items if st else next_cond_b_items
+                    item_combinations = list(
+                        combinations(applicable_items, 10 if len(applicable_items) >= 10 else len(applicable_items)))
+                    with tqdm(total=len(item_combinations)) as pbar:
+                        with ThreadPoolExecutor(max_workers=10) as executor:
+                            contracts_results = list(filter(None.__ne__, executor.map(
+                                GetContractReturnTask(next_items, collections, price_manager, buy_reduction,
+                                                      sale_commission, strict, pbar),
+                                item_combinations,
+                                chunksize=10)))
                     if contracts_results:
                         print(f'[{item_rarity}]{" ST" if st else ""} {str(item_condition)}:')
                         contract = sorted(contracts_results,
@@ -351,6 +354,35 @@ def get_best_contracts(items: Set[ContractItem], price_manager: PriceManager,
                         print_contract_return(contract)
                         print()
                 st = True
+
+
+class GetContractReturnTask:
+
+    def __init__(self, next_items: Set[ContractItem],
+                 collections: Dict[str, ItemCollection],
+                 price_manager: PriceManager,
+                 buy_reduction: float,
+                 sale_commission: float,
+                 strict: bool,
+                 pbar) -> None:
+        self.next_items = next_items
+        self.price_manager = price_manager
+        self.collections = collections
+        self.buy_reduction = buy_reduction
+        self.sale_commission = sale_commission
+        self.strict = strict
+        self.pbar = pbar
+
+    def __call__(self, items: Set[ContractItem]) -> Optional[ContractReturn]:
+        candidates = set(get_contract_candidates(items, self.next_items, self.collections))
+        self.pbar.update(1)
+        if candidates and ((len(candidates) == 10) if self.strict else True):
+            c, warnings = get_trade_contract_return(
+                list(candidates), self.price_manager, self.collections,
+                buy_reduction=self.buy_reduction, sale_commission=self.sale_commission, strict=self.strict
+            )
+            if c:
+                return c
 
 
 def get_underperforming_items(items: Iterable[ContractItem],
@@ -436,8 +468,8 @@ def print_items_set_details(items_set: ContractItemsSet, collections: Dict[str, 
     for item_rarity, items_by_condition in sorted(items_set.items(), key=itemgetter(0)):
         for item_condition, (basic_items, st_items) in sorted(items_by_condition.items(), key=itemgetter(0)):
             st = False
-            for items in [set(filter_withdrawable(basic_items, withdrawable_in)),
-                          set(filter_withdrawable(st_items, withdrawable_in))]:
+            for items in [set(filter_applicable(basic_items, withdrawable_in)),
+                          set(filter_applicable(st_items, withdrawable_in))]:
                 avg_float = mean([i.price_entry.float_value for i in items]) if items else 0
                 print(f"[{item_rarity}] {str(item_condition)}: {len(items)} {'st' if st else 'basic'} ({avg_float})")
                 for r in get_underperforming_items(items, collections).values():
@@ -445,7 +477,13 @@ def print_items_set_details(items_set: ContractItemsSet, collections: Dict[str, 
                 st = True
 
 
-def filter_withdrawable(items: Iterable[ContractItem], withdrawable_in: int = None) -> Iterable[ContractItem]:
-    if not withdrawable_in:
-        return items
-    return (i for i in items if not i.price_entry.withdrawable_in or i.price_entry.withdrawable_in < withdrawable_in)
+def filter_applicable(items: Iterable[ContractItem],
+                      withdrawable_in: int = None,
+                      in_market: bool = None) -> Iterable[ContractItem]:
+    if withdrawable_in is not None:
+        items = (i for i in items
+                 if not i.price_entry.withdrawable_in or i.price_entry.withdrawable_in < withdrawable_in)
+    if in_market is not None:
+        items = (i for i in items if i.price_entry.in_market == in_market)
+
+    return items

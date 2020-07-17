@@ -14,9 +14,11 @@ def get_float_value(a: str, d: str) -> Optional[float]:
     if not user_id:
         raise AssertionError('ST user id is required')
 
-    res = requests.get(FLOAT_API + f'/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20'
-                                   f'S{user_id}A{a}{d}')
-    res.raise_for_status()
+    url = FLOAT_API + f'/?url=steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S{user_id}A{a}{d}'
+    res = requests.get(url)
+    if not res.ok:
+        print(f'[WARN] could not detect float for {url}')
+        return None
     return res.json().get('iteminfo', {}).get('floatvalue')
 
 
@@ -35,6 +37,9 @@ class FloatRange(NamedTuple):
         return next((c for c in ItemCondition if is_in_float_range(self, ItemConditionRanges[c])))
 
     def __contains__(self, value: float) -> bool:
+        if value is None:
+            return False
+        
         return self.min_value < value < self.max_value
 
     def __str__(self) -> str:

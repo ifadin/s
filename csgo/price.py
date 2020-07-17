@@ -229,8 +229,12 @@ class LFPriceManager(PriceManager):
         raise NotImplementedError()
 
     def load(self):
-        self.sales = load_lf_sales()
+        self.load_sales()
         self.prices = load_lf_prices()
+        return self
+
+    def load_sales(self):
+        self.sales = load_lf_sales()
         return self
 
 
