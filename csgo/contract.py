@@ -51,8 +51,10 @@ class BSItemReturnCalc(ItemReturnCalc):
             contract_return = get_conversion_items_return(conversion_items, self.price_manager)
 
             if contract_return:
+                range_relaxation_epsilon = conversion_range.max_value * 0.07
                 for item_on_sale in self.price_manager.get_items_on_sale(item, item_condition):
-                    if item_on_sale.float_value in conversion_range:
+                    if item_on_sale.float_value and (
+                            conversion_range.min_value <= item_on_sale.float_value < conversion_range.max_value + range_relaxation_epsilon):
                         output_items = to_output_items(conversion_items, self.price_manager)
                         item_investment = item_on_sale.price * 10
                         item_return = contract_return * (1 - self.sale_commission)
@@ -101,6 +103,7 @@ class LFItemReturnCalc(BSItemReturnCalc):
         super().__init__(conversion_map, price_manager, sale_commission)
         self.price_manager = price_manager
 
+    # deprecated
     def get_potential_item_returns(self, item: Item, required_available: int = 0) -> List[ItemReturn]:
         returns: List[ItemReturn] = []
         conversion_rules = self.conversion_map.get_rules(item)
@@ -332,6 +335,8 @@ def get_best_contracts(items: Set[ContractItem],
             next_cond_b_items, next_cond_st_items = (
                 condition_set.get(ItemCondition(item_condition - 1), (set(), set()))
                 if item_condition != ItemCondition.BATTLE_SCARED else (set(), set()))
+            next_cond_b_items = set(filter_applicable(next_cond_b_items, withdrawable_in, in_market))
+            next_cond_st_items = set(filter_applicable(next_cond_st_items, withdrawable_in, in_market))
 
             st = False
             for c_items in [basic_items, st_items]:

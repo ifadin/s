@@ -338,8 +338,8 @@ def to_lf_price_entries(data: dict, updated_at: int = None) -> ItemPrices:
                 for i in items:
                     item_f = i['f']
                     item_float = (int(item_f.split(':')[0]) / 100000) if isinstance(item_f, str) else item_f
-                    if not item_float:
-                        item_float = get_float_value(i['id'], i['l'])
+                    # if not item_float:
+                    #     item_float = get_float_value(i['id'], i['l'])
                     item_st = i.get('st') == 1
                     item_td = i.get('td')
 
