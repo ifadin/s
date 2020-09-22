@@ -9,7 +9,6 @@ from typing import Dict, Optional, List
 import yaml
 
 from csgo.collection import get_next_level_items, get_prev_level_items
-from csgo.type.float import get_float_value
 from csgo.type.item import Item, ItemCollection, ItemCondition, ItemRarity
 from csgo.type.price import STPrices, PriceTimeRange, STItemPriceDetails, STItemPrice, \
     get_price_time_range_from_bck_string, \

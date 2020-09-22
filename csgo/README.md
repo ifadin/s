@@ -40,6 +40,12 @@ DM:
   python3 -m csgo.reco dm
 ```
 
+## Calculate
+
+```shell script
+  python3 -m csgo.calculator lf
+```
+
 ## Data sources
 
 https://github.com/cs-idb/cs-idb/blob/master/data

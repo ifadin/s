@@ -7,4 +7,5 @@ pyotp
 PyYaml
 requests
 requests_toolbelt
+scipy
 tqdm

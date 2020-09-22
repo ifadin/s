@@ -60,7 +60,7 @@ class LFInventoryManager(InventoryManager):
     def _load_items_from_file(cls, file_path: str) -> List[PriceEntry]:
         with open(file_path) as f:
             data = json.loads(f.read())
-            return [p for price_details in to_lf_price_entries(data.get('result', {})).values()
+            return [p for price_details in to_lf_price_entries(data['result'] if data.get('result') else {}).values()
                     for p in price_details.prices]
 
     @classmethod
