@@ -16,7 +16,7 @@
     python -c 'from epics.calculate import calculator; calculator.calculate_lineups_efficiency()'
     python -c "from epics.calculate import calculator; calculator.get_team_performance(rarity_upper_limit='Very Rare')"
     
-    python -c "from epics.spin import spinner; spinner.start()"
-    python -c "from epics.track import tracker; tracker.start(60)"
-    python -c "from epics.game import fighter; fighter.start()"
+    python -m epics.cli track
+    python -m epics.cli items 60
+    python -m epics.cli fight 3
 ```

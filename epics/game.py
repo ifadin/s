@@ -198,7 +198,7 @@ class Fighter:
                             s = self.update_schedule(s, (c_id, st_id, op_id))
                         return l.call_later(randint(5, 10), self.play_schedule, roster_id, s, l)
 
-        print('[error] could not find any play')
+        raise AssertionError('[error] could not find any play in the schedule')
 
     def start(self, roster_id: int = 57654, mode: int = 1):
         supported_modes = {1, 2, 3}
@@ -221,6 +221,3 @@ class Fighter:
 
         loop.run_forever()
         loop.close()
-
-
-fighter = Fighter()

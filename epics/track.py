@@ -171,6 +171,3 @@ class Tracker:
 
         loop.run_forever()
         loop.close()
-
-
-tracker = Tracker()
