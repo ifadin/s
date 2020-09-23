@@ -1,7 +1,9 @@
 import asyncio
 import base64
 from asyncio import AbstractEventLoop
+from itertools import chain
 from operator import itemgetter
+from time import sleep
 from typing import Dict, Set, List, Optional, Union, Tuple, NamedTuple
 
 import requests
@@ -49,6 +51,11 @@ class Tracker:
 
     def request_sales(self, target_id: int) -> dict:
         r = requests.get(self.sales_url + str(target_id), auth=self.auth)
+
+        if r.status_code == 429:
+            sleep(3)
+            return self.request_sales(target_id)
+
         r.raise_for_status()
         return r.json()
 
@@ -142,11 +149,11 @@ class Tracker:
                 print(f'{url} {item_details}')
 
     def track(self, p: PlayerService):
-        for col_id, items in tqdm(p.get_missing(blacklist_names={
+        for item in tqdm(list(chain.from_iterable(p.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup', 'team'
-        }, whitelist_ids={4357}).items()):
-            self.track_items(items, 0.3, 100)
+        }, whitelist_ids={4357}).values()))):
+            self.track_items({item}, 0.3, 100)
 
     def schedule_track(self, p: PlayerService, l: AbstractEventLoop):
         min_15 = 900
