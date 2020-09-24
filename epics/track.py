@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import statistics
 from asyncio import AbstractEventLoop
 from itertools import chain
 from operator import itemgetter
@@ -7,7 +8,6 @@ from time import sleep
 from typing import Dict, Set, List, Optional, Union, Tuple, NamedTuple
 
 import requests
-from scipy import stats
 from tqdm import tqdm
 
 from epics.auth import EAuth
@@ -60,20 +60,21 @@ class Tracker:
         return r.json()
 
     @staticmethod
-    def trim_mean(tlist: list, tperc: float) -> Optional[float]:
+    def trim_mean(tlist: list, ignore_min: int, ignore_max: int) -> Optional[float]:
         if not tlist:
             return None
 
-        return float(stats.trim_mean(tlist, proportiontocut=tperc))
+        return (statistics.mean(tlist)
+                if (ignore_min + ignore_max) >= len(tlist)
+                else statistics.mean(sorted(tlist)[ignore_min:][:-ignore_max]))
 
     def get_sales(self, item_id: int) -> MarketItem:
         s = self.request_sales(item_id)
         offers = next(iter(s['data']['market']), [{}])
-        sample_size = 10
-        outliers_tolerance = 0.2
+        sample_size = 12
         avg_sales = self.trim_mean([
             e['price'] for e in s['data'].get('recentSales', [])[0:sample_size]
-        ], outliers_tolerance)
+        ], 2, 2)
 
         return MarketItem(item_id, avg_sales, [
             (o['marketId'], o['price']) for o in offers if o.get('marketId') and o.get('price')
@@ -88,11 +89,10 @@ class Tracker:
         next_offer = offers[1].get('price') if len(offers) > 1 else None
         close_offers = sum((1 for o in offers[1:] if o.get('price') and o['price'] < min_offer * 1.15))
 
-        sample_size = 10
-        outliers_tolerance = 0.2
+        sample_size = 12
         avg_sales = self.trim_mean([
             e['price'] for e in s['data'].get('recentSales', [])[0:sample_size]
-        ], outliers_tolerance)
+        ], 2, 2)
         if not avg_sales:
             return None
 

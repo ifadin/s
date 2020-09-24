@@ -9,9 +9,9 @@ from requests.auth import AuthBase
 class EAuth(AuthBase):
     ref_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2F1dGgvcmVmcmVzaC1qd3Q='.encode()).decode()
 
-    def __init__(self) -> None:
+    def __init__(self, r_token: str = os.environ['EP_REF_TOKEN']) -> None:
         self.token = None
-        self.r_token = os.environ['EP_REF_TOKEN']
+        self.r_token = r_token
 
     def __call__(self, r: Request):
         r.headers['x-user-jwt'] = self.get_token()
