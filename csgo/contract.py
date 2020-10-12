@@ -300,7 +300,7 @@ def get_contract_conversion_items(items: List[Item],
                 if avg_float in conversion_range
             ), None)
             if not target_item_condition:
-                raise AssertionError(f'Item {target_item.full_name} cannot be converted from float {avg_float}')
+                print(AssertionError(f'Item {target_item.full_name} cannot be converted from float {avg_float}'))
             outcomes.append((target_item, target_item_condition))
     return outcomes
 

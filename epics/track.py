@@ -29,7 +29,9 @@ class MarketTarget(NamedTuple):
     avg_sales: float
 
     @property
-    def margin(self) -> float:
+    def margin(self) -> Optional[float]:
+        if self.avg_sales is None or self.offer_value:
+            return None
         return (self.avg_sales - self.offer_value) / self.avg_sales
 
 
@@ -114,7 +116,7 @@ class Tracker:
                     results.append((r, rev, rev / min_offer, min_offer, close_offers))
 
         for r, rev, margin, min_offer, close_offers in sorted(results, key=itemgetter(2)):
-            if margin > 0 and (min_offer <= 5 or 20 <= min_offer):
+            if margin > 0 and (30 <= min_offer):
                 print(f'{self.item_url}{r.template_id} {r.rating} ' + (f'[{min_offer}] ' if min_offer <= 5 else '') +
                       f'{r.template_title} {min_offer} ({int(rev)}/{int(margin * 100)}%) {close_offers}')
 
@@ -127,7 +129,7 @@ class Tracker:
                 min_offer_id, min_offer = s.offers[0]
                 if min_offer <= max_price:
                     m = MarketTarget(min_offer_id, min_offer, i, s.avg_sales)
-                    if m.margin > min_margin:
+                    if m.margin and m.margin > min_margin:
                         targets[min_offer_id] = m
 
         return targets
@@ -141,7 +143,7 @@ class Tracker:
         targets = self.get_market_targets(items_ids, min_margin, max_price)
         for t in targets.values():
             item_details = f'{t.item.template_title} for {t.offer_value} (avg:{int(t.avg_sales)} m:{int(t.margin * 100)}%)'
-            if t.offer_value <= 15:
+            if t.offer_value <= 30:
                 self.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
             else:
@@ -157,7 +159,13 @@ class Tracker:
 
     def schedule_track(self, p: PlayerService, l: AbstractEventLoop):
         min_15 = 900
-        self.track(p)
+        try:
+            self.track(p)
+        except Exception as e:
+            print(e)
+            print(f'Rescheduling due to error')
+            return l.call_later(5, self.schedule_track, p, l)
+
         print(f'Next in {min_15} seconds')
         return l.call_later(min_15, self.schedule_track, p, l)
 
