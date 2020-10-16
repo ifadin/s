@@ -19,20 +19,29 @@ from epics.utils import fail_fast_handler
 class MarketItem(NamedTuple):
     template_id: int
     avg_sales: float
-    offers: List[Tuple[int, int]]
+    offers: List[Tuple[int, int, int]]
 
 
 class MarketTarget(NamedTuple):
     offer_id: int
     offer_value: int
+    offer_score: int
     item: TemplateItem
     avg_sales: float
 
     @property
     def margin(self) -> Optional[float]:
-        if self.avg_sales is None or self.offer_value:
+        if not self.avg_sales or not self.offer_value:
             return None
+
         return (self.avg_sales - self.offer_value) / self.avg_sales
+
+    @property
+    def score_margin(self) -> Optional[float]:
+        if not self.offer_value or not self.offer_score:
+            return None
+
+        return self.offer_value / self.offer_score / 10
 
 
 class Tracker:
@@ -79,7 +88,8 @@ class Tracker:
         ], 2, 2)
 
         return MarketItem(item_id, avg_sales, [
-            (o['marketId'], o['price']) for o in offers if o.get('marketId') and o.get('price')
+            (o['marketId'], o['price'], o['card']['rating'])
+            for o in offers if o.get('marketId') and o.get('price')
         ])
 
     def get_trend(self, target_id: int) -> Optional[Tuple[float, float, float, Optional[float]]]:
@@ -121,17 +131,22 @@ class Tracker:
                       f'{r.template_title} {min_offer} ({int(rev)}/{int(margin * 100)}%) {close_offers}')
 
     def get_market_targets(self, items_ids: Set[TemplateItem],
-                           min_margin: float, max_price: int) -> Dict[int, MarketTarget]:
+                           price_margin: float, score_margin: float, max_price: int) -> Dict[int, MarketTarget]:
         targets = {}
         for i in items_ids:
             s = self.get_sales(i.template_id)
             if s.offers:
-                min_offer_id, min_offer = s.offers[0]
+                min_offer_id, min_offer, score = s.offers[0]
                 if min_offer <= max_price:
-                    m = MarketTarget(min_offer_id, min_offer, i, s.avg_sales)
-                    if m.margin and m.margin > min_margin:
+                    m = MarketTarget(min_offer_id, min_offer, score, i, s.avg_sales)
+                    if m.margin and m.margin >= price_margin:
                         targets[min_offer_id] = m
-
+                    else:
+                        max_score_offer_id, max_score_offer, max_score = sorted(s.offers, key=lambda o: o[1] / o[2])[0]
+                        if max_score_offer <= max_price:
+                            m = MarketTarget(max_score_offer_id, max_score_offer, max_score, i, s.avg_sales)
+                            if m.score_margin and m.score_margin <= score_margin:
+                                targets[max_score_offer_id] = m
         return targets
 
     def buy_item(self, offer_id: int, offer_value: int) -> bool:
@@ -139,43 +154,46 @@ class Tracker:
         r.raise_for_status()
         return r.json()['success']
 
-    def track_items(self, items_ids: Set[TemplateItem], min_margin: float, max_price: int):
-        targets = self.get_market_targets(items_ids, min_margin, max_price)
+    def track_items(self, items_ids: Set[TemplateItem], price_margin: float, score_margin: float, max_price: int):
+        targets = self.get_market_targets(items_ids, price_margin, score_margin, max_price)
         for t in targets.values():
-            item_details = f'{t.item.template_title} for {t.offer_value} (avg:{int(t.avg_sales)} m:{int(t.margin * 100)}%)'
-            if t.offer_value <= 30:
+            item_details = f'{t.item.template_title} for {t.offer_value} ' \
+                           f'(s:{int(t.offer_score * 10)}/{t.score_margin:.3f} ' \
+                           f'avg:{int(t.avg_sales)} m:{int(t.margin * 100) if t.margin else None}%)'
+            if t.offer_value <= 50:
                 self.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
             else:
                 url = f'{self.item_url}{t.item.template_id}'
                 print(f'{url} {item_details}')
 
-    def track(self, p: PlayerService):
+    def track(self, p: PlayerService, price_margin: float, score_margin: float, max_price: int):
         for item in tqdm(list(chain.from_iterable(p.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
-            'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup', 'team'
+            'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
         }, whitelist_ids={4357}).values()))):
-            self.track_items({item}, 0.3, 100)
+            self.track_items({item}, price_margin, score_margin, max_price)
 
-    def schedule_track(self, p: PlayerService, l: AbstractEventLoop):
+    def schedule_track(self, p: PlayerService, l: AbstractEventLoop,
+                       price_margin: float, score_margin: float, max_price: int):
         min_15 = 900
         try:
-            self.track(p)
+            self.track(p, price_margin, score_margin, max_price)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, p, l)
+            return l.call_later(5, self.schedule_track, p, l, price_margin, score_margin, max_price)
 
         print(f'Next in {min_15} seconds')
-        return l.call_later(min_15, self.schedule_track, p, l)
+        return l.call_later(min_15, self.schedule_track, p, l, price_margin, score_margin, max_price)
 
-    def start(self):
+    def start(self, price_margin: float, score_margin: float, max_price: int = 5000):
         p = PlayerService(auth=self.auth)
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(fail_fast_handler)
 
         loop.call_later(3500, self.auth.refresh_token)
-        loop.call_soon(self.schedule_track, p, loop)
+        loop.call_soon(self.schedule_track, p, loop, price_margin, score_margin, max_price)
 
         loop.run_forever()
         loop.close()

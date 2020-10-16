@@ -61,13 +61,18 @@ class SpinService:
         return r.json()['data']['id']
 
     def schedule_spin(self, loop: AbstractEventLoop):
-        s = self.get_spinner()
-        r_id = self.spin(s.id)
-        print(f'Got {s.items[r_id].name} ({r_id})')
+        try:
+            s = self.get_spinner()
+            r_id = self.spin(s.id)
+            print(f'Got {s.items[r_id].name} ({r_id})')
 
-        if r_id in (i.id for i in s.get_coin_items(10)):
-            self.buy_round(amount=1)
-            return loop.call_later(2, self.schedule_spin, loop)
+            if r_id in (i.id for i in s.get_coin_items(10)):
+                self.buy_round(amount=1)
+                return loop.call_later(2, self.schedule_spin, loop)
+        except Exception as e:
+            print(e)
+            print(f'Rescheduling due to error')
+            return loop.call_later(5, self.schedule_spin, loop)
 
         return loop.call_later(randint(1815, 1830), self.schedule_spin, loop)
 

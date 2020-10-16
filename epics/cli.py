@@ -19,7 +19,11 @@ if sys.argv[1] == 'items':
     Tracker().get_items(int(sys.argv[2]))
 
 if sys.argv[1] == 'track':
-    Tracker().start()
+    if len(sys.argv) < 4:
+        raise AssertionError('Missing margin values argument')
+
+    price_margin, score_margin = float(sys.argv[2]), float(sys.argv[3])
+    Tracker().start(price_margin, score_margin)
 
 if sys.argv[1] == 'fight':
     if len(sys.argv) < 3:
