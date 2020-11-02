@@ -10,7 +10,7 @@
 ## Update
 
 ```shell script
-    python -c 'from epics.update import updater; updater.update_collections()'
+    python -c 'from epics.update import updater; updater.update_collections(0)'
     python -c 'from epics.update import updater; updater.update_teams()'
 
     python -c 'from epics.calculate import calculator; calculator.calculate_lineups_efficiency()'

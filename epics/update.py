@@ -1,15 +1,16 @@
 import base64
 from copy import deepcopy
 from time import time
-from typing import Dict
 
 import requests
 import yaml
 from tqdm import tqdm
+from typing import Dict
 
 from csgo.util import get_batches
 from epics.auth import EAuth
-from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections
+from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections, \
+    TemplateItem
 
 
 class Updater:
@@ -35,12 +36,18 @@ class Updater:
 
     def get_collection(self, collection_id: int, collection_name: str) -> Collection:
         col = self.request_collection(collection_id)
-        items = {c['title']: PlayerItem(
-            template_id=c['id'], template_title=c['title'], player_rating=c['playerStatsV2']['rating']['score'],
-            player_id=c['player']['id'], handle=c['player']['handle'], country=c['player']['country'],
-            role_id=c['player']['playerRoleId'], position=c['player']['position'],
-            team_name=c['team']['shortName'], salary=c['properties']['salary'], rarity=c['rarity'],
-        ) for c in col['data'] if c['cardType'] == 'player' and c['properties'].get('player_rating')}
+        items = {
+            c['title']: (PlayerItem(template_id=c['id'], template_title=c['title'],
+                                    player_rating=c['playerStatsV2']['rating']['score'],
+                                    player_id=c['player']['id'], handle=c['player']['handle'],
+                                    country=c['player']['country'],
+                                    role_id=c['player']['playerRoleId'], position=c['player']['position'],
+                                    team_name=c['team']['shortName'], salary=c['properties']['salary'],
+                                    rarity=c['rarity'])
+                         if c['properties'].get('player_rating')
+                         else TemplateItem(template_id=c['id'], template_title=c['title']))
+            for c in col['data']
+        }
         return Collection(id=collection_id, name=collection_name, items=items)
 
     def request_collection(self, collection_id: int) -> dict:
@@ -69,8 +76,8 @@ class Updater:
     def update_teams(cls):
         collections = load_collections(COLLECTIONS_PATH)
         teams = {}
-        for col in collections.values():
-            for player_item in col.items.values():
+        for col in list(collections.values()):
+            for player_item in list(i for i in list(col.items.values()) if isinstance(i, PlayerItem)):
                 team_name = player_item.team_name
                 if team_name not in teams:
                     teams[team_name] = Team(name=team_name, players={})

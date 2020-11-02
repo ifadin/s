@@ -1,7 +1,7 @@
 import os
-from typing import NamedTuple, List, Dict
 
 import yaml
+from typing import NamedTuple, List, Dict, Union
 
 
 class Rating(NamedTuple):
@@ -28,7 +28,7 @@ class Team(NamedTuple):
 
 
 def get_player_ratings(teams: Dict[str, Team]) -> Dict[str, List[Rating]]:
-    return {p.name: p.ratings for t in teams.values() for p in t.players.values()}
+    return {p.name: p.ratings for t in list(teams.values()) for p in list(t.players.values())}
 
 
 TEAMS_PATH = os.path.join('epics', 'data', 'teams.yaml')
@@ -66,7 +66,7 @@ class PlayerItem(NamedTuple):
     template_title: str
 
 
-CollectionItem = PlayerItem
+CollectionItem = Union[PlayerItem, TemplateItem]
 
 
 class Collection(NamedTuple):
@@ -83,6 +83,8 @@ def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[str, Collection]
     with open(file_path) as f:
         res = yaml.load(f, Loader=yaml.SafeLoader)
         return {col_name: Collection(id=col['id'], name=col_name, updated_at=col.get('updated_at'), items={
-            item_title: PlayerItem(**item, template_title=item_title)
+            item_title: (PlayerItem(**item, template_title=item_title)
+                         if 'player_id' in item
+                         else TemplateItem(**item, template_title=item_title))
             for item_title, item in col.get('items', {}).items()
         }) for col_name, col in res.get('collections', {}).items()}

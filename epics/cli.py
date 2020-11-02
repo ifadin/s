@@ -23,7 +23,8 @@ if sys.argv[1] == 'track':
         raise AssertionError('Missing margin values argument')
 
     price_margin, score_margin = float(sys.argv[2]), float(sys.argv[3])
-    Tracker().start(price_margin, score_margin)
+    buy_threshold = float(sys.argv[4]) if len(sys.argv) > 4 else 60
+    Tracker().start(price_margin, score_margin, buy_threshold)
 
 if sys.argv[1] == 'fight':
     if len(sys.argv) < 3:

@@ -5,10 +5,10 @@ from asyncio import AbstractEventLoop
 from itertools import chain
 from operator import itemgetter
 from time import sleep
-from typing import Dict, Set, List, Optional, Union, Tuple, NamedTuple
 
 import requests
 from tqdm import tqdm
+from typing import Dict, Set, List, Optional, Union, Tuple, NamedTuple
 
 from epics.auth import EAuth
 from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem
@@ -154,46 +154,49 @@ class Tracker:
         r.raise_for_status()
         return r.json()['success']
 
-    def track_items(self, items_ids: Set[TemplateItem], price_margin: float, score_margin: float, max_price: int):
+    def track_items(self, items_ids: Set[TemplateItem], price_margin: float, score_margin: float,
+                    max_price: int, buy_threshold: int):
         targets = self.get_market_targets(items_ids, price_margin, score_margin, max_price)
         for t in targets.values():
             item_details = f'{t.item.template_title} for {t.offer_value} ' \
                            f'(s:{int(t.offer_score * 10)}/{t.score_margin:.3f} ' \
                            f'avg:{int(t.avg_sales)} m:{int(t.margin * 100) if t.margin else None}%)'
-            if t.offer_value <= 50:
+            if t.offer_value <= buy_threshold:
                 self.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
             else:
                 url = f'{self.item_url}{t.item.template_id}'
                 print(f'{url} {item_details}')
 
-    def track(self, p: PlayerService, price_margin: float, score_margin: float, max_price: int):
+    def track(self, p: PlayerService, price_margin: float, score_margin: float,
+              max_price: int, buy_threshold: int):
         for item in tqdm(list(chain.from_iterable(p.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
         }, whitelist_ids={4357}).values()))):
-            self.track_items({item}, price_margin, score_margin, max_price)
+            self.track_items({item}, price_margin, score_margin, max_price, buy_threshold)
 
     def schedule_track(self, p: PlayerService, l: AbstractEventLoop,
-                       price_margin: float, score_margin: float, max_price: int):
+                       price_margin: float, score_margin: float,
+                       max_price: int, buy_threshold: int):
         min_15 = 900
         try:
-            self.track(p, price_margin, score_margin, max_price)
+            self.track(p, price_margin, score_margin, max_price, buy_threshold)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, p, l, price_margin, score_margin, max_price)
+            return l.call_later(5, self.schedule_track, p, l, price_margin, score_margin, max_price, buy_threshold)
 
         print(f'Next in {min_15} seconds')
-        return l.call_later(min_15, self.schedule_track, p, l, price_margin, score_margin, max_price)
+        return l.call_later(min_15, self.schedule_track, p, l, price_margin, score_margin, max_price, buy_threshold)
 
-    def start(self, price_margin: float, score_margin: float, max_price: int = 5000):
+    def start(self, price_margin: float, score_margin: float, buy_threshold: int, max_price: int = 5000):
         p = PlayerService(auth=self.auth)
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(fail_fast_handler)
 
         loop.call_later(3500, self.auth.refresh_token)
-        loop.call_soon(self.schedule_track, p, loop, price_margin, score_margin, max_price)
+        loop.call_soon(self.schedule_track, p, loop, price_margin, score_margin, max_price, buy_threshold)
 
         loop.run_forever()
         loop.close()
