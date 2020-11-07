@@ -1,11 +1,12 @@
 import base64
-from typing import Set, Dict
+import json
 
 import requests
 from tqdm import tqdm
+from typing import Set, Dict, List
 
 from epics.auth import EAuth
-from epics.domain import load_collections, TemplateItem
+from epics.domain import load_collections, TemplateItem, PlayerItem, ROSTER_PATH
 
 
 class PlayerService:
@@ -35,3 +36,17 @@ class PlayerService:
                         missing[c.id] = missing.get(c.id, set()) | {TemplateItem(i.template_id, i.template_title)}
 
         return missing
+
+    @classmethod
+    def get_owned(cls) -> Dict[int, PlayerItem]:
+        roster = cls.load_roster()
+        return {
+            i.template_id: i for col in list(load_collections().values())
+            for i in list(col.items.values())
+            if isinstance(i, PlayerItem) and i.template_id in roster
+        }
+
+    @staticmethod
+    def load_roster() -> List[int]:
+        with open(ROSTER_PATH) as f:
+            return json.load(f)

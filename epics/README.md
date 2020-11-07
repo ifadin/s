@@ -12,9 +12,11 @@
 ```shell script
     python -c 'from epics.update import updater; updater.update_collections(0)'
     python -c 'from epics.update import updater; updater.update_teams()'
+    python -c 'from epics.update import updater; updater.update_roster()'
 
     python -c 'from epics.calculate import calculator; calculator.calculate_lineups_efficiency()'
     python -c "from epics.calculate import calculator; calculator.get_team_performance(rarity_upper_limit='Very Rare')"
+    python -c 'from epics.team import team; team.print_rosters()'
     
     python -m epics.cli track
     python -m epics.cli items 60

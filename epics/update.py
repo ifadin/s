@@ -1,16 +1,18 @@
 import base64
+import json
 from copy import deepcopy
 from time import time
 
 import requests
 import yaml
 from tqdm import tqdm
-from typing import Dict
+from typing import Dict, Set
 
 from csgo.util import get_batches
 from epics.auth import EAuth
 from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections, \
-    TemplateItem
+    TemplateItem, ROSTER_PATH
+from epics.player import PlayerService
 
 
 class Updater:
@@ -20,6 +22,7 @@ class Updater:
 
     def __init__(self, auth: EAuth = EAuth()) -> None:
         self.auth = auth
+        self.p_service = PlayerService(self.auth)
 
     def request_collection_ids(self) -> Dict[int, str]:
         r = requests.get(self.summary_url, auth=self.auth)
@@ -38,6 +41,7 @@ class Updater:
         col = self.request_collection(collection_id)
         items = {
             c['title']: (PlayerItem(template_id=c['id'], template_title=c['title'],
+                                    ovr_rating=c['properties']['player_rating'],
                                     player_rating=c['playerStatsV2']['rating']['score'],
                                     player_id=c['player']['id'], handle=c['player']['handle'],
                                     country=c['player']['country'],
@@ -67,10 +71,16 @@ class Updater:
                 if (col_name not in collections or not collections[col_name].updated_at or
                         (int(time()) - collections[col_name].updated_at > cache_threshold_seconds)):
                     c = self.get_collection(col_id, col_name)
-                    collections[col_name] = c
+                    collections[col_id] = c
                     save_required = True
             if save_required:
                 save_collections(collections, COLLECTIONS_PATH)
+
+    def update_roster(self):
+        owned = self.p_service.get_owned()
+        players = {i.template_id for col in list(load_collections().values())
+                   for i in list(col.items.values()) if isinstance(i, PlayerItem) and i.template_id in owned}
+        return save_roster(players, ROSTER_PATH)
 
     @classmethod
     def update_teams(cls):
@@ -110,21 +120,27 @@ class Updater:
             print(f'WARN: mismatch between {player_l_dict} and {player_r_dict}')
 
 
-def save_collections(collections: Dict[str, Collection], file_path: str):
+def save_collections(collections: Dict[int, Collection], file_path: str):
     with open(file_path, 'w') as f:
         data = {'collections': {}}
-        for col_name, col in collections.items():
+        for col_id, col in collections.items():
             items = {}
             for i in col.items.values():
                 i_obj = dict(i._asdict())
                 i_obj.pop('template_title')
                 items[i.template_title] = i_obj
-            data['collections'][col_name] = {
+            data['collections'][col_id] = {
                 'id': col.id,
+                'name': col.name,
                 'updated_at': int(time()),
                 'items': items
             }
         yaml.dump(data, f, default_flow_style=False)
+
+
+def save_roster(players: Set[int], file_path: str):
+    with open(file_path, 'w') as f:
+        json.dump(list(players), f)
 
 
 def save_teams(teams: Dict[str, Team], file_path: str):

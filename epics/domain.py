@@ -57,6 +57,7 @@ class PlayerItem(NamedTuple):
     handle: str
     player_id: int
     player_rating: int
+    ovr_rating: int
     position: str
     rarity: str
     role_id: int
@@ -77,14 +78,15 @@ class Collection(NamedTuple):
 
 
 COLLECTIONS_PATH = os.path.join('epics', 'data', 'collections.yaml')
+ROSTER_PATH = os.path.join('epics', 'data', 'roster.json')
 
 
-def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[str, Collection]:
+def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[int, Collection]:
     with open(file_path) as f:
         res = yaml.load(f, Loader=yaml.SafeLoader)
-        return {col_name: Collection(id=col['id'], name=col_name, updated_at=col.get('updated_at'), items={
+        return {col_id: Collection(id=col['id'], name=col['name'], updated_at=col.get('updated_at'), items={
             item_title: (PlayerItem(**item, template_title=item_title)
                          if 'player_id' in item
                          else TemplateItem(**item, template_title=item_title))
             for item_title, item in col.get('items', {}).items()
-        }) for col_name, col in res.get('collections', {}).items()}
+        }) for col_id, col in res.get('collections', {}).items()}
