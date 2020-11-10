@@ -6,7 +6,7 @@ from requests import HTTPError, Response
 def fail_fast_handler(l: AbstractEventLoop, context: dict):
     e = context.get('exception')
     if isinstance(e, HTTPError):
-        print(f'[error]: {e.request.url}\n{e.request.body}')
+        print(f'[error]: {e.response.status_code} {e.request.url}\n{e.request.body}\n{e.response.text}')
     l.default_exception_handler(context)
     l.stop()
 

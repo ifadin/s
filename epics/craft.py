@@ -1,8 +1,9 @@
 import base64
+import os
 from copy import deepcopy
-from typing import Set, NamedTuple, Optional, Dict
 
 import requests
+from typing import Set, NamedTuple, Optional, Dict
 
 from epics.auth import EAuth
 from epics.player import PlayerService
@@ -40,13 +41,9 @@ class Crafter:
     }
     collections = {'d': 2967, 'g': 2968, 's': 2970, 'p': 2969}
 
-    def __init__(self, auth: EAuth = EAuth()) -> None:
+    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
         self.auth = auth
 
-    # https://api.epics.gg/api/v1/crafting/plans/300?categoryId=1
-    # {"silvercoins":500,"requirements":[{"requirementId":300,"entityIds":[101970505,102058040,102087019,104068959]}]}
-    # https://api.epics.gg/api/v1/crafting/slots/793508/open-instant?categoryId=1
-    # {"craftingcoins":null}
     def request_craft(self, r: Requirement, entity_ids: Set[int]) -> int:
         if len(entity_ids) != r.amount:
             raise AssertionError(f'Required {r.amount} entities')

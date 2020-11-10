@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 from copy import deepcopy
 from time import time
 
@@ -20,7 +21,7 @@ class Updater:
     summary_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'
                                    'LzQwNTQzNi91c2VyLXN1bW1hcnkvP2NhdGVnb3J5SWQ9MQ=='.encode()).decode()
 
-    def __init__(self, auth: EAuth = EAuth()) -> None:
+    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
         self.auth = auth
         self.p_service = PlayerService(self.auth)
 

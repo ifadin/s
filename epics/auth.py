@@ -1,5 +1,4 @@
 import base64
-import os
 
 import requests
 from requests import Request
@@ -9,7 +8,7 @@ from requests.auth import AuthBase
 class EAuth(AuthBase):
     ref_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2F1dGgvcmVmcmVzaC1qd3Q='.encode()).decode()
 
-    def __init__(self, r_token: str = os.environ['EP_REF_TOKEN']) -> None:
+    def __init__(self, r_token: str) -> None:
         self.token = None
         self.r_token = r_token
 

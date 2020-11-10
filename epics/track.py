@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import os
 import statistics
 from asyncio import AbstractEventLoop
 from itertools import chain
@@ -50,8 +51,8 @@ class Tracker:
                                  'BhZ2U9MSZzb3J0PXByaWNlJnR5cGU9Y2FyZCZ0ZW1wbGF0ZUlkPQ=='.encode()).decode()
     item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZS9jYXJkLw=='.encode()).decode()
 
-    def __init__(self) -> None:
-        self.auth = EAuth()
+    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+        self.auth = auth
 
     @staticmethod
     def get_track_ids(players: Dict[str, List[Rating]], targets: Union[int, Dict[str, int]]) -> Dict[str, Set[Rating]]:

@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 
 import requests
 from tqdm import tqdm
@@ -13,7 +14,7 @@ class PlayerService:
     card_ids_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJzLzQwNTQzNi9jYXJkaWRz'
                                     'P2NhdGVnb3J5SWQ9MSZjb2xsZWN0aW9uSWQ9'.encode()).decode()
 
-    def __init__(self, auth: EAuth = EAuth()) -> None:
+    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
         self.auth = auth
 
     def get_card_ids(self, collection_id: int) -> Dict[int, Set[int]]:
