@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -12,13 +13,14 @@ def load_config() -> dict:
 
 
 class Runner:
+    glm_url = base64.b64decode('aHR0cHM6Ly9nbGVhbS5pby9lbnRlci82dnA4dg=='.encode()).decode()
 
     def __init__(self) -> None:
         self.sess = os.environ['GL_SESSION']
         self.csrf = os.environ['GL_CSRF']
 
-    def request(self, op_id: int,  data: dict):
-        res = requests.post(f'https://gleam.io/enter/6vp8v/{op_id}', json=data, headers={
+    def request(self, op_id: int, data: dict):
+        res = requests.post(f'{self.glm_url}/{op_id}', json=data, headers={
             'x-csrf-token': self.csrf,
             'cookie': f'_app_session={self.sess}'
         })
