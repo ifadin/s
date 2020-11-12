@@ -7,6 +7,7 @@ from typing import NamedTuple, Tuple, Iterator, Optional, List
 
 from epics.domain import PlayerItem
 from epics.player import PlayerService
+from epics.user import u_a, u_a_auth, u_b, u_b_auth
 
 
 class Roster(NamedTuple):
@@ -21,7 +22,7 @@ class GetRosterPowerTask:
     country_bonus = {1: 0, 2: 4, 3: 11, 4: 24, 5: 49}
     team_bonus = {1: 0, 2: 4, 3: 11}
 
-    def get_efficiency_bonus(self, roster: Roster) -> Optional[int]:
+    def get_efficiency_bonus(self, roster: Roster) -> Optional[float]:
         rf, sn, sp, fr, flx = roster.rfl, roster.snp, roster.sup, roster.ent, roster.flx
 
         team_counter = Counter([rf.team_name, sn.team_name, sp.team_name, fr.team_name, flx.team_name])
@@ -32,7 +33,7 @@ class GetRosterPowerTask:
         team_efficiency = sum((self.team_bonus[t] for t in team_counter.values()))
         country_efficiency = sum((self.country_bonus[c] for c in country_counter.values()))
 
-        return team_efficiency + country_efficiency
+        return country_efficiency * (1.0 + team_efficiency / 100.0)
 
     def __call__(self, roster: Roster) -> Tuple[str, Optional[float]]:
         rf, sn, sp, fr, flx = roster.rfl, roster.snp, roster.sup, roster.ent, roster.flx
@@ -43,14 +44,14 @@ class GetRosterPowerTask:
         if bonus is None:
             return team_key, None
 
-        pwr = sum((p.player_rating for p in [rf, sn, sp, fr, flx])) * (1.0 + bonus / 100.0)
+        pwr = sum((p.player_rating for p in [rf, sn, sp, fr, flx])) + bonus
         return team_key, pwr
 
 
 class TeamService:
 
-    def __init__(self) -> None:
-        self.p_service = PlayerService()
+    def __init__(self, p: PlayerService) -> None:
+        self.p_service = p
 
     def get_rosters(self) -> List[Tuple[str, float]]:
         with ProcessPoolExecutor() as executor:
@@ -60,7 +61,7 @@ class TeamService:
                           key=itemgetter(1))
 
     def get_roster_iter(self) -> Iterator[Roster]:
-        rfl, snp, ent, sup, flx = self.get_role_rosters((75, 75, 75, 65, 75))
+        rfl, snp, ent, sup, flx = self.get_role_rosters((70, 70, 70, 65, 70))
         for r in list(rfl.values()):
             for s in list(snp.values()):
                 for e in list(ent.values()):
@@ -97,4 +98,5 @@ class TeamService:
             print(f'{r}: {p:.2f}')
 
 
-team = TeamService()
+team_a = TeamService(PlayerService(u_a, u_a_auth))
+team_b = TeamService(PlayerService(u_b, u_b_auth))

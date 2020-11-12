@@ -12,18 +12,23 @@ from typing import Dict, Set
 from csgo.util import get_batches
 from epics.auth import EAuth
 from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections, \
-    TemplateItem, ROSTER_PATH
+    TemplateItem, get_roster_path
 from epics.player import PlayerService
+from epics.user import u_a, u_a_auth, u_b_auth, u_b
 
 
 class Updater:
     collections_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zLw=='.encode()).decode()
-    summary_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'
-                                   'LzQwNTQzNi91c2VyLXN1bW1hcnkvP2NhdGVnb3J5SWQ9MQ=='.encode()).decode()
 
-    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+    def __init__(self, u_id: int, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+        self.u_id = u_id
         self.auth = auth
-        self.p_service = PlayerService(self.auth)
+        self.p_service = PlayerService(self.u_id, self.auth)
+
+        self.summary_url = (
+                base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
+                + f'/{self.u_id}/user-summary/?categoryId=1'
+        )
 
     def request_collection_ids(self) -> Dict[int, str]:
         r = requests.get(self.summary_url, auth=self.auth)
@@ -78,10 +83,8 @@ class Updater:
                 save_collections(collections, COLLECTIONS_PATH)
 
     def update_roster(self):
-        owned = self.p_service.get_owned()
-        players = {i.template_id for col in list(load_collections().values())
-                   for i in list(col.items.values()) if isinstance(i, PlayerItem) and i.template_id in owned}
-        return save_roster(players, ROSTER_PATH)
+        players = {i for col in tqdm(load_collections()) for i in self.p_service.get_card_ids(col)}
+        return save_roster(players, get_roster_path(self.u_id))
 
     @classmethod
     def update_teams(cls):
@@ -164,4 +167,5 @@ def save_teams(teams: Dict[str, Team], file_path: str):
         yaml.dump(data, f, default_flow_style=False)
 
 
-updater = Updater()
+updater_a = Updater(u_a, u_a_auth)
+updater_b = Updater(u_b, u_b_auth)

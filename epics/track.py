@@ -1,6 +1,4 @@
-import asyncio
 import base64
-import os
 import statistics
 from asyncio import AbstractEventLoop
 from itertools import chain
@@ -51,8 +49,9 @@ class Tracker:
                                  'BhZ2U9MSZzb3J0PXByaWNlJnR5cGU9Y2FyZCZ0ZW1wbGF0ZUlkPQ=='.encode()).decode()
     item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZS9jYXJkLw=='.encode()).decode()
 
-    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+    def __init__(self, u_id: int, auth: EAuth) -> None:
         self.auth = auth
+        self.p_service = PlayerService(u_id, auth=self.auth)
 
     @staticmethod
     def get_track_ids(players: Dict[str, List[Rating]], targets: Union[int, Dict[str, int]]) -> Dict[str, Set[Rating]]:
@@ -169,35 +168,30 @@ class Tracker:
                 url = f'{self.item_url}{t.item.template_id}'
                 print(f'{url} {item_details}')
 
-    def track(self, p: PlayerService, price_margin: float, score_margin: float,
+    def track(self, price_margin: float, score_margin: float,
               max_price: int, buy_threshold: int):
-        for item in tqdm(list(chain.from_iterable(p.get_missing(blacklist_names={
+        for item in tqdm(list(chain.from_iterable(self.p_service.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
         }, whitelist_ids={4357}).values()))):
             self.track_items({item}, price_margin, score_margin, max_price, buy_threshold)
 
-    def schedule_track(self, p: PlayerService, l: AbstractEventLoop,
+    def schedule_track(self, l: AbstractEventLoop,
                        price_margin: float, score_margin: float,
                        max_price: int, buy_threshold: int):
         min_15 = 900
         try:
-            self.track(p, price_margin, score_margin, max_price, buy_threshold)
+            self.track(price_margin, score_margin, max_price, buy_threshold)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, p, l, price_margin, score_margin, max_price, buy_threshold)
+            return l.call_later(5, self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)
 
         print(f'Next in {min_15} seconds')
-        return l.call_later(min_15, self.schedule_track, p, l, price_margin, score_margin, max_price, buy_threshold)
+        return l.call_later(min_15, self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)
 
-    def start(self, price_margin: float, score_margin: float, buy_threshold: int, max_price: int = 5000):
-        p = PlayerService(auth=self.auth)
-        loop = asyncio.get_event_loop()
-        loop.set_exception_handler(fail_fast_handler)
+    def start(self, l: AbstractEventLoop, price_margin: float, score_margin: float, buy_threshold: int,
+              max_price: int = 5000):
 
-        loop.call_later(3500, self.auth.refresh_token)
-        loop.call_soon(self.schedule_track, p, loop, price_margin, score_margin, max_price, buy_threshold)
-
-        loop.run_forever()
-        loop.close()
+        l.call_later(3500, self.auth.refresh_token)
+        l.call_soon(self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)

@@ -1,15 +1,15 @@
 import asyncio
 import base64
 import re
-from asyncio import AbstractEventLoop
 from copy import deepcopy
+from itertools import chain
+from operator import itemgetter
 from random import randint
-from typing import NamedTuple, Iterable, List, Dict, Tuple
 
 import requests
+from typing import NamedTuple, List, Dict, Tuple, Optional
 
 from epics.auth import EAuth
-from epics.utils import fail_fast_handler
 
 
 class Opponent(NamedTuple):
@@ -41,11 +41,12 @@ class Circuit(NamedTuple):
         return self.stages_done == self.stages_total
 
 
-class Achievement(NamedTuple):
+class Goal(NamedTuple):
     id: int
     title: str
     min: int
     max: int
+    available: bool
 
     @property
     def left(self) -> int:
@@ -59,22 +60,77 @@ class Achievement(NamedTuple):
 Schedule = Dict[int, Dict[int, Dict[int, int]]]
 
 
-class Fighter:
+class Trainer:
     circuits_url = base64.b64decode(
         'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vY2lyY3VpdHM='.encode()).decode()
     game_url = base64.b64decode(
         'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcHZlL2dhbWVz'.encode()).decode()
+    op_game_url = base64.b64decode(
+        'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcHZwL2NoYWxsZW5nZXM='.encode()).decode()
+    goals_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2FjaGlldmVtZW50cw=='.encode()).decode()
     tow_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcHZlL3Jvc3RlcnM/Y2F0Z'
                                'WdvcnlJZD0xJnRpZXI9dGVhbV9vZl90aGVfd2Vlaw=='.encode()).decode()
-    achvmnt_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2FjaGlldmVtZW50cy80MDU0MzYvdXNlcj9jYXRl'
-                                   'Z29yeUlkPTE='.encode()).decode()
     rstrs_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcHZlL3Jvc3RlcnM/Y2F0'
                                  'ZWdvcnlJZD0x'.encode()).decode()
     ua = base64.b64decode('b2todHRwLzMuMTIuMQ=='.encode()).decode()
     h = {'user-agent': ua}
 
-    def __init__(self, auth=EAuth()) -> None:
+    def __init__(self, u_id: int, auth: EAuth) -> None:
+        self.u_id = u_id
         self.auth = auth
+        self.user_goals_url = f'{self.goals_url}/{self.u_id}/user?categoryId=1'
+        self.usr_rstrs_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcm9zdGVycz9jYX'
+                                              'RlZ29yeUlkPTE='.encode()).decode() + f'&userId={self.u_id}'
+
+    async def run(self, op=None):
+        usr_roster_id = self.get_usr_roster_id()
+
+        main_s = self.get_circuits_schedule(self.get_circuits())
+        if main_s:
+            await self.play_schedule(usr_roster_id, main_s)
+        else:
+            print(f'[{self.u_id}] no main schedule')
+
+        week_s = self.get_week_schedule(self.get_goals(), self.get_circuits())
+        if week_s:
+            await self.play_schedule(usr_roster_id, week_s)
+        else:
+            print(f'[{self.u_id}] no week schedule')
+
+        g_amount = self.get_goal_amount(self.get_goals())
+        if g_amount:
+            tow_id = self.get_tow()
+            await self.play_tow(usr_roster_id, tow_id, g_amount)
+        else:
+            print(f'[{self.u_id}] no goal amount')
+
+        if op:
+            op_amount = self.get_op_goal_amount(self.get_goals())
+            if op_amount:
+                op_roster_id = op.get_usr_roster_id()
+                await self.play_op(op_amount, usr_roster_id, op_roster_id, op)
+            else:
+                print(f'[{self.u_id}] no op amount')
+
+        for g in self.get_goals():
+            if g.available:
+                self.complete_goal(g)
+                print(f'[{self.u_id}] claimed {g.title}')
+
+    def get_goals(self) -> List[Goal]:
+        res = requests.get(self.user_goals_url, auth=self.auth, headers=self.h)
+        res.raise_for_status()
+
+        return [
+            Goal(a['id'], a['title'], a['progress']['min'], a['progress']['max'], a['progress']['claimAvailable'])
+            for a in chain(res.json()['data']['daily'], res.json()['data']['weekly']) if not a['completed']
+        ]
+
+    def complete_goal(self, g: Goal):
+        res = requests.post(f'{self.goals_url}/{g.id}/claim?categoryId=1', auth=self.auth, headers=self.h)
+        res.raise_for_status()
+
+        return True
 
     def get_circuits(self) -> List[Circuit]:
         res = requests.get(f'{self.circuits_url}?categoryId=1', auth=self.auth, headers=self.h)
@@ -99,60 +155,113 @@ class Fighter:
         return circuits
 
     @staticmethod
-    def get_circuits_schedule(circuits: Iterable[Circuit]) -> Schedule:
+    def get_circuits_schedule(circuits: List[Circuit]) -> Schedule:
         return {c.id: {
             s.id: {
                 o.id: o.required_wins - o.wins for o in s.opponents if not o.completed
             } for s in c.stages if not s.completed
         } for c in circuits if not c.completed}
 
-    def get_achievements(self) -> List[Achievement]:
-        res = requests.get(self.achvmnt_url, auth=self.auth, headers=self.h)
-        res.raise_for_status()
-
-        return [
-            Achievement(a['id'], a['title'], a['progress']['min'], a['progress']['max'])
-            for a in res.json()['data']['weekly'] if not a['completed']
-        ]
-
-    def get_rosters(self, ids: Iterable[int]) -> Dict[str, int]:
-        ids_param = ','.join((str(i) for i in ids))
-        res = requests.get(f'{self.rstrs_url}&ids={ids_param}', auth=self.auth, headers=self.h)
-        res.raise_for_status()
-
-        return {r['name']: r['id'] for r in res.json()['data']['rosters']}
-
-    def get_week_schedule(self, circuits: Iterable[Circuit]) -> Schedule:
+    def get_week_schedule(self, goals: List[Goal], circuits: List[Circuit]) -> Schedule:
         schedule = {}
-        for a in self.get_achievements():
-            m = re.match('^Win.*times against (.+) \((.+)\)$', a.title)
+        for g in goals:
+            m = re.match('^Win.*times against (.+) \((.+)\)$', g.title)
             if m and len(m.groups()) == 2:
-                tm_name, stg_name = m.groups()
+                tm_name = m.groups()[0].lower()
+                stg_name = m.groups()[1]
                 for c in circuits:
                     for s in c.stages:
                         if s.name == stg_name:
-                            rosters = self.get_rosters((o.id for o in s.opponents))
+                            rosters = self.get_rosters([o.id for o in s.opponents])
                             if tm_name not in rosters:
-                                raise AssertionError(f'Unknown roster {tm_name}')
+                                raise AssertionError(f'Unknown roster {tm_name} from available {rosters}')
                             if c.id not in schedule:
                                 schedule[c.id] = {}
                             if s.id not in schedule[c.id]:
                                 schedule[c.id][s.id] = {}
-                            schedule[c.id][s.id][rosters[tm_name]] = a.left
+                            schedule[c.id][s.id][rosters[tm_name]] = g.left
         return schedule
+
+    @staticmethod
+    def get_goal_amount(goals: List[Goal]) -> Optional[int]:
+        g = next((g for g in goals if re.match('^Win \\d+ R.*atches$', g.title)), None)
+        if not g:
+            return None
+
+        return g.left
+
+    @staticmethod
+    def get_op_goal_amount(goals: List[Goal]) -> Optional[int]:
+        g = next((g for g in goals if re.match('^Win \\d+ PvP R.*atches$', g.title)), None)
+        if not g:
+            return None
+
+        return g.left
+
+    def get_rosters(self, ids: List[int]) -> Dict[str, int]:
+        ids_param = ','.join((str(i) for i in ids))
+        res = requests.get(f'{self.rstrs_url}&ids={ids_param}', auth=self.auth, headers=self.h)
+        res.raise_for_status()
+
+        return {r['name'].lower(): r['id'] for r in res.json()['data']['rosters']}
+
+    def get_usr_roster_id(self) -> int:
+        res = requests.get(f'{self.usr_rstrs_url}', auth=self.auth, headers=self.h)
+        res.raise_for_status()
+
+        return max(((r['id'], r['rating']) for r in res.json()['data']['rosters']), key=itemgetter(1))[0]
+
+    def get_tow(self) -> int:
+        res = requests.get(self.tow_url, auth=self.auth, headers=self.h)
+        res.raise_for_status()
+
+        return res.json()['data']['rosters'][0]['id']
+
+    def create_op_game(self, op_id: int, user_roster_id: int, op_roster_id: int) -> int:
+        res = requests.post(f'{self.op_game_url}', json={
+            'categoryId': 1, 'userId': op_id, 'rosterId': user_roster_id, 'enemyRosterId': op_roster_id,
+            'bannedMapIds': [4, 6], 'message': ''
+        }, auth=self.auth, headers=self.h)
+        res.raise_for_status()
+        return res.json()['data']['id']
+
+    async def play_tow(self, roster_id: int, tow_id: int, w_amount: int):
+        if not w_amount:
+            return True
+
+        res = self.play_tow_game(roster_id, tow_id)
+        print(f'[{self.u_id}] TOW {res} ({w_amount})')
+
+        await asyncio.sleep(randint(5, 10))
+        return await self.play_tow(roster_id, tow_id, w_amount - 1 if res else w_amount)
+
+    def play_tow_game(self, roster_id: int, tow_id: int) -> bool:
+        r = requests.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
+            'rosterId': roster_id, 'enemyRosterId': tow_id, 'bannedMapIds': [2, 4], 'categoryId': 1
+        })
+        r.raise_for_status()
+        return r.json()['data']['game']['user1']['winner']
+
+    async def play_schedule(self, roster_id: int, s: Schedule):
+        if s:
+            c_id, c = list(s.items())[0]
+            if c:
+                st_id, st = list(c.items())[0]
+                if st:
+                    op_id, w = list(st.items())[0]
+                    if w > 0:
+                        res = self.play_crc_game(roster_id, op_id, c_id, st_id)
+                        print(f'[{self.u_id}] {c_id} {st_id} {op_id} - {res}')
+                        if res:
+                            s = self.update_schedule(s, (c_id, st_id, op_id))
+                        await asyncio.sleep(randint(5, 10))
+                        return await self.play_schedule(roster_id, s)
 
     def play_crc_game(self, roster_id: int, op_id: int, crc_id: int, stage_id: int) -> bool:
         r = requests.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
             'rosterId': roster_id, 'enemyRosterId': op_id, 'bannedMapIds': [2, 4], 'circuit': {
                 'id': crc_id, 'stageId': stage_id
             }, 'categoryId': 1
-        })
-        r.raise_for_status()
-        return r.json()['data']['game']['user1']['winner']
-
-    def play_tow_game(self, roster_id: int, tow_id: int) -> bool:
-        r = requests.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
-            'rosterId': roster_id, 'enemyRosterId': tow_id, 'bannedMapIds': [2, 4], 'categoryId': 1
         })
         r.raise_for_status()
         return r.json()['data']['game']['user1']['winner']
@@ -172,52 +281,24 @@ class Fighter:
                     del s[c_id]
         return s
 
-    def get_tow(self) -> int:
-        res = requests.get(self.tow_url, auth=self.auth, headers=self.h)
+    async def play_op(self, op_amount: int, usr_roster_id: int, op_roster_id: int, op):
+        if not op_amount:
+            return True
+        g_id = self.create_op_game(op.u_id, usr_roster_id, op_roster_id)
+        op_w = op.accept_game(g_id, op_roster_id)
+        print(f'[{self.u_id}] OP {not op_w} ({op_amount})')
+        self.seen_game(g_id)
+
+        await asyncio.sleep(randint(5, 10))
+        return await self.play_op(op_amount if op_w else op_amount - 1, usr_roster_id, op_roster_id, op)
+
+    def accept_game(self, game_id: int, usr_roster_id: int) -> bool:
+        res = requests.post(f'{self.op_game_url}/{game_id}/accept',
+                            json={'rosterId': usr_roster_id, 'bannedMapIds': [7, 5]}, auth=self.auth, headers=self.h)
         res.raise_for_status()
+        return res.json()['data']['game']['user2']['winner']
 
-        return res.json()['data']['rosters'][0]['id']
-
-    def play_tow(self, roster_id: int, tow_id: int, l: AbstractEventLoop):
-        res = self.play_tow_game(roster_id, tow_id)
-        print(f'TOW {res}')
-
-        return l.call_later(randint(5, 10), self.play_tow, roster_id, tow_id, l)
-
-    def play_schedule(self, roster_id: int, s: Schedule, l: AbstractEventLoop):
-        if s:
-            c_id, c = list(s.items())[0]
-            if c:
-                st_id, st = list(c.items())[0]
-                if st:
-                    op_id, w = list(st.items())[0]
-                    if w > 0:
-                        res = self.play_crc_game(roster_id, op_id, c_id, st_id)
-                        print(f'{c_id} {st_id} {op_id} - {res}')
-                        if res:
-                            s = self.update_schedule(s, (c_id, st_id, op_id))
-                        return l.call_later(randint(5, 10), self.play_schedule, roster_id, s, l)
-
-        raise AssertionError('[error] could not find any play in the schedule')
-
-    def start(self, roster_id: int = 57654, mode: int = 1):
-        supported_modes = {1, 2, 3}
-        if mode not in supported_modes:
-            raise AssertionError(f'Mode parameter can only be one of {supported_modes}')
-
-        loop = asyncio.get_event_loop()
-        loop.set_exception_handler(fail_fast_handler)
-
-        loop.call_later(3500, self.auth.refresh_token)
-        if mode == 1:
-            s = self.get_circuits_schedule(self.get_circuits())
-            loop.call_soon(self.play_schedule, roster_id, s, loop)
-        if mode == 2:
-            s = self.get_week_schedule(self.get_circuits())
-            loop.call_soon(self.play_schedule, roster_id, s, loop)
-        if mode == 3:
-            tow_id = self.get_tow()
-            loop.call_soon(self.play_tow, roster_id, tow_id, loop)
-
-        loop.run_forever()
-        loop.close()
+    def seen_game(self, game_id: int) -> bool:
+        res = requests.post(f'{self.op_game_url}/{game_id}/seen', auth=self.auth, headers=self.h)
+        res.raise_for_status()
+        return res.json()['success']

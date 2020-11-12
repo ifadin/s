@@ -78,7 +78,10 @@ class Collection(NamedTuple):
 
 
 COLLECTIONS_PATH = os.path.join('epics', 'data', 'collections.yaml')
-ROSTER_PATH = os.path.join('epics', 'data', 'roster.json')
+
+
+def get_roster_path(u_id: int) -> str:
+    return os.path.join('epics', 'data', f'roster_{u_id}.json')
 
 
 def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[int, Collection]:

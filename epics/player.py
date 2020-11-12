@@ -7,15 +7,19 @@ from tqdm import tqdm
 from typing import Set, Dict, List
 
 from epics.auth import EAuth
-from epics.domain import load_collections, TemplateItem, PlayerItem, ROSTER_PATH
+from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path
 
 
 class PlayerService:
-    card_ids_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJzLzQwNTQzNi9jYXJkaWRz'
-                                    'P2NhdGVnb3J5SWQ9MSZjb2xsZWN0aW9uSWQ9'.encode()).decode()
 
-    def __init__(self, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+    def __init__(self, u_id: int, auth: EAuth) -> None:
+        self.u_id = u_id
         self.auth = auth
+
+        self.card_ids_url = (
+                base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
+                + f'/{self.u_id}/cardids?categoryId=1&collectionId='
+        )
 
     def get_card_ids(self, collection_id: int) -> Dict[int, Set[int]]:
         r = requests.get(f'{self.card_ids_url}{collection_id}', auth=self.auth)
@@ -38,16 +42,14 @@ class PlayerService:
 
         return missing
 
-    @classmethod
-    def get_owned(cls) -> Dict[int, PlayerItem]:
-        roster = cls.load_roster()
+    def get_owned(self) -> Dict[int, PlayerItem]:
+        roster = self.load_roster()
         return {
             i.template_id: i for col in list(load_collections().values())
             for i in list(col.items.values())
             if isinstance(i, PlayerItem) and i.template_id in roster
         }
 
-    @staticmethod
-    def load_roster() -> List[int]:
-        with open(ROSTER_PATH) as f:
+    def load_roster(self) -> List[int]:
+        with open(get_roster_path(self.u_id)) as f:
             return json.load(f)

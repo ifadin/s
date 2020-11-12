@@ -1,4 +1,3 @@
-import asyncio
 import base64
 from asyncio import AbstractEventLoop
 from datetime import datetime, timezone
@@ -76,7 +75,7 @@ class SpinService:
 
         return loop.call_later(randint(1815, 1830), self.schedule_spin, loop)
 
-    def start(self, loop: AbstractEventLoop = asyncio.get_event_loop()):
+    def start(self, loop: AbstractEventLoop):
         wait_time = self.get_next_time().replace(tzinfo=timezone.utc).timestamp() - time()
 
         loop.call_later(3500, self.auth.refresh_token)
