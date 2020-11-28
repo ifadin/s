@@ -2,6 +2,7 @@ import base64
 import json
 import os
 from copy import deepcopy
+from itertools import chain
 from time import time
 
 import requests
@@ -13,6 +14,7 @@ from csgo.util import get_batches
 from epics.auth import EAuth
 from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections, \
     TemplateItem, get_roster_path
+from epics.pack import load_packs, PackService, save_packs, Pack
 from epics.player import PlayerService
 from epics.user import u_a, u_a_auth, u_b_auth, u_b
 
@@ -37,14 +39,15 @@ class Updater:
                 if c['collection']['visible']
                 and '2020' in c['collection']['properties']['seasons']
                 and 1 in c['collection']['properties']['game_ids']
-                and 'card' in c['collection']['properties']['entity_types']}
+                and any(e in c['collection']['properties']['entity_types'] for e in ['card', 'sticker'])}
 
     @classmethod
-    def get_collection_url(cls, collection_id: int) -> str:
-        return f'{cls.collections_url}{collection_id}/card-templates?categoryId=1'
+    def get_collection_url(cls, collection_id: int, entity_type: str) -> str:
+        return f'{cls.collections_url}{collection_id}/{entity_type}-templates?categoryId=1'
 
     def get_collection(self, collection_id: int, collection_name: str) -> Collection:
-        col = self.request_collection(collection_id)
+        col = self.request_collection(collection_id, 'card')
+        st = self.request_collection(collection_id, 'sticker')
         items = {
             c['title']: (PlayerItem(template_id=c['id'], template_title=c['title'],
                                     ovr_rating=c['properties']['player_rating'],
@@ -53,15 +56,19 @@ class Updater:
                                     country=c['player']['country'],
                                     role_id=c['player']['playerRoleId'], position=c['player']['position'],
                                     team_name=c['team']['shortName'], salary=c['properties']['salary'],
-                                    rarity=c['rarity'])
+                                    rarity=c['rarity'], group_id=c['treatmentId'], entity_type='card')
                          if c['properties'].get('player_rating')
-                         else TemplateItem(template_id=c['id'], template_title=c['title']))
-            for c in col['data']
+                         else TemplateItem(template_id=c['id'], template_title=c['title'],
+                                           group_id=c['treatmentId'] if c.get('treatmentId') else c['id'],
+                                           rarity=c['rarity'],
+                                           entity_type='card' if c.get('treatmentId') else 'sticker'))
+            for c in chain(col['data'], st['data'])
         }
+
         return Collection(id=collection_id, name=collection_name, items=items)
 
-    def request_collection(self, collection_id: int) -> dict:
-        url = self.get_collection_url(collection_id)
+    def request_collection(self, collection_id: int, entity_type: str) -> dict:
+        url = self.get_collection_url(collection_id, entity_type)
         r = requests.get(url, auth=self.auth)
         r.raise_for_status()
         return r.json()
@@ -111,6 +118,24 @@ class Updater:
                 teams[team_name].players[p.name].ratings.append(r)
         save_teams(teams, TEAMS_PATH)
 
+    def update_packs(self, cache_invalidation_seconds: int = 86400, ignored: Set[int] = {2641, 2642, 2643, 2674}):
+        collections = load_collections(COLLECTIONS_PATH)
+        packs = load_packs()
+        p_service = PackService(collections, packs, self.auth)
+        r_packs = p_service.get_packs()
+
+        for i, pack in tqdm(list(enumerate(p for p in r_packs if p.id not in ignored))):
+            exp = pack.exp if pack.id not in packs else packs[pack.id].exp
+            if pack.id not in packs or (not packs[pack.id].updated_at
+                                        or (int(time()) - packs[pack.id].updated_at > cache_invalidation_seconds)):
+                exp = p_service.get_exp(pack)
+
+            packs[pack.id] = Pack(pack.id, pack.name, pack.chances, pack.count, exp, int(time()))
+            if i % 5 == 0:
+                save_packs(packs)
+
+        save_packs(packs)
+
     @staticmethod
     def check_mismatches(player_l: Player, player_r: Player):
         player_l = deepcopy(player_l)
@@ -134,7 +159,6 @@ def save_collections(collections: Dict[int, Collection], file_path: str):
                 i_obj.pop('template_title')
                 items[i.template_title] = i_obj
             data['collections'][col_id] = {
-                'id': col.id,
                 'name': col.name,
                 'updated_at': int(time()),
                 'items': items

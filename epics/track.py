@@ -1,57 +1,37 @@
 import base64
-import statistics
 from asyncio import AbstractEventLoop
 from itertools import chain
 from operator import itemgetter
-from time import sleep
 
-import requests
 from tqdm import tqdm
-from typing import Dict, Set, List, Optional, Union, Tuple, NamedTuple
+from typing import Dict, Set, List, Union
 
 from epics.auth import EAuth
-from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem
+from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection, load_collections
 from epics.player import PlayerService
-from epics.utils import fail_fast_handler
-
-
-class MarketItem(NamedTuple):
-    template_id: int
-    avg_sales: float
-    offers: List[Tuple[int, int, int]]
-
-
-class MarketTarget(NamedTuple):
-    offer_id: int
-    offer_value: int
-    offer_score: int
-    item: TemplateItem
-    avg_sales: float
-
-    @property
-    def margin(self) -> Optional[float]:
-        if not self.avg_sales or not self.offer_value:
-            return None
-
-        return (self.avg_sales - self.offer_value) / self.avg_sales
-
-    @property
-    def score_margin(self) -> Optional[float]:
-        if not self.offer_value or not self.offer_score:
-            return None
-
-        return self.offer_value / self.offer_score / 10
+from epics.price import PriceService, MarketTarget
 
 
 class Tracker:
-    buy_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0x'.encode()).decode()
-    sales_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0xJn'
-                                 'BhZ2U9MSZzb3J0PXByaWNlJnR5cGU9Y2FyZCZ0ZW1wbGF0ZUlkPQ=='.encode()).decode()
-    item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZS9jYXJkLw=='.encode()).decode()
+    item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZQ=='.encode()).decode()
 
     def __init__(self, u_id: int, auth: EAuth) -> None:
         self.auth = auth
         self.p_service = PlayerService(u_id, auth=self.auth)
+        self.price_service = PriceService(auth=self.auth)
+
+        self._collections = None
+
+    @property
+    def collections(self) -> Dict[int, Collection]:
+        if self._collections:
+            return self._collections
+        self._collections = load_collections()
+        return self._collections
+
+    @classmethod
+    def get_mplace_url(cls, item_type: str, item_id: int) -> str:
+        return f'{cls.item_url}/{item_type}/{item_id}'
 
     @staticmethod
     def get_track_ids(players: Dict[str, List[Rating]], targets: Union[int, Dict[str, int]]) -> Dict[str, Set[Rating]]:
@@ -59,56 +39,6 @@ class Tracker:
             return {p: {r for r in ratings if r.rating >= targets} for p, ratings in players.items()}
 
         return {t: {r for r in players[t] if r.rating >= rating} for t, rating in targets.items()}
-
-    def request_sales(self, target_id: int) -> dict:
-        r = requests.get(self.sales_url + str(target_id), auth=self.auth)
-
-        if r.status_code == 429:
-            sleep(3)
-            return self.request_sales(target_id)
-
-        r.raise_for_status()
-        return r.json()
-
-    @staticmethod
-    def trim_mean(tlist: list, ignore_min: int, ignore_max: int) -> Optional[float]:
-        if not tlist:
-            return None
-
-        return (statistics.mean(tlist)
-                if (ignore_min + ignore_max) >= len(tlist)
-                else statistics.mean(sorted(tlist)[ignore_min:][:-ignore_max]))
-
-    def get_sales(self, item_id: int) -> MarketItem:
-        s = self.request_sales(item_id)
-        offers = next(iter(s['data']['market']), [{}])
-        sample_size = 12
-        avg_sales = self.trim_mean([
-            e['price'] for e in s['data'].get('recentSales', [])[0:sample_size]
-        ], 2, 2)
-
-        return MarketItem(item_id, avg_sales, [
-            (o['marketId'], o['price'], o['card']['rating'])
-            for o in offers if o.get('marketId') and o.get('price')
-        ])
-
-    def get_trend(self, target_id: int) -> Optional[Tuple[float, float, float, Optional[float]]]:
-        s = self.request_sales(target_id)
-        offers = next(iter(s['data']['market']), [{}])
-        min_offer = offers[0].get('price')
-        if not min_offer:
-            return None
-        next_offer = offers[1].get('price') if len(offers) > 1 else None
-        close_offers = sum((1 for o in offers[1:] if o.get('price') and o['price'] < min_offer * 1.15))
-
-        sample_size = 12
-        avg_sales = self.trim_mean([
-            e['price'] for e in s['data'].get('recentSales', [])[0:sample_size]
-        ], 2, 2)
-        if not avg_sales:
-            return None
-
-        return min_offer, avg_sales, close_offers, next_offer
 
     def get_items(self, targets: Union[Dict[str, int], int]):
         teams = load_teams()
@@ -118,7 +48,7 @@ class Tracker:
         results = []
         for ratings in tqdm(ids.values()):
             for r in ratings:
-                t = self.get_trend(r.template_id)
+                t = self.price_service.get_trend(r.template_id, 'card')
                 if t is not None:
                     min_offer, avg_sales, close_offers, next_offer = t
                     rev = avg_sales - min_offer if not next_offer else min(avg_sales - min_offer,
@@ -127,14 +57,15 @@ class Tracker:
 
         for r, rev, margin, min_offer, close_offers in sorted(results, key=itemgetter(2)):
             if margin > 0 and (30 <= min_offer):
-                print(f'{self.item_url}{r.template_id} {r.rating} ' + (f'[{min_offer}] ' if min_offer <= 5 else '') +
+                url = self.get_mplace_url('card', r.template_id)
+                print(f'{url} {r.rating} ' + (f'[{min_offer}] ' if min_offer <= 5 else '') +
                       f'{r.template_title} {min_offer} ({int(rev)}/{int(margin * 100)}%) {close_offers}')
 
     def get_market_targets(self, items_ids: Set[TemplateItem],
                            price_margin: float, score_margin: float, max_price: int) -> Dict[int, MarketTarget]:
         targets = {}
         for i in items_ids:
-            s = self.get_sales(i.template_id)
+            s = self.price_service.get_sales(i.template_id, i.entity_type)
             if s.offers:
                 min_offer_id, min_offer, score = s.offers[0]
                 if min_offer <= max_price:
@@ -149,10 +80,29 @@ class Tracker:
                                 targets[max_score_offer_id] = m
         return targets
 
-    def buy_item(self, offer_id: int, offer_value: int) -> bool:
-        r = requests.post(self.buy_url, auth=self.auth, json={'marketId': offer_id, 'price': offer_value})
-        r.raise_for_status()
-        return r.json()['success']
+    def upgrade(self, pps_threshold: float = 0.325):
+        targets = set({i.template_id: i for col in self.collections
+                       for i in self.collections[col].items.values()
+                       if i.rarity.lower()[0:4] in {'abun', 'rare'}}.values())
+
+        for t in tqdm(targets):
+            items = self.p_service.get_cards(t.template_id, t.entity_type)
+            t_key, t_score = next(iter(sorted(items.items(), key=itemgetter(1), reverse=True)), ('Z0', 0))
+
+            if t.rarity.lower().startswith('abun') and t_key[0] == 'A' and int(t_key[1:]) < 2000:
+                continue
+
+            s = self.price_service.get_sales(t.template_id, t.entity_type, exhaustive=True)
+            if s.offers:
+                o = next(iter(sorted((o for o in s.offers if o[2] > t_score),
+                                     key=lambda o: o[1] / (o[2] - t_score) * 10.0)), None)
+                if o:
+                    o_id, o_price, o_score = o
+                    margin = (o_score - t_score) * 10.0
+                    pps = o_price / margin
+                    if pps <= pps_threshold:
+                        self.price_service.buy_item(o_id, o_price)
+                        print(f'Bought {t.template_title} {margin:.2f} {o_price} {pps:.2f}')
 
     def track_items(self, items_ids: Set[TemplateItem], price_margin: float, score_margin: float,
                     max_price: int, buy_threshold: int):
@@ -162,18 +112,19 @@ class Tracker:
                            f'(s:{int(t.offer_score * 10)}/{t.score_margin:.3f} ' \
                            f'avg:{int(t.avg_sales)} m:{int(t.margin * 100) if t.margin else None}%)'
             if t.offer_value <= buy_threshold:
-                self.buy_item(t.offer_id, t.offer_value)
+                self.price_service.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
             else:
-                url = f'{self.item_url}{t.item.template_id}'
+                url = self.get_mplace_url(t.item.entity_type, t.item.template_id)
                 print(f'{url} {item_details}')
 
     def track(self, price_margin: float, score_margin: float,
               max_price: int, buy_threshold: int):
-        for item in tqdm(list(chain.from_iterable(self.p_service.get_missing(blacklist_names={
+        m = self.p_service.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
-        }, whitelist_ids={4357}).values()))):
+        }, whitelist_ids={4357})
+        for item in tqdm(list(chain.from_iterable(m.values()))):
             self.track_items({item}, price_margin, score_margin, max_price, buy_threshold)
 
     def schedule_track(self, l: AbstractEventLoop,

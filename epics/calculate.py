@@ -1,11 +1,15 @@
 import os
 from collections import Counter
 from concurrent.futures.process import ProcessPoolExecutor
-from typing import Dict, List, Iterable, Tuple, Optional, NamedTuple
+from operator import itemgetter
 
 from tqdm import tqdm
+from typing import Dict, List, Iterable, Tuple, Optional, NamedTuple
 
-from epics.domain import Rating, Player, Team, get_player_ratings, load_teams
+from epics.auth import EAuth
+from epics.domain import Rating, Player, Team, get_player_ratings, load_teams, load_collections
+from epics.pack import load_packs, PackService
+from epics.user import u_a_auth
 
 Lineup = Tuple[Player, Player, Player, Player, Player]
 SimpleLineup = Tuple[str, str, str, str, str]
@@ -52,6 +56,10 @@ class GetEfficiencyTask:
 
 
 class Calculator:
+
+    def __init__(self, auth: EAuth) -> None:
+        self.auth = auth
+        self.pack_service = PackService(load_collections(), load_packs(), self.auth)
 
     def calculate_lineups_efficiency(self, output_file_path: str = LINEUP_FILE_PATH):
         teams = load_teams()
@@ -200,5 +208,17 @@ class Calculator:
         'Abundant': 0, 'Rare': 1, 'Very Rare': 2, 'Super Rare': 3, 'Ultra Rare': 4, 'Limited': 5, 'Unique': 6, 'N/A': 10
     }
 
+    def get_packs_roi(self):
+        packs = self.pack_service.packs
+        market_packs = self.pack_service.get_market_packs()
+        res = sorted([
+            (p, packs[p.id], packs[p.id].exp - p.price)
+            for p in market_packs if p.id in packs
+        ], key=itemgetter(2))
 
-calculator = Calculator()
+        for m, p, diff in res:
+            if diff > 0:
+                print(f'{self.pack_service.get_item_url(m.id)} {p.name} {m.price} {p.exp:.2f} ({diff:.2f})')
+
+
+calculator = Calculator(u_a_auth)

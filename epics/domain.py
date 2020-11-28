@@ -50,6 +50,17 @@ def load_teams(file_path: str = TEAMS_PATH) -> Dict[str, Team]:
 class TemplateItem(NamedTuple):
     template_id: int
     template_title: str
+    group_id: int
+    entity_type: str
+    rarity: str = None
+
+    @property
+    def key(self) -> str:
+        return f'{self.entity_type}-{self.template_id}'
+
+    @property
+    def group_key(self) -> str:
+        return f'{self.entity_type}-{self.group_id}'
 
 
 class PlayerItem(NamedTuple):
@@ -65,6 +76,16 @@ class PlayerItem(NamedTuple):
     team_name: str
     template_id: int
     template_title: str
+    group_id: int
+    entity_type: str
+
+    @property
+    def key(self) -> str:
+        return f'{self.entity_type}-{self.template_id}'
+
+    @property
+    def group_key(self) -> str:
+        return f'{self.entity_type}-{self.group_id}'
 
 
 CollectionItem = Union[PlayerItem, TemplateItem]
@@ -87,9 +108,10 @@ def get_roster_path(u_id: int) -> str:
 def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[int, Collection]:
     with open(file_path) as f:
         res = yaml.load(f, Loader=yaml.SafeLoader)
-        return {col_id: Collection(id=col['id'], name=col['name'], updated_at=col.get('updated_at'), items={
-            item_title: (PlayerItem(**item, template_title=item_title)
-                         if 'player_id' in item
-                         else TemplateItem(**item, template_title=item_title))
-            for item_title, item in col.get('items', {}).items()
-        }) for col_id, col in res.get('collections', {}).items()}
+        return {col_id: Collection(id=col_id, name=col['name'], updated_at=col.get('updated_at'),
+                                   items={
+                                       item_title: (PlayerItem(**item, template_title=item_title)
+                                                    if 'player_id' in item
+                                                    else TemplateItem(**item, template_title=item_title))
+                                       for item_title, item in col.get('items', {}).items()})
+                for col_id, col in res.get('collections', {}).items()}

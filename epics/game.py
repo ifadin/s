@@ -2,11 +2,14 @@ import asyncio
 import base64
 import re
 from copy import deepcopy
+from datetime import datetime
 from itertools import chain
 from operator import itemgetter
 from random import randint
 
 import requests
+from dateutil.parser import isoparse
+from pytz import utc
 from typing import NamedTuple, List, Dict, Tuple, Optional
 
 from epics.auth import EAuth
@@ -84,6 +87,13 @@ class Trainer:
 
     async def run(self, op=None):
         usr_roster_id = self.get_usr_roster_id()
+        if op:
+            op_amount = self.get_op_goal_amount(self.get_goals())
+            if op_amount:
+                op_roster_id = op.get_usr_roster_id()
+                await self.play_op(op_amount, usr_roster_id, op_roster_id, op)
+            else:
+                print(f'[{self.u_id}] no op amount')
 
         main_s = self.get_circuits_schedule(self.get_circuits())
         if main_s:
@@ -103,14 +113,6 @@ class Trainer:
             await self.play_tow(usr_roster_id, tow_id, g_amount)
         else:
             print(f'[{self.u_id}] no goal amount')
-
-        if op:
-            op_amount = self.get_op_goal_amount(self.get_goals())
-            if op_amount:
-                op_roster_id = op.get_usr_roster_id()
-                await self.play_op(op_amount, usr_roster_id, op_roster_id, op)
-            else:
-                print(f'[{self.u_id}] no op amount')
 
         for g in self.get_goals():
             if g.available:
@@ -136,21 +138,23 @@ class Trainer:
         res = requests.get(f'{self.circuits_url}?categoryId=1', auth=self.auth, headers=self.h)
         res.raise_for_status()
         circuits = []
-        for crc in res.json()['data']['circuits']:
-            c_res = requests.get(f"{self.circuits_url}/{crc['id']}", auth=self.auth, headers=self.h)
-            c_res.raise_for_status()
-            c = c_res.json()['data']['circuit']
 
-            circuits.append(Circuit(c['id'], c['name'], [
-                Stage(s['id'], s['name'], bool(s.get('completed', False)), [
-                    Opponent(r['ut_pve_roster_id'],
-                             next(filter(
-                                 lambda p: p['ut_pve_roster_id'] == r['ut_pve_roster_id'], s['rosterProgress']
-                             ), {}).get('wins', 0),
-                             r['wins'])
-                    for r in s['rosters']
-                ]) for s in c['stages']
-            ], c['stagesCompleted'], c['totalStages']))
+        for crc in res.json()['data']['circuits']:
+            if isoparse(crc['start']) < datetime.utcnow().replace(tzinfo=utc) < isoparse(crc['end']):
+                c_res = requests.get(f"{self.circuits_url}/{crc['id']}", auth=self.auth, headers=self.h)
+                c_res.raise_for_status()
+                c = c_res.json()['data']['circuit']
+
+                circuits.append(Circuit(c['id'], c['name'], [
+                    Stage(s['id'], s['name'], bool(s.get('completed', False)), [
+                        Opponent(r['ut_pve_roster_id'],
+                                 next(filter(
+                                     lambda p: p['ut_pve_roster_id'] == r['ut_pve_roster_id'], s['rosterProgress']
+                                 ), {}).get('wins', 0),
+                                 r['wins'])
+                        for r in s['rosters']
+                    ]) for s in c['stages']
+                ], c['stagesCompleted'], c['totalStages']))
 
         return circuits
 
