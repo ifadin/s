@@ -4,10 +4,17 @@ from time import sleep
 
 import requests
 from tqdm import tqdm
-from typing import Set, Dict, List
+from typing import Set, Dict, List, NamedTuple
 
 from epics.auth import EAuth
 from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path
+
+
+class Card(NamedTuple):
+    id: int
+    key: str
+    score: float
+    entity_type: str
 
 
 class PlayerService:
@@ -24,7 +31,7 @@ class PlayerService:
     def get_owned_url(self, entity_type: str, collection_id: int) -> str:
         return f'{self.card_ids_url}/{entity_type}ids?categoryId=1&collectionId={collection_id}'
 
-    def get_cards(self, template_id: int, entity_type: str = 'card') -> Dict[str, float]:
+    def get_cards(self, template_id: int, entity_type: str = 'card') -> Dict[int, Card]:
         r = requests.get(f'{self.card_ids_url}/{entity_type}-templates/{template_id}/{entity_type}s?categoryId=1',
                          auth=self.auth)
 
@@ -34,7 +41,8 @@ class PlayerService:
             return self.get_cards(template_id, entity_type)
 
         r.raise_for_status()
-        return {(d['mintBatch'] + str(d['mintNumber'])): d['rating'] for d in r.json()['data']}
+        return {d['id']: Card(d['id'], d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type)
+                for d in r.json()['data']}
 
     def get_card_ids(self, collection_id: int, entity_type: str = 'card') -> Dict[str, Set[int]]:
         r = requests.get(self.get_owned_url(entity_type, collection_id), auth=self.auth)

@@ -1,7 +1,7 @@
 import base64
 from asyncio import AbstractEventLoop
 from itertools import chain
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 
 from tqdm import tqdm
 from typing import Dict, Set, List, Union
@@ -80,29 +80,40 @@ class Tracker:
                                 targets[max_score_offer_id] = m
         return targets
 
-    def upgrade(self, pps_threshold: float = 0.325):
+    def upgrade(self, pps_threshold: float = 0.325, buy_threshold: int = 9):
         targets = set({i.template_id: i for col in self.collections
                        for i in self.collections[col].items.values()
                        if i.rarity.lower()[0:4] in {'abun', 'rare'}}.values())
 
         for t in tqdm(targets):
-            items = self.p_service.get_cards(t.template_id, t.entity_type)
-            t_key, t_score = next(iter(sorted(items.items(), key=itemgetter(1), reverse=True)), ('Z0', 0))
+            cards = self.p_service.get_cards(t.template_id, t.entity_type)
+            if not cards:
+                continue
 
-            if t.rarity.lower().startswith('abun') and t_key[0] == 'A' and int(t_key[1:]) < 2000:
+            c = max(cards.values(), key=attrgetter('score'))
+            if c.key[0] == 'A' and int(c.key[1:]) < (2000 if t.rarity.lower().startswith('abun') else 300):
                 continue
 
             s = self.price_service.get_sales(t.template_id, t.entity_type, exhaustive=True)
             if s.offers:
-                o = next(iter(sorted((o for o in s.offers if o[2] > t_score),
-                                     key=lambda o: o[1] / (o[2] - t_score) * 10.0)), None)
+                min_price = s.offers[0][1] - 1
+                o = min((o for o in s.offers if o[2] > c.score), default=None,
+                        key=lambda o: (o[1] - (min_price if o[1] > 3 else 0)) / (o[2] - c.score) * 10.0)
                 if o:
                     o_id, o_price, o_score = o
-                    margin = (o_score - t_score) * 10.0
-                    pps = o_price / margin
-                    if pps <= pps_threshold:
-                        self.price_service.buy_item(o_id, o_price)
-                        print(f'Bought {t.template_title} {margin:.2f} {o_price} {pps:.2f}')
+                    margin = (o_score - c.score) * 10.0
+                    pps = (o_price - (min_price if o_price > 3 else 0)) / margin
+                    if 0 < pps <= pps_threshold:
+                        details = f'{t.template_title} {c.score}->{o_score} (+{margin:.2f}) P:{o_price} ({pps:.2f}pps)'
+                        if o_price <= buy_threshold:
+                            self.price_service.buy_item(o_id, o_price)
+                            print(f'Upgraded {details}')
+                            if min_price >= 3:
+                                for cc in cards.values():
+                                    self.price_service.sell_item(cc.id, min_price, cc.entity_type)
+                        else:
+                            url = self.get_mplace_url(t.entity_type, t.template_id)
+                            print(f'{url}/{o_id} {details}')
 
     def track_items(self, items_ids: Set[TemplateItem], price_margin: float, score_margin: float,
                     max_price: int, buy_threshold: int):

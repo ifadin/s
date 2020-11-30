@@ -41,6 +41,8 @@ class PriceService:
     buy_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0x'.encode()).decode()
     sales_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0xJnNvcnQ9'
                                  'cHJpY2U='.encode()).decode()
+    sell_url = base64.b64decode(
+        'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9saXN0P2NhdGVnb3J5SWQ9MQ=='.encode()).decode()
 
     def __init__(self, auth: EAuth) -> None:
         self.auth = auth
@@ -102,6 +104,11 @@ class PriceService:
             return None
 
         return min_offer, avg_sales, close_offers, next_offer
+
+    def sell_item(self, item_id: int, price: int, entity_type: str) -> int:
+        r = requests.post(self.sell_url, auth=self.auth, json={'price': price, 'id': item_id, 'type': entity_type})
+        r.raise_for_status()
+        return r.json()['data']['marketId']
 
     @staticmethod
     def trim_mean(tlist: list, ignore_min: int, ignore_max: int) -> Optional[float]:
