@@ -1,5 +1,6 @@
 import base64
 import json
+from itertools import chain
 from time import sleep
 
 import requests
@@ -7,7 +8,7 @@ from tqdm import tqdm
 from typing import Set, Dict, List, NamedTuple
 
 from epics.auth import EAuth
-from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path
+from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path, Collection
 
 
 class Card(NamedTuple):
@@ -15,13 +16,15 @@ class Card(NamedTuple):
     key: str
     score: float
     entity_type: str
+    available: bool = False
 
 
 class PlayerService:
 
-    def __init__(self, u_id: int, auth: EAuth) -> None:
+    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection] = None) -> None:
         self.u_id = u_id
         self.auth = auth
+        self.collections = load_collections() if collections is None else collections
 
         self.card_ids_url = (
                 base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
@@ -41,7 +44,8 @@ class PlayerService:
             return self.get_cards(template_id, entity_type)
 
         r.raise_for_status()
-        return {d['id']: Card(d['id'], d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type)
+        return {d['id']: Card(d['id'], d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type,
+                              d['status'] == 'available')
                 for d in r.json()['data']}
 
     def get_card_ids(self, collection_id: int, entity_type: str = 'card') -> Dict[str, Set[int]]:
@@ -63,7 +67,7 @@ class PlayerService:
             blacklist_names = set()
 
         missing: Dict[int, Set[TemplateItem]] = {}
-        for c in tqdm(load_collections().values()):
+        for c in tqdm(self.collections.values()):
             if c.id in whitelist_ids or all((not c.name.lower().startswith(ignored) for ignored in blacklist_names)):
                 owned = set(self.get_card_ids(c.id).keys()) | set(self.get_card_ids(c.id, 'sticker').keys())
                 for i in c.items.values():
@@ -74,10 +78,18 @@ class PlayerService:
 
         return missing
 
-    def get_owned(self) -> Dict[int, PlayerItem]:
+    def get_owned(self, blacklist_names: Set[str] = None, whitelist_ids=None) -> Set[TemplateItem]:
+        items = set({i.template_id: i for col in self.collections
+                     for i in self.collections[col].items.values()}.values())
+        missing = set(i.template_id for i in chain.from_iterable(
+            self.get_missing(blacklist_names, whitelist_ids).values()
+        ))
+        return {i for i in items if i.template_id not in missing}
+
+    def get_owned_roster(self) -> Dict[int, PlayerItem]:
         roster = self.load_roster()
         return {
-            i.template_id: i for col in list(load_collections().values())
+            i.template_id: i for col in list(self.collections.values())
             for i in list(col.items.values())
             if isinstance(i, PlayerItem) and i.template_id in roster
         }

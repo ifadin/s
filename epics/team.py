@@ -74,7 +74,7 @@ class TeamService:
 
     def get_role_rosters(self, min_ratings: Tuple[int, int, int, int, int]):
         rfl, snp, ent, sup, flx = {}, {}, {}, {}, {}
-        for p in list(self.p_service.get_owned().values()):
+        for p in list(self.p_service.get_owned_roster().values()):
             if p.role_id == 46 and p.player_rating >= min_ratings[0]:
                 if p.player_id not in rfl or rfl[p.player_id].player_rating < p.player_rating:
                     rfl[p.player_id] = p

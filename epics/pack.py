@@ -144,7 +144,7 @@ class PackService:
             sales = []
             for g in c.group_ids:
                 for i in self.get_group_items(g):
-                    s = self.p_service.get_sales(i.template_id, i.entity_type).avg_sales
+                    s = self.p_service.get_offers(i.template_id, i.entity_type).avg_sales
                     if s:
                         sales.append(s)
             exp += c.chance / 100.0 * (mean(sales) if sales else 0)

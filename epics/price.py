@@ -9,16 +9,11 @@ from epics.auth import EAuth
 from epics.domain import TemplateItem
 
 
-class MarketItem(NamedTuple):
-    template_id: int
-    avg_sales: float
-    offers: List[Tuple[int, int, int]]
-
-
-class MarketTarget(NamedTuple):
+class MarketOffer(NamedTuple):
     offer_id: int
     offer_value: int
     offer_score: int
+    card_id: int
     item: TemplateItem
     avg_sales: float
 
@@ -30,7 +25,7 @@ class MarketTarget(NamedTuple):
         return (self.avg_sales - self.offer_value) / self.avg_sales
 
     @property
-    def score_margin(self) -> Optional[float]:
+    def pps(self) -> Optional[float]:
         if not self.offer_value or not self.offer_score:
             return None
 
@@ -63,29 +58,28 @@ class PriceService:
         r.raise_for_status()
         return r.json()
 
-    def get_sales(self, item_id: int, entity_type: str, exhaustive: bool = False) -> MarketItem:
-        def get_offers(res: dict):
-            return [
-                (o['marketId'], o['price'], o[entity_type]['rating'])
-                for o in next(iter(res['data']['market']), [{}]) if o.get('marketId') and o.get('price')
-            ]
+    def get_offers(self, item: TemplateItem, exhaustive: bool = False) -> List[MarketOffer]:
+        def get_offers(res: dict, avg_sales: float):
+            return [MarketOffer(o['marketId'], o['price'], o[item.entity_type]['rating'],
+                                o[item.entity_type]['id'], item, avg_sales)
+                    for o in next(iter(res['data']['market']), [{}]) if o.get('marketId') and o.get('price')]
 
-        s = self.request_sales(item_id, entity_type)
+        s = self.request_sales(item.template_id, item.entity_type)
         sample_size = 12
         avg_sales = self.trim_mean([
             e['price'] for e in s['data'].get('recentSales', [])[0:sample_size]
         ], 2, 2)
 
-        offers = get_offers(s)
+        offers = get_offers(s, avg_sales)
         page_num = 1
         next_page = s['data']['count'] == 40
         while exhaustive and next_page:
             page_num += 1
-            s = self.request_sales(item_id, entity_type, page_num)
-            offers += get_offers(s)
+            s = self.request_sales(item.template_id, item.entity_type, page_num)
+            offers += get_offers(s, avg_sales)
             next_page = s['data']['count'] == 40
 
-        return MarketItem(item_id, avg_sales, offers)
+        return offers
 
     def get_trend(self, target_id: int, entity_type: str) -> Optional[Tuple[float, float, float, Optional[float]]]:
         s = self.request_sales(target_id, entity_type)

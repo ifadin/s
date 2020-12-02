@@ -9,7 +9,7 @@ from epics.track import Tracker
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
 from epics.utils import fail_fast_handler
 
-options = {'spin', 'track', 'goal', 'items', 'craft', 'upgrade'}
+options = {'spin', 'track', 'goal', 'items', 'craft', 'upgrade', 'sell'}
 
 if len(sys.argv) < 2 or sys.argv[1] not in options:
     raise AssertionError(f'Specify one of {options}')
@@ -61,5 +61,12 @@ if sys.argv[1] == 'craft':
 
 if sys.argv[1] == 'upgrade':
     Tracker(u_a, u_a_auth).upgrade()
+
+if sys.argv[1] == 'sell':
+    if len(sys.argv) < 3:
+        raise AssertionError('Missing pps argument')
+
+    pps_margin = float(sys.argv[2])
+    Tracker(u_a, u_a_auth).sell(pps_margin)
 
 l.close()
