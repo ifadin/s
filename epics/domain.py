@@ -98,16 +98,20 @@ class Collection(NamedTuple):
     updated_at: int = None
 
 
-COLLECTIONS_PATH = os.path.join('epics', 'data', 'collections.yaml')
+def get_collections_path(s_id: str) -> str:
+    return os.path.join('epics', 'data', f'{s_id}_collections.yaml')
 
 
 def get_roster_path(u_id: int) -> str:
     return os.path.join('epics', 'data', f'roster_{u_id}.json')
 
 
-def load_collections(file_path: str = COLLECTIONS_PATH) -> Dict[int, Collection]:
+def load_collections(file_path: str = get_collections_path('2020')) -> Dict[int, Collection]:
     with open(file_path) as f:
         res = yaml.load(f, Loader=yaml.SafeLoader)
+        if not res:
+            return {}
+
         return {col_id: Collection(id=col_id, name=col['name'], updated_at=col.get('updated_at'),
                                    items={
                                        item_title: (PlayerItem(**item, template_title=item_title)

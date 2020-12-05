@@ -7,7 +7,7 @@ from tqdm import tqdm
 from typing import Dict, Set, List, Union
 
 from epics.auth import EAuth
-from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection, load_collections
+from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection
 from epics.player import PlayerService
 from epics.price import PriceService, MarketOffer
 
@@ -15,20 +15,12 @@ from epics.price import PriceService, MarketOffer
 class Tracker:
     item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZQ=='.encode()).decode()
 
-    def __init__(self, u_id: int, auth: EAuth) -> None:
+    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection]) -> None:
         self.auth = auth
-
-        self._collections = None
+        self.collections = collections
 
         self.p_service = PlayerService(u_id, self.auth, self.collections)
         self.price_service = PriceService(auth=self.auth)
-
-    @property
-    def collections(self) -> Dict[int, Collection]:
-        if self._collections:
-            return self._collections
-        self._collections = load_collections()
-        return self._collections
 
     @classmethod
     def get_mplace_url(cls, item_type: str, item_id: int) -> str:
@@ -138,8 +130,8 @@ class Tracker:
             if t.offer_value <= buy_threshold:
                 self.price_service.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
-                if t.pps > pps_threshold:
-                    s_price = int(t.offer_value * 1.2 * 1.15)
+                if t.pps > pps_threshold and t.avg_sales > 20:
+                    s_price = int(t.avg_sales)
                     self.price_service.sell_item(t.card_id, s_price, t.item.entity_type)
                     print(f'Put for {s_price}')
             else:
@@ -152,7 +144,7 @@ class Tracker:
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
         }, whitelist_ids={4357})
-        for item in tqdm(list(chain.from_iterable(m.values()))):
+        for item in tqdm(set(chain.from_iterable(m.values()))):
             self.track_items({item}, price_margin, score_margin, max_price, buy_threshold)
 
     def schedule_track(self, l: AbstractEventLoop,

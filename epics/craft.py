@@ -2,6 +2,7 @@ import base64
 from copy import deepcopy
 
 import requests
+from tqdm import tqdm
 from typing import Set, NamedTuple, Optional, Dict
 
 from epics.auth import EAuth
@@ -28,7 +29,7 @@ class Card(NamedTuple):
         return self.mint_c + str(self.mint_n)
 
 
-Collection = Dict[int, Set[int]]
+CardSet = Dict[int, Set[int]]
 
 
 class Crafter:
@@ -87,11 +88,11 @@ class Crafter:
         return self.request_slot(s)
 
     @staticmethod
-    def get_duplicates_amount(collection: Collection) -> int:
+    def get_duplicates_amount(collection: CardSet) -> int:
         return sum((len(v) - 1 for v in collection.values() if len(v) > 1))
 
     @staticmethod
-    def get_duplicate_entities(collection: Collection, amount: int) -> Collection:
+    def get_duplicate_entities(collection: CardSet, amount: int) -> CardSet:
         added = 0
         col = {}
         for item_id, v in collection.items():
@@ -103,8 +104,7 @@ class Crafter:
 
         return col
 
-    @staticmethod
-    def update_collection(collection: Collection, entities: Collection) -> Collection:
+    def update_card_set(self, collection: CardSet, entities: CardSet) -> CardSet:
         c = deepcopy(collection)
         for i_id, items in entities.items():
             diff = c[i_id] - items
@@ -119,9 +119,10 @@ class Crafter:
 
         r = self.requirements[item_type]
         col = {
-            t_id: c_ids
+            t_id: (c_ids if len(c_ids) < 2 else set(
+                c.id for c in self.p_service.get_cards(t_id.split('-')[1]).values() if c.available))
             for col_id in self.collections[item_type]
-            for t_id, c_ids in self.p_service.get_card_ids(col_id).items()
+            for t_id, c_ids in tqdm(self.p_service.get_card_ids(col_id).items())
         }
 
         available = self.get_duplicates_amount(col)
@@ -133,6 +134,6 @@ class Crafter:
             return
         for i in range(0, amount):
             entities = self.get_duplicate_entities(col, r.amount)
-            col = self.update_collection(col, entities)
+            col = self.update_card_set(col, entities)
             res = self.craft_item(item_type, set((i for v in entities.values() for i in v)))
             print(f'[{self.u_id}] Got{" NEW " if res.is_new else " "}{res.mint} {res.template_title}')

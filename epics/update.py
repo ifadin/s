@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 from copy import deepcopy
 from itertools import chain
 from time import time
@@ -12,32 +11,33 @@ from typing import Dict, Set
 
 from csgo.util import get_batches
 from epics.auth import EAuth
-from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, COLLECTIONS_PATH, load_collections, \
-    TemplateItem, get_roster_path
+from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, load_collections, \
+    TemplateItem, get_roster_path, get_collections_path
 from epics.pack import load_packs, PackService, save_packs, Pack
 from epics.player import PlayerService
-from epics.user import u_a, u_a_auth, u_b_auth, u_b
 
 
 class Updater:
     collections_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zLw=='.encode()).decode()
 
-    def __init__(self, u_id: int, auth: EAuth = EAuth(os.environ['EP_REF_TOKEN'])) -> None:
+    def __init__(self, u_id: int, auth: EAuth, s_id: str = '2020') -> None:
         self.u_id = u_id
         self.auth = auth
-        self.p_service = PlayerService(self.u_id, self.auth)
+        self.s_id = s_id
+        self.collections = load_collections(get_collections_path(self.s_id))
 
+        self.p_service = PlayerService(self.u_id, self.auth)
         self.summary_url = (
                 base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
                 + f'/{self.u_id}/user-summary/?categoryId=1'
         )
 
-    def request_collection_ids(self) -> Dict[int, str]:
-        r = requests.get(self.summary_url, auth=self.auth)
+    def request_collection_ids(self, s_id: str) -> Dict[int, str]:
+        r = requests.get(f'{self.summary_url}&seasons={s_id}', auth=self.auth)
         r.raise_for_status()
         return {c['collection']['id']: c['collection']['name'] for c in r.json()['data']
                 if c['collection']['visible']
-                and '2020' in c['collection']['properties']['seasons']
+                and s_id in c['collection']['properties']['seasons']
                 and 1 in c['collection']['properties']['game_ids']
                 and any(e in c['collection']['properties']['entity_types'] for e in ['card', 'sticker'])}
 
@@ -74,30 +74,27 @@ class Updater:
         return r.json()
 
     def update_collections(self, cache_threshold_seconds: int = 86400):
-        collections = load_collections(COLLECTIONS_PATH)
-        collection_ids = list(self.request_collection_ids().items())
+        collection_ids = list(self.request_collection_ids(self.s_id).items())
         batch_size = 10
         print(f'{len(collection_ids)} collections to update (batch size {batch_size})')
         for col_batch in tqdm(get_batches(collection_ids, batch_size)):
             save_required = False
             for col_id, col_name in col_batch:
-                if (col_name not in collections or not collections[col_name].updated_at or
-                        (int(time()) - collections[col_name].updated_at > cache_threshold_seconds)):
+                if (col_name not in self.collections or not self.collections[col_name].updated_at or
+                        (int(time()) - self.collections[col_name].updated_at > cache_threshold_seconds)):
                     c = self.get_collection(col_id, col_name)
-                    collections[col_id] = c
+                    self.collections[col_id] = c
                     save_required = True
             if save_required:
-                save_collections(collections, COLLECTIONS_PATH)
+                save_collections(self.collections, get_collections_path(self.s_id))
 
     def update_roster(self):
         players = {i for col in tqdm(load_collections()) for i in self.p_service.get_card_ids(col)}
         return save_roster(players, get_roster_path(self.u_id))
 
-    @classmethod
-    def update_teams(cls):
-        collections = load_collections(COLLECTIONS_PATH)
+    def update_teams(self):
         teams = {}
-        for col in list(collections.values()):
+        for col in list(self.collections.values()):
             for player_item in list(i for i in list(col.items.values()) if isinstance(i, PlayerItem)):
                 team_name = player_item.team_name
                 if team_name not in teams:
@@ -108,7 +105,7 @@ class Updater:
                 if p.name not in teams[team_name].players:
                     teams[team_name].players[p.name] = p
                 else:
-                    cls.check_mismatches(teams[team_name].players[p.name], p)
+                    self.check_mismatches(teams[team_name].players[p.name], p)
 
                 r = Rating(rating=player_item.player_rating,
                            rarity=player_item.rarity,
@@ -119,9 +116,8 @@ class Updater:
         save_teams(teams, TEAMS_PATH)
 
     def update_packs(self, cache_invalidation_seconds: int = 86400, ignored: Set[int] = {2641, 2642, 2643, 2674}):
-        collections = load_collections(COLLECTIONS_PATH)
         packs = load_packs()
-        p_service = PackService(collections, packs, self.auth)
+        p_service = PackService(self.collections, packs, self.auth)
         r_packs = p_service.get_packs()
 
         for i, pack in tqdm(list(enumerate(p for p in r_packs if p.id not in ignored))):
@@ -189,7 +185,3 @@ def save_teams(teams: Dict[str, Team], file_path: str):
             data['teams'][team_name] = {'players': players}
 
         yaml.dump(data, f, default_flow_style=False)
-
-
-updater_a = Updater(u_a, u_a_auth)
-updater_b = Updater(u_b, u_b_auth)

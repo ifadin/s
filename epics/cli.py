@@ -3,13 +3,15 @@ import sys
 from asyncio import gather
 
 from epics.craft import Crafter
+from epics.domain import load_collections, get_collections_path
 from epics.game import Trainer
 from epics.spin import SpinService
 from epics.track import Tracker
+from epics.update import Updater
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
 from epics.utils import fail_fast_handler
 
-options = {'spin', 'track', 'goal', 'items', 'craft', 'upgrade', 'sell'}
+options = {'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell'}
 
 if len(sys.argv) < 2 or sys.argv[1] not in options:
     raise AssertionError(f'Specify one of {options}')
@@ -34,7 +36,13 @@ if sys.argv[1] == 'track':
 
     price_margin, score_margin = float(sys.argv[2]), float(sys.argv[3])
     buy_threshold = float(sys.argv[4]) if len(sys.argv) > 4 else 60
-    Tracker(u_a, u_a_auth).start(l, price_margin, score_margin, buy_threshold)
+    s_id = sys.argv[5] if len(sys.argv) > 5 else '2020'
+    b_track = sys.argv[6] if len(sys.argv) > 6 else ''
+    t: Tracker = (Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id)))
+                  if not b_track.lower() == 'b'
+                  else Tracker(u_b, u_b_auth, load_collections(get_collections_path(s_id))))
+    t.start(l, price_margin, score_margin,
+            buy_threshold)
     l.run_forever()
 
 if sys.argv[1] == 'goal':
@@ -59,14 +67,22 @@ if sys.argv[1] == 'craft':
         c_a.craft('t1')
         c_b.craft('t1')
 
+if sys.argv[1] == 'update':
+    if len(sys.argv) < 3:
+        raise AssertionError('Missing s_id argument')
+    if len(sys.argv) < 4:
+        raise AssertionError('Missing cache_refresh argument')
+
+    Updater(u_a, u_a_auth, sys.argv[2]).update_collections(int(sys.argv[3]))
+
 if sys.argv[1] == 'upgrade':
-    Tracker(u_a, u_a_auth).upgrade()
+    Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).upgrade()
 
 if sys.argv[1] == 'sell':
     if len(sys.argv) < 3:
         raise AssertionError('Missing pps argument')
 
     pps_margin = float(sys.argv[2])
-    Tracker(u_a, u_a_auth).sell(pps_margin)
+    Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).sell(pps_margin)
 
 l.close()
