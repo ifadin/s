@@ -114,8 +114,8 @@ def load_collections(file_path: str = get_collections_path('2020')) -> Dict[int,
 
         return {col_id: Collection(id=col_id, name=col['name'], updated_at=col.get('updated_at'),
                                    items={
-                                       item_title: (PlayerItem(**item, template_title=item_title)
-                                                    if 'player_id' in item
-                                                    else TemplateItem(**item, template_title=item_title))
-                                       for item_title, item in col.get('items', {}).items()})
+                                       item_id: (PlayerItem(template_id=item_id, **item)
+                                                 if 'player_id' in item
+                                                 else TemplateItem(template_id=item_id, **item))
+                                       for item_id, item in col.get('items', {}).items()})
                 for col_id, col in res.get('collections', {}).items()}

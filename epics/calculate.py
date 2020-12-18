@@ -9,7 +9,6 @@ from typing import Dict, List, Iterable, Tuple, Optional, NamedTuple
 from epics.auth import EAuth
 from epics.domain import Rating, Player, Team, get_player_ratings, load_teams, load_collections
 from epics.pack import load_packs, PackService
-from epics.user import u_a_auth
 
 Lineup = Tuple[Player, Player, Player, Player, Player]
 SimpleLineup = Tuple[str, str, str, str, str]
@@ -219,6 +218,3 @@ class Calculator:
         for m, p, diff in res:
             if diff > 0:
                 print(f'{self.pack_service.get_item_url(m.id)} {p.name} {m.price} {p.exp:.2f} ({diff:.2f})')
-
-
-calculator = Calculator(u_a_auth)

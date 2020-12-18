@@ -9,12 +9,12 @@ import yaml
 from tqdm import tqdm
 from typing import Dict, Set
 
-from csgo.util import get_batches
 from epics.auth import EAuth
 from epics.domain import Rating, Player, Team, TEAMS_PATH, PlayerItem, Collection, load_collections, \
     TemplateItem, get_roster_path, get_collections_path
 from epics.pack import load_packs, PackService, save_packs, Pack
 from epics.player import PlayerService
+from epics.utils import get_batches
 
 
 class Updater:
@@ -26,7 +26,7 @@ class Updater:
         self.s_id = s_id
         self.collections = load_collections(get_collections_path(self.s_id))
 
-        self.p_service = PlayerService(self.u_id, self.auth)
+        self.p_service = PlayerService(self.u_id, self.auth, self.collections)
         self.summary_url = (
                 base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
                 + f'/{self.u_id}/user-summary/?categoryId=1'
@@ -49,19 +49,19 @@ class Updater:
         col = self.request_collection(collection_id, 'card')
         st = self.request_collection(collection_id, 'sticker')
         items = {
-            c['title']: (PlayerItem(template_id=c['id'], template_title=c['title'],
-                                    ovr_rating=c['properties']['player_rating'],
-                                    player_rating=c['playerStatsV2']['rating']['score'],
-                                    player_id=c['player']['id'], handle=c['player']['handle'],
-                                    country=c['player']['country'],
-                                    role_id=c['player']['playerRoleId'], position=c['player']['position'],
-                                    team_name=c['team']['shortName'], salary=c['properties']['salary'],
-                                    rarity=c['rarity'], group_id=c['treatmentId'], entity_type='card')
-                         if c['properties'].get('player_rating')
-                         else TemplateItem(template_id=c['id'], template_title=c['title'],
-                                           group_id=c['treatmentId'] if c.get('treatmentId') else c['id'],
-                                           rarity=c['rarity'],
-                                           entity_type='card' if c.get('treatmentId') else 'sticker'))
+            c['id']: (PlayerItem(template_id=c['id'], template_title=c['title'],
+                                 ovr_rating=c['properties']['player_rating'],
+                                 player_rating=c['playerStatsV2']['rating']['score'],
+                                 player_id=c['player']['id'], handle=c['player']['handle'],
+                                 country=c['player']['country'],
+                                 role_id=c['player']['playerRoleId'], position=c['player']['position'],
+                                 team_name=c['team']['shortName'], salary=c['properties']['salary'],
+                                 rarity=c['rarity'], group_id=c['treatmentId'], entity_type='card')
+                      if c['properties'].get('player_rating')
+                      else TemplateItem(template_id=c['id'], template_title=c['title'],
+                                        group_id=c['treatmentId'] if c.get('treatmentId') else c['id'],
+                                        rarity=c['rarity'],
+                                        entity_type='card' if c.get('treatmentId') else 'sticker'))
             for c in chain(col['data'], st['data'])
         }
 
@@ -152,8 +152,8 @@ def save_collections(collections: Dict[int, Collection], file_path: str):
             items = {}
             for i in col.items.values():
                 i_obj = dict(i._asdict())
-                i_obj.pop('template_title')
-                items[i.template_title] = i_obj
+                i_obj.pop('template_id')
+                items[i.template_id] = i_obj
             data['collections'][col_id] = {
                 'name': col.name,
                 'updated_at': int(time()),

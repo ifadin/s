@@ -7,7 +7,6 @@ from typing import NamedTuple, Tuple, Iterator, Optional, List
 
 from epics.domain import PlayerItem
 from epics.player import PlayerService
-from epics.user import u_a, u_a_auth, u_b, u_b_auth
 
 
 class Roster(NamedTuple):
@@ -96,7 +95,3 @@ class TeamService:
     def print_rosters(self):
         for r, p in self.get_rosters()[-100:]:
             print(f'{r}: {p:.2f}')
-
-
-team_a = TeamService(PlayerService(u_a, u_a_auth))
-team_b = TeamService(PlayerService(u_b, u_b_auth))

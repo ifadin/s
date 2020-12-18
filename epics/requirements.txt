@@ -1,4 +1,5 @@
 python-dateutil
+pytz
 PyYaml
 requests
 tqdm

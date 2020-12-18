@@ -85,7 +85,7 @@ class Tracker:
                         print(f'Selling {i.template_title} {c.key} for {p}')
                         self.price_service.sell_item(c.id, p, i.entity_type)
 
-    def upgrade(self, pps_threshold: float = 0.325, buy_threshold: int = 9):
+    def upgrade(self, pps_threshold: float = 0.35, buy_threshold: int = 20):
         targets = set({i.template_id: i for col in self.collections
                        for i in self.collections[col].items.values()
                        if i.rarity.lower()[0:4] in {'abun', 'rare'}}.values())
@@ -96,18 +96,19 @@ class Tracker:
                 continue
 
             c = max(cards.values(), key=attrgetter('score'))
-            if c.key[0] == 'A' and int(c.key[1:]) < (2000 if t.rarity.lower().startswith('abun') else 300):
+            if c.key[0] == 'A' and int(c.key[1:]) < (1500 if t.rarity.lower().startswith('abun') else 200):
                 continue
 
             offers = self.price_service.get_offers(t, exhaustive=True)
             if offers:
                 min_price = min(offers, key=attrgetter('offer_value')).offer_value - 1
+                min_price_adj = min_price if min_price < 10 else int(min_price * 0.85)
                 o = min((o for o in offers if o.offer_score > c.score), default=None,
-                        key=lambda o: (o.offer_value - (min_price if o[1] > 3 else 0)) / (
+                        key=lambda o: (o.offer_value - (min_price_adj if o[1] > 3 else 0)) / (
                                 o.offer_score - c.score) * 10.0)
                 if o:
                     margin = (o.offer_score - c.score) * 10.0
-                    pps = (o.offer_value - (min_price if o.offer_value > 3 else 0)) / margin
+                    pps = (o.offer_value - (min_price_adj if o.offer_value > 3 else 0)) / margin
                     if 0 < pps <= pps_threshold:
                         details = f'{t.template_title} {c.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
                         if o.offer_value <= buy_threshold:
@@ -115,7 +116,8 @@ class Tracker:
                             print(f'Upgraded {details}')
                             if min_price >= 3:
                                 for cc in cards.values():
-                                    self.price_service.sell_item(cc.id, min_price, cc.entity_type)
+                                    if cc.available:
+                                        self.price_service.sell_item(cc.id, min_price, cc.entity_type)
                         else:
                             url = self.get_mplace_url(t.entity_type, t.template_id)
                             print(f'{url}/{o.offer_id} {details}')
