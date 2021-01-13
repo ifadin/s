@@ -2,6 +2,8 @@ import base64
 from asyncio import AbstractEventLoop
 from itertools import chain
 from operator import itemgetter, attrgetter
+from random import sample
+from time import time
 
 from tqdm import tqdm
 from typing import Dict, Set, List, Union
@@ -10,6 +12,7 @@ from epics.auth import EAuth
 from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection
 from epics.player import PlayerService
 from epics.price import PriceService, MarketOffer
+from epics.upgrade import load_inventory, save_inventory, InventoryItem
 
 
 class Tracker:
@@ -85,23 +88,35 @@ class Tracker:
                         print(f'Selling {i.template_title} {c.key} for {p}')
                         self.price_service.sell_item(c.id, p, i.entity_type)
 
-    def upgrade(self, pps_threshold: float = 0.35, buy_threshold: int = 20):
+    def upgrade(self, pps_threshold: float = 0.45, buy_threshold: int = 20):
+        def has_low_key(i: InventoryItem) -> bool:
+            if not i:
+                return False
+
+            return i.key[0] == 'A' and int(i.key[1:]) < 100
+
+        inventory = load_inventory()
         targets = set({i.template_id: i for col in self.collections
                        for i in self.collections[col].items.values()
-                       if i.rarity.lower()[0:4] in {'abun', 'rare'}}.values())
-
-        for t in tqdm(targets):
+                       if i.rarity.lower()[0:4] in {'abun', 'rare', 'very'} and
+                       not has_low_key(inventory.get(i.template_id))}.values())
+        iter_index = 0
+        for t in tqdm(sample(targets, len(targets))):
             cards = self.p_service.get_cards(t.template_id, t.entity_type)
             if not cards:
                 continue
 
             c = max(cards.values(), key=attrgetter('score'))
-            if c.key[0] == 'A' and int(c.key[1:]) < (1500 if t.rarity.lower().startswith('abun') else 200):
-                continue
+            if not inventory.get(t.template_id) or inventory[t.template_id].key != c.key:
+                inventory[t.template_id] = InventoryItem(t.template_id, c.key, int(time()))
+                iter_index += 1
+            if iter_index % 10 == 0:
+                save_inventory(inventory.values())
 
             offers = self.price_service.get_offers(t, exhaustive=True)
             if offers:
                 min_price = min(offers, key=attrgetter('offer_value')).offer_value - 1
+                min_price = 9 if min_price == 10 or min_price == 11 else min_price
                 min_price_adj = min_price if min_price < 10 else int(min_price * 0.85)
                 o = min((o for o in offers if o.offer_score > c.score), default=None,
                         key=lambda o: (o.offer_value - (min_price_adj if o[1] > 3 else 0)) / (
@@ -122,6 +137,8 @@ class Tracker:
                             url = self.get_mplace_url(t.entity_type, t.template_id)
                             print(f'{url}/{o.offer_id} {details}')
 
+        save_inventory(inventory.values())
+
     def track_items(self, items_ids: Set[TemplateItem], price_margin: float, pps_threshold: float,
                     max_price: int, buy_threshold: int):
         targets = self.get_market_targets(items_ids, price_margin, pps_threshold, max_price)
@@ -132,7 +149,7 @@ class Tracker:
             if t.offer_value <= buy_threshold:
                 self.price_service.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
-                if t.pps > pps_threshold and t.avg_sales > 20:
+                if t.pps > pps_threshold and t.avg_sales > 50:
                     s_price = int(t.avg_sales)
                     self.price_service.sell_item(t.card_id, s_price, t.item.entity_type)
                     print(f'Put for {s_price}')

@@ -76,7 +76,8 @@ if sys.argv[1] == 'update':
     Updater(u_a, u_a_auth, sys.argv[2]).update_collections(int(sys.argv[3]))
 
 if sys.argv[1] == 'upgrade':
-    Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).upgrade()
+    s_id = sys.argv[2] if len(sys.argv) > 2 else '2020'
+    Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id))).upgrade()
 
 if sys.argv[1] == 'sell':
     if len(sys.argv) < 3:
