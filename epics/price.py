@@ -13,6 +13,7 @@ class MarketOffer(NamedTuple):
     offer_id: int
     offer_value: int
     offer_score: int
+    offer_mint: str
     card_id: int
     item: TemplateItem
     avg_sales: float
@@ -61,6 +62,7 @@ class PriceService:
     def get_offers(self, item: TemplateItem, exhaustive: bool = False) -> List[MarketOffer]:
         def get_offers(res: dict, avg_sales: float):
             return [MarketOffer(o['marketId'], o['price'], o[item.entity_type]['rating'],
+                                o[item.entity_type]['mintBatch'] + str(o[item.entity_type]['mintNumber']),
                                 o[item.entity_type]['id'], item, avg_sales)
                     for o in next(iter(res['data']['market']), [{}]) if o.get('marketId') and o.get('price')]
 

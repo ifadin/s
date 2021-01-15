@@ -3,7 +3,6 @@ from asyncio import AbstractEventLoop
 from itertools import chain
 from operator import itemgetter, attrgetter
 from random import sample
-from time import time
 
 from tqdm import tqdm
 from typing import Dict, Set, List, Union
@@ -93,51 +92,41 @@ class Tracker:
             if not i:
                 return False
 
-            return i.key[0] == 'A' and int(i.key[1:]) < 100
+            return i.mint[0] == 'A' and int(i.mint[1:]) < 100
 
+        collection = {i.key: i for col in self.collections.values() for i in col.items.values()}
         inventory = load_inventory()
-        targets = set({i.template_id: i for col in self.collections
-                       for i in self.collections[col].items.values()
-                       if i.rarity.lower()[0:4] in {'abun', 'rare', 'very'} and
-                       not has_low_key(inventory.get(i.template_id))}.values())
-        iter_index = 0
-        for t in tqdm(sample(targets, len(targets))):
-            cards = self.p_service.get_cards(t.template_id, t.entity_type)
-            if not cards:
-                continue
-
-            c = max(cards.values(), key=attrgetter('score'))
-            if not inventory.get(t.template_id) or inventory[t.template_id].key != c.key:
-                inventory[t.template_id] = InventoryItem(t.template_id, c.key, int(time()))
-                iter_index += 1
-            if iter_index % 10 == 0:
-                save_inventory(inventory.values())
-
+        targets = [(collection[i.key], i) for i in inventory.values() if not has_low_key(i)]
+        for t, i in tqdm(sample(targets, len(targets))):
+            t: TemplateItem = t
+            i: InventoryItem = i
             offers = self.price_service.get_offers(t, exhaustive=True)
             if offers:
                 min_price = min(offers, key=attrgetter('offer_value')).offer_value - 1
                 min_price = 9 if min_price == 10 or min_price == 11 else min_price
                 min_price_adj = min_price if min_price < 10 else int(min_price * 0.85)
-                o = min((o for o in offers if o.offer_score > c.score), default=None,
+                o = min((o for o in offers if o.offer_score > i.score), default=None,
                         key=lambda o: (o.offer_value - (min_price_adj if o[1] > 3 else 0)) / (
-                                o.offer_score - c.score) * 10.0)
+                                o.offer_score - i.score) * 10.0)
                 if o:
-                    margin = (o.offer_score - c.score) * 10.0
+                    margin = (o.offer_score - i.score) * 10.0
                     pps = (o.offer_value - (min_price_adj if o.offer_value > 3 else 0)) / margin
                     if 0 < pps <= pps_threshold:
-                        details = f'{t.template_title} {c.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
+                        details = f'{t.template_title} {i.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
                         if o.offer_value <= buy_threshold:
+                            cards = self.p_service.get_cards(t.template_id, t.entity_type)
                             self.price_service.buy_item(o.offer_id, o.offer_value)
                             print(f'Upgraded {details}')
-                            if min_price >= 3:
+
+                            inventory[i.key] = InventoryItem(i.template_id, i.entity_type, o.offer_mint, o.offer_score)
+                            save_inventory(inventory.values())
+                            if min_price > 1:
                                 for cc in cards.values():
                                     if cc.available:
                                         self.price_service.sell_item(cc.id, min_price, cc.entity_type)
                         else:
                             url = self.get_mplace_url(t.entity_type, t.template_id)
                             print(f'{url}/{o.offer_id} {details}')
-
-        save_inventory(inventory.values())
 
     def track_items(self, items_ids: Set[TemplateItem], price_margin: float, pps_threshold: float,
                     max_price: int, buy_threshold: int):

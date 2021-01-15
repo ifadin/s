@@ -5,13 +5,15 @@ from asyncio import gather
 from epics.craft import Crafter
 from epics.domain import load_collections, get_collections_path
 from epics.game import Trainer
+from epics.player import PlayerService
 from epics.spin import SpinService
 from epics.track import Tracker
 from epics.update import Updater
+from epics.upgrade import save_inventory, InventoryItem
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
 from epics.utils import fail_fast_handler
 
-options = {'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell'}
+options = {'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'}
 
 if len(sys.argv) < 2 or sys.argv[1] not in options:
     raise AssertionError(f'Specify one of {options}')
@@ -85,5 +87,11 @@ if sys.argv[1] == 'sell':
 
     pps_margin = float(sys.argv[2])
     Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).sell(pps_margin)
+
+if sys.argv[1] == 'inv':
+    s_id = sys.argv[2] if len(sys.argv) > 2 else '2020'
+    cards = PlayerService(u_a, u_a_auth, load_collections(get_collections_path(s_id))).get_top_inventory(
+        {'abun', 'rare', 'very'})
+    save_inventory({InventoryItem(c.template_id, c.entity_type, c.key, c.score) for c in cards.values()})
 
 l.close()

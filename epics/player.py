@@ -1,6 +1,7 @@
 import base64
 import json
 from itertools import chain
+from operator import attrgetter
 from time import sleep
 
 import requests
@@ -13,6 +14,7 @@ from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_
 
 class Card(NamedTuple):
     id: int
+    template_id: int
     key: str
     score: float
     entity_type: str
@@ -44,7 +46,7 @@ class PlayerService:
             return self.get_cards(template_id, entity_type)
 
         r.raise_for_status()
-        return {d['id']: Card(d['id'], d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type,
+        return {d['id']: Card(d['id'], template_id, d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type,
                               d['status'] == 'available')
                 for d in r.json()['data']}
 
@@ -97,3 +99,15 @@ class PlayerService:
     def load_roster(self) -> List[int]:
         with open(get_roster_path(self.u_id)) as f:
             return json.load(f)
+
+    def get_top_inventory(self, rarity: Set[str] = None) -> Dict[int, Card]:
+        inv = {}
+        targets = {i for c in self.collections.values() for i in c.items.values()
+                   if not rarity or any(i.rarity.lower().startswith(r) for r in rarity)}
+        for i in tqdm(targets, desc='Items'):
+            i: TemplateItem = i
+            cards = self.get_cards(i.template_id, i.entity_type).values()
+            if cards:
+                c = max(iter(cards), key=attrgetter('score'))
+                inv[i.key] = c
+        return inv
