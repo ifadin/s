@@ -5,7 +5,7 @@ from operator import itemgetter, attrgetter
 from random import sample
 
 from tqdm import tqdm
-from typing import Dict, Set, List, Union
+from typing import Dict, Set, List, Union, Iterable
 
 from epics.auth import EAuth
 from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection
@@ -87,12 +87,26 @@ class Tracker:
                         print(f'Selling {i.template_title} {c.key} for {p}')
                         self.price_service.sell_item(c.id, p, i.entity_type)
 
-    def upgrade(self, pps_threshold: float = 0.45, buy_threshold: int = 20):
+    def upgrade(self, pps_threshold: float = 0.5, buy_threshold: int = 20):
         def has_low_key(i: InventoryItem) -> bool:
             if not i:
                 return False
 
             return i.mint[0] == 'A' and int(i.mint[1:]) < 100
+
+        def get_min_price(offers: Iterable[MarketOffer], default: int) -> int:
+            o = set(offers)
+            if not o:
+                return default
+            return min(o, key=attrgetter('offer_value')).offer_value - 1
+
+        def get_adjusted_price(p: int) -> int:
+            p = 9 if p == 10 or p == 11 else p
+            p = p if p < 10 else int(p * 0.85)
+            return p
+
+        def get_pps(o: MarketOffer, sell_price: int) -> float:
+            return (o.offer_value - (sell_price if sell_price > 1 else 0)) / (o.offer_score - i.score) / 10.0
 
         collection = {i.key: i for col in self.collections.values() for i in col.items.values()}
         inventory = load_inventory()
@@ -102,31 +116,32 @@ class Tracker:
             i: InventoryItem = i
             offers = self.price_service.get_offers(t, exhaustive=True)
             if offers:
-                min_price = min(offers, key=attrgetter('offer_value')).offer_value - 1
-                min_price = 9 if min_price == 10 or min_price == 11 else min_price
-                min_price_adj = min_price if min_price < 10 else int(min_price * 0.85)
-                o = min((o for o in offers if o.offer_score > i.score), default=None,
-                        key=lambda o: (o.offer_value - (min_price_adj if o[1] > 3 else 0)) / (
-                                o.offer_score - i.score) * 10.0)
-                if o:
+                upgrades = {
+                    o for o in offers
+                    if o.offer_score > i.score and 0 < get_pps(o, get_adjusted_price(
+                        get_min_price((of for of in offers if of.offer_id != o.offer_id),
+                                      o.offer_value))) < pps_threshold
+                }
+                if upgrades:
+                    o = max(upgrades, key=attrgetter('offer_score'))
                     margin = (o.offer_score - i.score) * 10.0
-                    pps = (o.offer_value - (min_price_adj if o.offer_value > 3 else 0)) / margin
-                    if 0 < pps <= pps_threshold:
-                        details = f'{t.template_title} {i.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
-                        if o.offer_value <= buy_threshold:
-                            cards = self.p_service.get_cards(t.template_id, t.entity_type)
-                            self.price_service.buy_item(o.offer_id, o.offer_value)
-                            print(f'Upgraded {details}')
+                    sell_price = get_min_price((of for of in offers if of.offer_id != o.offer_id), o.offer_value)
+                    pps = get_pps(o, get_adjusted_price(sell_price))
+                    details = f'{t.template_title} {i.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
+                    if o.offer_value <= buy_threshold:
+                        cards = self.p_service.get_cards(t.template_id, t.entity_type)
+                        self.price_service.buy_item(o.offer_id, o.offer_value)
+                        print(f'Upgraded {details}')
 
-                            inventory[i.key] = InventoryItem(i.template_id, i.entity_type, o.offer_mint, o.offer_score)
-                            save_inventory(inventory.values())
-                            if min_price > 1:
-                                for cc in cards.values():
-                                    if cc.available:
-                                        self.price_service.sell_item(cc.id, min_price, cc.entity_type)
-                        else:
-                            url = self.get_mplace_url(t.entity_type, t.template_id)
-                            print(f'{url}/{o.offer_id} {details}')
+                        inventory[i.key] = InventoryItem(i.template_id, i.entity_type, o.offer_mint, o.offer_score)
+                        save_inventory(inventory.values())
+                        if sell_price > 1:
+                            for cc in cards.values():
+                                if cc.available:
+                                    self.price_service.sell_item(cc.id, sell_price, cc.entity_type)
+                    else:
+                        url = self.get_mplace_url(t.entity_type, t.template_id)
+                        print(f'{url}/{o.offer_id} {details}')
 
     def track_items(self, items_ids: Set[TemplateItem], price_margin: float, pps_threshold: float,
                     max_price: int, buy_threshold: int):
