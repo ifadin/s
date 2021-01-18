@@ -81,7 +81,8 @@ if sys.argv[1] == 'upgrade':
     s_id = sys.argv[2] if len(sys.argv) > 2 else '2020'
     pps = float(sys.argv[3]) if len(sys.argv) > 3 else 0.45
     buy_threshold = int(sys.argv[4]) if len(sys.argv) > 4 else 20
-    Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id))).upgrade(pps, buy_threshold)
+    extended = len(sys.argv) > 5
+    Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id))).upgrade(pps, buy_threshold, extended)
 
 if sys.argv[1] == 'sell':
     if len(sys.argv) < 3:

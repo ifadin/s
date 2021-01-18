@@ -87,7 +87,7 @@ class Tracker:
                         print(f'Selling {i.template_title} {c.key} for {p}')
                         self.price_service.sell_item(c.id, p, i.entity_type)
 
-    def upgrade(self, pps_threshold: float = 0.5, buy_threshold: int = 20):
+    def upgrade(self, pps_threshold: float = 0.5, buy_threshold: int = 20, extended: bool = False):
         def has_low_key(i: InventoryItem) -> bool:
             if not i:
                 return False
@@ -108,9 +108,10 @@ class Tracker:
         def get_pps(o: MarketOffer, sell_price: int) -> float:
             return (o.offer_value - (sell_price if sell_price > 1 else 0)) / (o.offer_score - i.score) / 10.0
 
-        collection = {i.key: i for col in self.collections.values() for i in col.items.values()}
+        collection = {i.key: i for col in self.collections.values() for i in col.items.values()
+                      if i.rarity.lower()[0:4] in ({'abun', 'rare', 'very'} if extended else {'abun', 'rare'})}
         inventory = load_inventory()
-        targets = [(collection[i.key], i) for i in inventory.values() if not has_low_key(i)]
+        targets = [(collection[i.key], i) for i in inventory.values() if i.key in collection and not has_low_key(i)]
         for t, i in tqdm(sample(targets, len(targets))):
             t: TemplateItem = t
             i: InventoryItem = i
@@ -118,9 +119,9 @@ class Tracker:
             if offers:
                 upgrades = {
                     o for o in offers
-                    if o.offer_score > i.score and 0 < get_pps(o, get_adjusted_price(
+                    if o.offer_score > i.score and get_pps(o, get_adjusted_price(
                         get_min_price((of for of in offers if of.offer_id != o.offer_id),
-                                      o.offer_value))) < pps_threshold
+                                      o.offer_value))) <= pps_threshold
                 }
                 if upgrades:
                     o = max(upgrades, key=attrgetter('offer_score'))
@@ -149,11 +150,12 @@ class Tracker:
         for t in targets.values():
             item_details = f'{t.item.template_title} for {t.offer_value} ' \
                            f'(s:{int(t.offer_score * 10)}/{t.pps:.3f} ' \
-                           f'avg:{int(t.avg_sales)} m:{int(t.margin * 100) if t.margin else None}%)'
+                           f'avg:{int(t.avg_sales) if t.avg_sales else None} ' \
+                           f'm:{int(t.margin * 100) if t.margin else None}%)'
             if t.offer_value <= buy_threshold:
                 self.price_service.buy_item(t.offer_id, t.offer_value)
                 print(f'Bought {item_details}')
-                if t.pps > pps_threshold and t.avg_sales > 50:
+                if t.pps > pps_threshold and t.avg_sales and t.avg_sales > 50:
                     s_price = int(t.avg_sales)
                     self.price_service.sell_item(t.card_id, s_price, t.item.entity_type)
                     print(f'Put for {s_price}')
