@@ -37,7 +37,7 @@ class Updater:
         r.raise_for_status()
         return {c['collection']['id']: c['collection']['name'] for c in r.json()['data']
                 if c['collection']['visible']
-                and s_id in c['collection']['properties']['seasons']
+                and str(s_id) in c['collection']['properties']['seasons']
                 and 1 in c['collection']['properties']['game_ids']
                 and any(e in c['collection']['properties']['entity_types'] for e in ['card', 'sticker'])}
 

@@ -17,8 +17,8 @@
     python -c "from epics.calculate import calculator; calculator.get_team_performance(rarity_upper_limit='Very Rare')"
     python -c 'from epics.team import team_a; team_a.print_rosters()'
     
-    python -m epics.cli update 2020 0
-    python -m epics.cli track
+    python -m epics.cli update -y 2020 2021 --cache 0
+    python -m epics.cli track -m 0.3 --pps 1.0 -b 80
     python -m epics.cli items 60
     python -m epics.cli goal
 ```

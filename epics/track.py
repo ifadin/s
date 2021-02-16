@@ -163,31 +163,31 @@ class Tracker:
                 url = self.get_mplace_url(t.item.entity_type, t.item.template_id)
                 print(f'{url} {item_details}')
 
-    def track(self, price_margin: float, score_margin: float,
+    def track(self, price_margin: float, pps: float,
               max_price: int, buy_threshold: int):
         m = self.p_service.get_missing(blacklist_names={
             'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
             'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
         }, whitelist_ids={4357})
         for item in tqdm(set(chain.from_iterable(m.values()))):
-            self.track_items({item}, price_margin, score_margin, max_price, buy_threshold)
+            self.track_items({item}, price_margin, pps, max_price, buy_threshold)
 
     def schedule_track(self, l: AbstractEventLoop,
-                       price_margin: float, score_margin: float,
+                       price_margin: float, pps: float,
                        max_price: int, buy_threshold: int):
         min_15 = 900
         try:
-            self.track(price_margin, score_margin, max_price, buy_threshold)
+            self.track(price_margin, pps, max_price, buy_threshold)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)
+            return l.call_later(5, self.schedule_track, l, price_margin, pps, max_price, buy_threshold)
 
         print(f'Next in {min_15} seconds')
-        return l.call_later(min_15, self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)
+        return l.call_later(min_15, self.schedule_track, l, price_margin, pps, max_price, buy_threshold)
 
-    def start(self, l: AbstractEventLoop, price_margin: float, score_margin: float, buy_threshold: int,
+    def start(self, l: AbstractEventLoop, price_margin: float, pps: float, buy_threshold: int,
               max_price: int = 5000):
 
         l.call_later(3500, self.auth.refresh_token)
-        l.call_soon(self.schedule_track, l, price_margin, score_margin, max_price, buy_threshold)
+        l.call_soon(self.schedule_track, l, price_margin, pps, max_price, buy_threshold)

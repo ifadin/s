@@ -7,12 +7,12 @@ from itertools import chain
 from operator import itemgetter
 from random import randint
 
-import requests
 from dateutil.parser import isoparse
 from pytz import utc
 from typing import NamedTuple, List, Dict, Tuple, Optional
 
 from epics.auth import EAuth
+from epics.utils import get_http_session, with_retry
 
 
 class Opponent(NamedTuple):
@@ -84,6 +84,7 @@ class Trainer:
         self.user_goals_url = f'{self.goals_url}/{self.u_id}/user?categoryId=1'
         self.usr_rstrs_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcm9zdGVycz9jYX'
                                               'RlZ29yeUlkPTE='.encode()).decode() + f'&userId={self.u_id}'
+        self.session = get_http_session()
 
     async def run(self, op=None):
         usr_roster_id = self.get_usr_roster_id()
@@ -95,13 +96,14 @@ class Trainer:
             else:
                 print(f'[{self.u_id}] no op amount')
 
-        main_s = self.get_circuits_schedule(self.get_circuits())
+        circuits = self.get_circuits()
+        main_s = self.get_circuits_schedule(circuits)
         if main_s:
             await self.play_schedule(usr_roster_id, main_s)
         else:
             print(f'[{self.u_id}] no main schedule')
 
-        week_s = self.get_week_schedule(self.get_goals(), self.get_circuits())
+        week_s = self.get_week_schedule(self.get_goals(), circuits)
         if week_s:
             await self.play_schedule(usr_roster_id, week_s)
         else:
@@ -110,7 +112,14 @@ class Trainer:
         g_amount = self.get_goal_amount(self.get_goals())
         if g_amount:
             tow_id = self.get_tow()
-            await self.play_tow(usr_roster_id, tow_id, g_amount)
+            if tow_id:
+                await self.play_tow(usr_roster_id, tow_id, g_amount)
+            else:
+                c = circuits[0]
+                s = c.stages[0]
+                o = s.opponents[0]
+                schedule = {c.id: {s.id: {o.id: g_amount}}}
+                await self.play_schedule(usr_roster_id, schedule)
         else:
             print(f'[{self.u_id}] no goal amount')
 
@@ -120,7 +129,7 @@ class Trainer:
                 print(f'[{self.u_id}] claimed {g.title}')
 
     def get_goals(self) -> List[Goal]:
-        res = requests.get(self.user_goals_url, auth=self.auth, headers=self.h)
+        res = with_retry(self.session.get(self.user_goals_url, auth=self.auth, headers=self.h), self.session)
         res.raise_for_status()
 
         return [
@@ -129,19 +138,23 @@ class Trainer:
         ]
 
     def complete_goal(self, g: Goal):
-        res = requests.post(f'{self.goals_url}/{g.id}/claim?categoryId=1', auth=self.auth, headers=self.h)
+        res = with_retry(
+            self.session.post(f'{self.goals_url}/{g.id}/claim?categoryId=1', auth=self.auth, headers=self.h),
+            self.session)
         res.raise_for_status()
 
         return True
 
     def get_circuits(self) -> List[Circuit]:
-        res = requests.get(f'{self.circuits_url}?categoryId=1', auth=self.auth, headers=self.h)
+        res = with_retry(self.session.get(f'{self.circuits_url}?categoryId=1', auth=self.auth, headers=self.h),
+                         self.session)
         res.raise_for_status()
         circuits = []
 
         for crc in res.json()['data']['circuits']:
             if isoparse(crc['start']) < datetime.utcnow().replace(tzinfo=utc) < isoparse(crc['end']):
-                c_res = requests.get(f"{self.circuits_url}/{crc['id']}", auth=self.auth, headers=self.h)
+                c_res = with_retry(self.session.get(f"{self.circuits_url}/{crc['id']}", auth=self.auth, headers=self.h),
+                                   self.session)
                 c_res.raise_for_status()
                 c = c_res.json()['data']['circuit']
 
@@ -159,12 +172,12 @@ class Trainer:
         return circuits
 
     @staticmethod
-    def get_circuits_schedule(circuits: List[Circuit]) -> Schedule:
+    def get_circuits_schedule(circuits: List[Circuit], use_completed: bool = False) -> Schedule:
         return {c.id: {
             s.id: {
-                o.id: o.required_wins - o.wins for o in s.opponents if not o.completed
-            } for s in c.stages if not s.completed
-        } for c in circuits if not c.completed}
+                o.id: o.required_wins - o.wins for o in s.opponents if use_completed or not o.completed
+            } for s in c.stages if use_completed or not s.completed
+        } for c in circuits if use_completed or not c.completed}
 
     def get_week_schedule(self, goals: List[Goal], circuits: List[Circuit]) -> Schedule:
         schedule = {}
@@ -204,28 +217,29 @@ class Trainer:
 
     def get_rosters(self, ids: List[int]) -> Dict[str, int]:
         ids_param = ','.join((str(i) for i in ids))
-        res = requests.get(f'{self.rstrs_url}&ids={ids_param}', auth=self.auth, headers=self.h)
+        res = with_retry(self.session.get(f'{self.rstrs_url}&ids={ids_param}', auth=self.auth, headers=self.h),
+                         self.session)
         res.raise_for_status()
 
         return {r['name'].lower(): r['id'] for r in res.json()['data']['rosters']}
 
     def get_usr_roster_id(self) -> int:
-        res = requests.get(f'{self.usr_rstrs_url}', auth=self.auth, headers=self.h)
+        res = with_retry(self.session.get(f'{self.usr_rstrs_url}', auth=self.auth, headers=self.h), self.session)
         res.raise_for_status()
 
         return max(((r['id'], r['rating']) for r in res.json()['data']['rosters']), key=itemgetter(1))[0]
 
-    def get_tow(self) -> int:
-        res = requests.get(self.tow_url, auth=self.auth, headers=self.h)
+    def get_tow(self) -> Optional[int]:
+        res = with_retry(self.session.get(self.tow_url, auth=self.auth, headers=self.h), self.session)
         res.raise_for_status()
 
-        return res.json()['data']['rosters'][0]['id']
+        return res.json()['data']['rosters'][0]['id'] if res.json().get('data', {}).get('rosters') else None
 
     def create_op_game(self, op_id: int, user_roster_id: int, op_roster_id: int) -> int:
-        res = requests.post(f'{self.op_game_url}', json={
+        res = with_retry(self.session.post(f'{self.op_game_url}', json={
             'categoryId': 1, 'userId': op_id, 'rosterId': user_roster_id, 'enemyRosterId': op_roster_id,
             'bannedMapIds': [4, 6], 'message': ''
-        }, auth=self.auth, headers=self.h)
+        }, auth=self.auth, headers=self.h), self.session)
         res.raise_for_status()
         return res.json()['data']['id']
 
@@ -240,9 +254,9 @@ class Trainer:
         return await self.play_tow(roster_id, tow_id, w_amount - 1 if res else w_amount)
 
     def play_tow_game(self, roster_id: int, tow_id: int) -> bool:
-        r = requests.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
+        r = with_retry(self.session.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
             'rosterId': roster_id, 'enemyRosterId': tow_id, 'bannedMapIds': [2, 4], 'categoryId': 1
-        })
+        }), self.session)
         r.raise_for_status()
         return r.json()['data']['game']['user1']['winner']
 
@@ -262,11 +276,11 @@ class Trainer:
                         return await self.play_schedule(roster_id, s)
 
     def play_crc_game(self, roster_id: int, op_id: int, crc_id: int, stage_id: int) -> bool:
-        r = requests.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
+        r = with_retry(self.session.post(f'{self.game_url}', auth=self.auth, headers=self.h, json={
             'rosterId': roster_id, 'enemyRosterId': op_id, 'bannedMapIds': [2, 4], 'circuit': {
                 'id': crc_id, 'stageId': stage_id
             }, 'categoryId': 1
-        })
+        }), self.session)
         r.raise_for_status()
         return r.json()['data']['game']['user1']['winner']
 
@@ -297,12 +311,14 @@ class Trainer:
         return await self.play_op(op_amount if op_w else op_amount - 1, usr_roster_id, op_roster_id, op)
 
     def accept_game(self, game_id: int, usr_roster_id: int) -> bool:
-        res = requests.post(f'{self.op_game_url}/{game_id}/accept',
-                            json={'rosterId': usr_roster_id, 'bannedMapIds': [7, 5]}, auth=self.auth, headers=self.h)
+        res = with_retry(self.session.post(f'{self.op_game_url}/{game_id}/accept',
+                                           json={'rosterId': usr_roster_id, 'bannedMapIds': [7, 5]}, auth=self.auth,
+                                           headers=self.h), self.session)
         res.raise_for_status()
         return res.json()['data']['game']['user2']['winner']
 
     def seen_game(self, game_id: int) -> bool:
-        res = requests.post(f'{self.op_game_url}/{game_id}/seen', auth=self.auth, headers=self.h)
+        res = with_retry(self.session.post(f'{self.op_game_url}/{game_id}/seen', auth=self.auth, headers=self.h),
+                         self.session)
         res.raise_for_status()
         return res.json()['success']

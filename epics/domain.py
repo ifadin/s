@@ -1,7 +1,8 @@
 import os
+from itertools import chain
 
 import yaml
-from typing import NamedTuple, List, Dict, Union
+from typing import NamedTuple, List, Dict, Union, Set
 
 
 class Rating(NamedTuple):
@@ -119,3 +120,7 @@ def load_collections(file_path: str = get_collections_path('2020')) -> Dict[int,
                                                  else TemplateItem(template_id=item_id, **item))
                                        for item_id, item in col.get('items', {}).items()})
                 for col_id, col in res.get('collections', {}).items()}
+
+
+def get_collections(s_ids: Set[str]) -> Dict[int, Collection]:
+    return dict(chain(*[load_collections(get_collections_path(s)).items() for s in s_ids]))

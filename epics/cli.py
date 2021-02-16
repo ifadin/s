@@ -1,9 +1,10 @@
 import asyncio
 import sys
+from argparse import Namespace, ArgumentParser
 from asyncio import gather
 
 from epics.craft import Crafter
-from epics.domain import load_collections, get_collections_path
+from epics.domain import load_collections, get_collections_path, get_collections
 from epics.game import Trainer
 from epics.player import PlayerService
 from epics.spin import SpinService
@@ -13,46 +14,51 @@ from epics.upgrade import save_inventory, InventoryItem
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
 from epics.utils import fail_fast_handler
 
-options = {'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'}
 
-if len(sys.argv) < 2 or sys.argv[1] not in options:
-    raise AssertionError(f'Specify one of {options}')
+def get_args() -> Namespace:
+    parser = ArgumentParser()
+
+    parser.add_argument('command', metavar='COMMAND', type=str,
+                        choices={'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'})
+    parser.add_argument('-y', '--year', type=int, nargs='+', default=[2020])
+    parser.add_argument('--cache', type=int, default=86400)
+    parser.add_argument('-m', '--margin', type=float, default=0.9)
+    parser.add_argument('--pps', type=float, default=0.1)
+    parser.add_argument('-b', '--buy-threshold', type=int, default=10)
+    parser.add_argument('--extended', action='store_true')
+    parser.add_argument('--client', type=str, choices={'a', 'b'}, default='a')
+
+    return parser.parse_known_args()[0]
+
+
+args = get_args()
 
 l = asyncio.get_event_loop()
 l.set_exception_handler(fail_fast_handler)
 
-if sys.argv[1] == 'spin':
+if args.command == 'spin':
     SpinService(u_a, u_a_auth).start(l)
     SpinService(u_b, u_b_auth).start(l)
     l.run_forever()
 
-if sys.argv[1] == 'items':
+if args.command == 'items':
     if len(sys.argv) < 3:
         raise AssertionError('Missing item value argument')
     Tracker(u_a, u_a_auth).get_items(int(sys.argv[2]))
     l.run_forever()
 
-if sys.argv[1] == 'track':
-    if len(sys.argv) < 4:
-        raise AssertionError('Missing margin values argument')
-
-    price_margin, score_margin = float(sys.argv[2]), float(sys.argv[3])
-    buy_threshold = float(sys.argv[4]) if len(sys.argv) > 4 else 60
-    s_id = sys.argv[5] if len(sys.argv) > 5 else '2020'
-    b_track = sys.argv[6] if len(sys.argv) > 6 else ''
-    t: Tracker = (Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id)))
-                  if not b_track.lower() == 'b'
-                  else Tracker(u_b, u_b_auth, load_collections(get_collections_path(s_id))))
-    t.start(l, price_margin, score_margin,
-            buy_threshold)
+if args.command == 'track':
+    c = get_collections(args.year)
+    t: Tracker = (Tracker(u_a, u_a_auth, c) if not args.client.lower() == 'b' else Tracker(u_b, u_b_auth, c))
+    t.start(l, args.margin, args.pps, args.buy_threshold)
     l.run_forever()
 
-if sys.argv[1] == 'goal':
+if args.command == 'goal':
     a = Trainer(u_a, u_a_auth)
     b = Trainer(u_b, u_b_auth)
     l.run_until_complete(gather(a.run(b), b.run(a)))
 
-if sys.argv[1] == 'craft':
+if args.command == 'craft':
     item_types = {'d', 'g', 's', 'p', 't1'}
     t = sys.argv[2] if len(sys.argv) > 2 else None
     a = int(sys.argv[3]) if len(sys.argv) > 3 else None
@@ -69,32 +75,24 @@ if sys.argv[1] == 'craft':
         c_a.craft('t1')
         c_b.craft('t1')
 
-if sys.argv[1] == 'update':
-    if len(sys.argv) < 3:
-        raise AssertionError('Missing s_id argument')
-    if len(sys.argv) < 4:
-        raise AssertionError('Missing cache_refresh argument')
+if args.command == 'update':
+    for y in args.year:
+        Updater(u_a, u_a_auth, y).update_collections(args.cache)
 
-    Updater(u_a, u_a_auth, sys.argv[2]).update_collections(int(sys.argv[3]))
+if args.command == 'upgrade':
+    c = get_collections(args.year)
+    Tracker(u_a, u_a_auth, c).upgrade(args.pps, args.buy_threshold, args.extended)
 
-if sys.argv[1] == 'upgrade':
-    s_id = sys.argv[2] if len(sys.argv) > 2 else '2020'
-    pps = float(sys.argv[3]) if len(sys.argv) > 3 else 0.45
-    buy_threshold = int(sys.argv[4]) if len(sys.argv) > 4 else 20
-    extended = len(sys.argv) > 5
-    Tracker(u_a, u_a_auth, load_collections(get_collections_path(s_id))).upgrade(pps, buy_threshold, extended)
-
-if sys.argv[1] == 'sell':
+if args.command == 'sell':
     if len(sys.argv) < 3:
         raise AssertionError('Missing pps argument')
 
     pps_margin = float(sys.argv[2])
     Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).sell(pps_margin)
 
-if sys.argv[1] == 'inv':
-    s_id = sys.argv[2] if len(sys.argv) > 2 else '2020'
-    cards = PlayerService(u_a, u_a_auth, load_collections(get_collections_path(s_id))).get_top_inventory(
-        {'abun', 'rare', 'very'})
+if args.command == 'inv':
+    c = get_collections(args.year)
+    cards = PlayerService(u_a, u_a_auth, c).get_top_inventory({'abun', 'rare', 'very'})
     save_inventory({InventoryItem(c.template_id, c.entity_type, c.key, c.score) for c in cards.values()})
 
 l.close()

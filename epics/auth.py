@@ -1,8 +1,9 @@
 import base64
 
-import requests
 from requests import Request
 from requests.auth import AuthBase
+
+from epics.utils import get_http_session, with_retry
 
 
 class EAuth(AuthBase):
@@ -11,6 +12,7 @@ class EAuth(AuthBase):
     def __init__(self, r_token: str) -> None:
         self.token = None
         self.r_token = r_token
+        self.session = get_http_session()
 
     def __call__(self, r: Request):
         r.headers['x-user-jwt'] = self.get_token()
@@ -22,6 +24,7 @@ class EAuth(AuthBase):
         return self.token
 
     def refresh_token(self):
-        r = requests.post(self.ref_url, json={'device': 'web', 'refreshToken': self.r_token})
+        r = with_retry(self.session.post(self.ref_url, json={'device': 'web', 'refreshToken': self.r_token}),
+                       self.session)
         r.raise_for_status()
         self.token = r.json()['data']['jwt']

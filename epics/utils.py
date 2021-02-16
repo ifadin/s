@@ -1,7 +1,27 @@
 from asyncio import AbstractEventLoop
+from time import sleep
 
-from requests import HTTPError, Response
-from typing import Iterator, List
+from requests import HTTPError, Response, Session, PreparedRequest
+from requests.adapters import HTTPAdapter
+from typing import Iterator, List, Callable
+from urllib3 import Retry
+
+
+def get_http_session() -> Session:
+    s = Session()
+    s.mount('http://', HTTPAdapter(
+        max_retries=Retry(10, status=10, backoff_factor=1, status_forcelist=Retry.RETRY_AFTER_STATUS_CODES)))
+    return s
+
+
+def with_retry(r: Response, session: Session, sleep_fc: Callable[[int], None] = sleep):
+    if r.status_code == 429:
+        print(f'429: sleeping...')
+        sleep_fc(3)
+        req: PreparedRequest = r.request
+        return with_retry(session.send(req), session)
+
+    return r
 
 
 def fail_fast_handler(l: AbstractEventLoop, context: dict):
