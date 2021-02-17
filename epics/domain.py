@@ -2,6 +2,7 @@ import os
 from itertools import chain
 
 import yaml
+from enum import Enum
 from typing import NamedTuple, List, Dict, Union, Set
 
 
@@ -46,6 +47,15 @@ def load_teams(file_path: str = TEAMS_PATH) -> Dict[str, Team]:
                                     for r_title, r in p['ratings'].items()]
                            ) for p_name, p in t['players'].items()
         }) for t_name, t in res['teams'].items()}
+
+
+class Rarity(Enum):
+    A = 1
+    R = 2
+    V = 3
+    S = 4
+    U = 5
+    L = 6
 
 
 class TemplateItem(NamedTuple):
@@ -122,5 +132,9 @@ def load_collections(file_path: str = get_collections_path('2020')) -> Dict[int,
                 for col_id, col in res.get('collections', {}).items()}
 
 
-def get_collections(s_ids: Set[str]) -> Dict[int, Collection]:
-    return dict(chain(*[load_collections(get_collections_path(s)).items() for s in s_ids]))
+def get_collections(s_ids: Set[int], col_ids: Set[int] = None) -> Dict[int, Collection]:
+    return {
+        k: v for k, v
+        in chain(*[load_collections(get_collections_path(str(s))).items() for s in s_ids])
+        if not col_ids or k in col_ids
+    }

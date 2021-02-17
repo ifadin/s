@@ -1,12 +1,12 @@
 import base64
 import statistics
-from time import sleep
 
 import requests
 from typing import List, NamedTuple, Tuple, Optional
 
 from epics.auth import EAuth
 from epics.domain import TemplateItem
+from epics.utils import get_http_session, with_retry
 
 
 class MarketOffer(NamedTuple):
@@ -42,21 +42,17 @@ class PriceService:
 
     def __init__(self, auth: EAuth) -> None:
         self.auth = auth
+        self.session = get_http_session()
 
     def buy_item(self, offer_id: int, offer_value: int) -> bool:
-        r = requests.post(self.buy_url, auth=self.auth, json={'marketId': offer_id, 'price': offer_value})
-        r.raise_for_status()
-        return r.json()['success']
+        r = with_retry(requests.post(self.buy_url, auth=self.auth, json={'marketId': offer_id, 'price': offer_value}),
+                       self.session, raise_status=False)
+        return r.ok and r.json()['success']
 
     def request_sales(self, target_id: int, entity_type: str, page: int = 1) -> dict:
-        r = requests.get(f'{self.sales_url}&type={entity_type}&templateId={target_id}&page={page}', auth=self.auth)
-
-        if r.status_code == 429:
-            print(f'429: sleeping...')
-            sleep(3)
-            return self.request_sales(target_id, entity_type, page)
-
-        r.raise_for_status()
+        r = with_retry(
+            requests.get(f'{self.sales_url}&type={entity_type}&templateId={target_id}&page={page}', auth=self.auth),
+            self.session)
         return r.json()
 
     def get_offers(self, item: TemplateItem, exhaustive: bool = False) -> List[MarketOffer]:
@@ -102,8 +98,9 @@ class PriceService:
         return min_offer, avg_sales, close_offers, next_offer
 
     def sell_item(self, item_id: int, price: int, entity_type: str) -> int:
-        r = requests.post(self.sell_url, auth=self.auth, json={'price': price, 'id': item_id, 'type': entity_type})
-        r.raise_for_status()
+        r = with_retry(
+            requests.post(self.sell_url, auth=self.auth, json={'price': price, 'id': item_id, 'type': entity_type}),
+            self.session)
         return r.json()['data']['marketId']
 
     @staticmethod

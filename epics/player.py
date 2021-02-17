@@ -100,10 +100,10 @@ class PlayerService:
         with open(get_roster_path(self.u_id)) as f:
             return json.load(f)
 
-    def get_top_inventory(self, rarity: Set[str] = None) -> Dict[int, Card]:
+    def get_top_inventory(self, levels: Set[str] = None) -> Dict[int, Card]:
         inv = {}
         targets = {i for c in self.collections.values() for i in c.items.values()
-                   if not rarity or any(i.rarity.lower().startswith(r) for r in rarity)}
+                   if not levels or any(i.rarity.lower().startswith(l) for l in levels)}
         for i in tqdm(targets, desc='Items'):
             i: TemplateItem = i
             cards = self.get_cards(i.template_id, i.entity_type).values()

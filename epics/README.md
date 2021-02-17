@@ -19,6 +19,6 @@
     
     python -m epics.cli update -y 2020 2021 --cache 0
     python -m epics.cli track -m 0.3 --pps 1.0 -b 80
-    python -m epics.cli items 60
+    while :; do python -m epics.cli upgrade -y 2020 --pps 1.0 -b 25 -l a r ; sleep 300; done
     python -m epics.cli goal
 ```

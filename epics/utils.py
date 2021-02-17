@@ -14,12 +14,17 @@ def get_http_session() -> Session:
     return s
 
 
-def with_retry(r: Response, session: Session, sleep_fc: Callable[[int], None] = sleep):
-    if r.status_code == 429:
-        print(f'429: sleeping...')
-        sleep_fc(3)
+def with_retry(r: Response, session: Session,
+               raise_status: bool = True,
+               sleep_fc: Callable[[int], None] = sleep) -> Response:
+    if r.status_code in Retry.RETRY_AFTER_STATUS_CODES:
+        print(f'{r.status_code} sleeping...')
+        sleep_fc(5)
         req: PreparedRequest = r.request
-        return with_retry(session.send(req), session)
+        return with_retry(session.send(req), session, raise_status=raise_status, sleep_fc=sleep_fc)
+
+    if not r.ok:
+        raise_http_error(r) if raise_status else log_http_error(r)
 
     return r
 
@@ -32,13 +37,21 @@ def fail_fast_handler(l: AbstractEventLoop, context: dict):
     l.stop()
 
 
+def get_error_msg(r: Response) -> str:
+    return f'[error]: {r.status_code} {r.request.method} {r.request.url}\n{r.request.body}\n{r.text}'
+
+
+def log_http_error(r: Response):
+    print(get_error_msg(r))
+
+
 def raise_for_status(res: Response):
     if not res.ok:
         raise_http_error(res)
 
 
-def raise_http_error(res: Response):
-    raise HTTPError(f'[error]: {res.status_code} {res.request.url}\n{res.request.body}\n{res.text}')
+def raise_http_error(r: Response):
+    raise HTTPError(get_error_msg(r))
 
 
 def get_batches(items_to_process: list, size: int = None) -> Iterator[List]:

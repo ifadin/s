@@ -10,7 +10,7 @@ from epics.player import PlayerService
 from epics.spin import SpinService
 from epics.track import Tracker
 from epics.update import Updater
-from epics.upgrade import save_inventory, InventoryItem
+from epics.upgrade import save_inventory, InventoryItem, load_inventory
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
 from epics.utils import fail_fast_handler
 
@@ -21,12 +21,14 @@ def get_args() -> Namespace:
     parser.add_argument('command', metavar='COMMAND', type=str,
                         choices={'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'})
     parser.add_argument('-y', '--year', type=int, nargs='+', default=[2020])
+    parser.add_argument('-c', '--col', type=int, nargs='*')
     parser.add_argument('--cache', type=int, default=86400)
     parser.add_argument('-m', '--margin', type=float, default=0.9)
     parser.add_argument('--pps', type=float, default=0.1)
     parser.add_argument('-b', '--buy-threshold', type=int, default=10)
-    parser.add_argument('--extended', action='store_true')
     parser.add_argument('--client', type=str, choices={'a', 'b'}, default='a')
+    parser.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
+    parser.add_argument('--merge', action='store_true')
 
     return parser.parse_known_args()[0]
 
@@ -48,7 +50,7 @@ if args.command == 'items':
     l.run_forever()
 
 if args.command == 'track':
-    c = get_collections(args.year)
+    c = get_collections(args.year, args.col)
     t: Tracker = (Tracker(u_a, u_a_auth, c) if not args.client.lower() == 'b' else Tracker(u_b, u_b_auth, c))
     t.start(l, args.margin, args.pps, args.buy_threshold)
     l.run_forever()
@@ -80,8 +82,8 @@ if args.command == 'update':
         Updater(u_a, u_a_auth, y).update_collections(args.cache)
 
 if args.command == 'upgrade':
-    c = get_collections(args.year)
-    Tracker(u_a, u_a_auth, c).upgrade(args.pps, args.buy_threshold, args.extended)
+    c = get_collections(args.year, args.col)
+    Tracker(u_a, u_a_auth, c).upgrade(args.pps, args.buy_threshold, args.level)
 
 if args.command == 'sell':
     if len(sys.argv) < 3:
@@ -91,8 +93,15 @@ if args.command == 'sell':
     Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).sell(pps_margin)
 
 if args.command == 'inv':
-    c = get_collections(args.year)
-    cards = PlayerService(u_a, u_a_auth, c).get_top_inventory({'abun', 'rare', 'very'})
-    save_inventory({InventoryItem(c.template_id, c.entity_type, c.key, c.score) for c in cards.values()})
+    if not args.level:
+        raise AssertionError('Level argument is required')
+    c = get_collections(args.year, args.col)
+    cards = PlayerService(u_a, u_a_auth, c).get_top_inventory(args.level)
+
+    inv = load_inventory() if args.merge else {}
+    for c in cards.values():
+        item = InventoryItem(c.template_id, c.entity_type, c.key, c.score)
+        inv[item.key] = item
+    save_inventory(inv.values())
 
 l.close()
