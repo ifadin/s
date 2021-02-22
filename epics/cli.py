@@ -93,8 +93,6 @@ if args.command == 'sell':
     Tracker(u_a, u_a_auth, load_collections(get_collections_path('2020'))).sell(pps_margin)
 
 if args.command == 'inv':
-    if not args.level:
-        raise AssertionError('Level argument is required')
     c = get_collections(args.year, args.col)
     cards = PlayerService(u_a, u_a_auth, c).get_top_inventory(args.level)
 

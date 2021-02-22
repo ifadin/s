@@ -17,7 +17,7 @@ def get_http_session() -> Session:
 def with_retry(r: Response, session: Session,
                raise_status: bool = True,
                sleep_fc: Callable[[int], None] = sleep) -> Response:
-    if r.status_code in Retry.RETRY_AFTER_STATUS_CODES:
+    if r.status_code in {413, 429, 500, 502, 503}:
         print(f'{r.status_code} sleeping...')
         sleep_fc(5)
         req: PreparedRequest = r.request
