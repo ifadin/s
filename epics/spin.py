@@ -19,10 +19,12 @@ class SpinItem(NamedTuple):
 
 class Spinner(NamedTuple):
     id: int
+    cost_type: str
+    cost: int
     items: Dict[int, SpinItem]
 
-    def get_coin_items(self, value: int) -> List[SpinItem]:
-        return [i for i in self.items.values() if i.props['coins'] >= value]
+    def get_coin_items(self) -> List[SpinItem]:
+        return [i for i in self.items.values() if i.props['coins'] or i.props[self.cost_type] >= self.cost]
 
 
 class SpinService:
@@ -47,7 +49,8 @@ class SpinService:
         r = requests.get(self.spnr_url, auth=self.auth)
         r.raise_for_status()
         d = r.json()['data']
-        return Spinner(d['id'], {i['id']: SpinItem(i['id'], i['name'], i['properties']) for i in d['items']})
+        return Spinner(d['id'], d['costType'], d['cost'],
+                       {i['id']: SpinItem(i['id'], i['name'], i['properties']) for i in d['items']})
 
     def get_next_time(self) -> datetime:
         r = requests.get(self.usr_spnr_url, auth=self.auth)
@@ -65,7 +68,7 @@ class SpinService:
             r_id = self.spin(s.id)
             print(f'[{self.u_id}] Got {s.items[r_id].name} ({r_id})')
 
-            if r_id in (i.id for i in s.get_coin_items(10)):
+            if r_id in (i.id for i in s.get_coin_items()):
                 self.buy_round(amount=1)
                 return loop.call_later(2, self.schedule_spin, loop)
         except Exception as e:

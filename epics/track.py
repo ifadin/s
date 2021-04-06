@@ -1,6 +1,5 @@
 import base64
 from asyncio import AbstractEventLoop
-from itertools import chain
 from operator import itemgetter, attrgetter
 from random import sample
 
@@ -17,12 +16,12 @@ from epics.upgrade import load_inventory, save_inventory, InventoryItem
 class Tracker:
     item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZQ=='.encode()).decode()
 
-    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection]) -> None:
+    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection], p_auth: EAuth = None) -> None:
         self.auth = auth
         self.collections = collections
 
         self.p_service = PlayerService(u_id, self.auth, self.collections)
-        self.price_service = PriceService(auth=self.auth)
+        self.price_service = PriceService(auth=(p_auth if p_auth else self.auth))
 
     @classmethod
     def get_mplace_url(cls, item_type: str, item_id: int) -> str:
@@ -71,10 +70,7 @@ class Tracker:
                     return min_price_offer
 
     def sell(self, pps_threshold: float):
-        owned_items = self.p_service.get_owned(blacklist_names={
-            'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
-            'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
-        }, whitelist_ids={4357})
+        owned_items = self.p_service.get_owned()
         for i in tqdm(owned_items):
             o = min(self.price_service.get_offers(i), key=attrgetter('offer_value'), default=None)
             if o and o.pps > pps_threshold:
@@ -162,30 +158,25 @@ class Tracker:
                     url = self.get_mplace_url(t.item.entity_type, t.item.template_id)
                     print(f'{url} {item_details}')
 
-    def track(self, price_margin: float, pps: float,
-              max_price: int, buy_threshold: int):
-        m = self.p_service.get_missing(blacklist_names={
-            'purp', 'silv', 'gold', 'diam', 'lege', 'master', 'entr',
-            'cs', 'onboa', 'rifl', 'shar', 'snip', 'sup'
-        }, whitelist_ids={4357})
-        self.track_items(tqdm(set(chain.from_iterable(m.values()))), price_margin, pps, max_price, buy_threshold)
+    def track(self, price_margin: float, pps: float, max_price: int, buy_threshold: int):
+        m = self.p_service.get_missing()
+        self.track_items(tqdm(set(m.values())), price_margin, pps, max_price, buy_threshold)
 
     def schedule_track(self, l: AbstractEventLoop,
                        price_margin: float, pps: float,
-                       max_price: int, buy_threshold: int):
-        min_15 = 900
+                       max_price: int, buy_threshold: int, interval: int):
         try:
             self.track(price_margin, pps, max_price, buy_threshold)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, l, price_margin, pps, max_price, buy_threshold)
+            return l.call_later(5, self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)
 
-        print(f'Next in {min_15} seconds')
-        return l.call_later(min_15, self.schedule_track, l, price_margin, pps, max_price, buy_threshold)
+        print(f'Next in {interval} seconds')
+        return l.call_later(interval, self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)
 
     def start(self, l: AbstractEventLoop, price_margin: float, pps: float, buy_threshold: int,
-              max_price: int = 5000):
+              max_price: int = 5000, interval: int = 900):
 
         l.call_later(3500, self.auth.refresh_token)
-        l.call_soon(self.schedule_track, l, price_margin, pps, max_price, buy_threshold)
+        l.call_soon(self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)

@@ -1,12 +1,11 @@
 import base64
 import json
-from itertools import chain
 from operator import attrgetter
 from time import sleep
 
 import requests
 from tqdm import tqdm
-from typing import Set, Dict, List, NamedTuple
+from typing import Set, Dict, List, NamedTuple, Iterator
 
 from epics.auth import EAuth
 from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path, Collection
@@ -62,30 +61,20 @@ class PlayerService:
         return {(entity_type + '-' + str(d[f'{entity_type}TemplateId'])): set(d[f'{entity_type}Ids'])
                 for d in r.json()['data']}
 
-    def get_missing(self, blacklist_names: Set[str] = None, whitelist_ids=None) -> Dict[int, Set[TemplateItem]]:
-        if whitelist_ids is None:
-            whitelist_ids = {}
-        if blacklist_names is None:
-            blacklist_names = set()
-
-        missing: Dict[int, Set[TemplateItem]] = {}
+    def get_missing(self) -> Dict[int, TemplateItem]:
+        missing = {}
         for c in tqdm(self.collections.values()):
-            if c.id in whitelist_ids or all((not c.name.lower().startswith(ignored) for ignored in blacklist_names)):
-                owned = set(self.get_card_ids(c.id).keys()) | set(self.get_card_ids(c.id, 'sticker').keys())
-                for i in c.items.values():
-                    if i.key not in owned:
-                        missing[c.id] = missing.get(c.id, set()) | {
-                            TemplateItem(i.template_id, i.template_title, i.group_id, i.entity_type)
-                        }
+            owned = set(self.get_card_ids(c.id).keys()) | set(self.get_card_ids(c.id, 'sticker').keys())
+            for i in c.items.values():
+                if i.key not in owned:
+                    missing[i.template_id] = i
 
         return missing
 
-    def get_owned(self, blacklist_names: Set[str] = None, whitelist_ids=None) -> Set[TemplateItem]:
+    def get_owned(self) -> Set[TemplateItem]:
         items = set({i.template_id: i for col in self.collections
                      for i in self.collections[col].items.values()}.values())
-        missing = set(i.template_id for i in chain.from_iterable(
-            self.get_missing(blacklist_names, whitelist_ids).values()
-        ))
+        missing = self.get_missing()
         return {i for i in items if i.template_id not in missing}
 
     def get_owned_roster(self) -> Dict[int, PlayerItem]:
@@ -100,14 +89,12 @@ class PlayerService:
         with open(get_roster_path(self.u_id)) as f:
             return json.load(f)
 
-    def get_top_inventory(self, levels: Set[str] = None) -> Dict[int, Card]:
-        inv = {}
-        targets = {i for c in self.collections.values() for i in c.items.values()
+    def get_top_inventory(self, items: Set[TemplateItem], levels: Set[str] = None) -> Iterator[Card]:
+        targets = {i for i in items
                    if not levels or any(i.rarity.lower().startswith(l) for l in levels)}
-        for i in tqdm(targets, desc='Items'):
+        for i in targets:
             i: TemplateItem = i
             cards = self.get_cards(i.template_id, i.entity_type).values()
             if cards:
                 c = max(iter(cards), key=attrgetter('score'))
-                inv[i.key] = c
-        return inv
+                yield c

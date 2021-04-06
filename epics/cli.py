@@ -3,6 +3,8 @@ import sys
 from argparse import Namespace, ArgumentParser
 from asyncio import gather
 
+from tqdm import tqdm
+
 from epics.craft import Crafter
 from epics.domain import load_collections, get_collections_path, get_collections
 from epics.game import Trainer
@@ -20,14 +22,16 @@ def get_args() -> Namespace:
 
     parser.add_argument('command', metavar='COMMAND', type=str,
                         choices={'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'})
-    parser.add_argument('-y', '--year', type=int, nargs='+', default=[2020])
+    parser.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
     parser.add_argument('-c', '--col', type=int, nargs='*')
     parser.add_argument('--cache', type=int, default=86400)
     parser.add_argument('-m', '--margin', type=float, default=0.9)
     parser.add_argument('--pps', type=float, default=0.1)
     parser.add_argument('-b', '--buy-threshold', type=int, default=10)
-    parser.add_argument('--client', type=str, choices={'a', 'b'}, default='a')
+    parser.add_argument('--item-client', type=str, choices={'a', 'b'}, default='a')
+    parser.add_argument('--price-client', type=str, choices={'a', 'b'}, default='a')
     parser.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
+    parser.add_argument('-i', '--interval', type=int, default=900)
     parser.add_argument('--merge', action='store_true')
 
     return parser.parse_known_args()[0]
@@ -51,8 +55,11 @@ if args.command == 'items':
 
 if args.command == 'track':
     c = get_collections(args.year, args.col)
-    t: Tracker = (Tracker(u_a, u_a_auth, c) if not args.client.lower() == 'b' else Tracker(u_b, u_b_auth, c))
-    t.start(l, args.margin, args.pps, args.buy_threshold)
+    u_id = u_b if args.item_client.lower() == 'b' else u_a
+    u_auth = u_b_auth if args.item_client.lower() == 'b' else u_a_auth
+    u_p_auth = u_b_auth if args.price_client.lower() == 'b' else u_a_auth
+    t: Tracker = Tracker(u_id, u_auth, c, u_p_auth)
+    t.start(l, args.margin, args.pps, args.buy_threshold, interval=args.interval)
     l.run_forever()
 
 if args.command == 'goal':
@@ -94,12 +101,16 @@ if args.command == 'sell':
 
 if args.command == 'inv':
     c = get_collections(args.year, args.col)
-    cards = PlayerService(u_a, u_a_auth, c).get_top_inventory(args.level)
-
+    p = PlayerService(u_a, u_a_auth, c)
     inv = load_inventory() if args.merge else {}
-    for c in cards.values():
+
+    items = p.get_owned()
+    cards = p.get_top_inventory(items, args.level)
+    for index, c in enumerate(tqdm(cards, desc='Items', total=len(items))):
         item = InventoryItem(c.template_id, c.entity_type, c.key, c.score)
         inv[item.key] = item
+        if index % (len(items) // 10) == 0:
+            save_inventory(inv.values())
     save_inventory(inv.values())
 
 l.close()
