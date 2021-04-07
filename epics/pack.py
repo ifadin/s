@@ -6,11 +6,13 @@ from time import sleep
 
 import requests
 import yaml
-from typing import Dict, Set, NamedTuple, Iterator, List
+from typing import Dict, Set, NamedTuple, Iterator, List, Iterable
 
 from epics.auth import EAuth
 from epics.domain import Collection, TemplateItem
+from epics.player import Card
 from epics.price import PriceService
+from epics.utils import with_retry, get_http_session
 
 PACKS_PATH = os.path.join('epics', 'data', 'packs.yaml')
 
@@ -33,6 +35,12 @@ class Pack(NamedTuple):
     count: int
     exp: float = None
     updated_at: int = None
+
+
+class PackItem(NamedTuple):
+    id: int
+    name: str
+    seasons: List[str]
 
 
 def load_packs(file_path: str = PACKS_PATH) -> Dict[int, Pack]:
@@ -60,14 +68,19 @@ class PackService:
     market_packs_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC90ZW1wbGF0ZXM/cHJpY2U9YXNjJnR5'
                                         'cGU9cGFjayZjYXRlZ29yeUlkPTEmc2Vhc29uPQ=='.encode()).decode()
     market_item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZS9wYWNrLw=='.encode()).decode()
+    user_packs_url = base64.b64decode(
+        'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3BhY2tzL3VzZXI/Y2F0ZWdvcnlJZD0x'.encode()).decode()
+    open_url = base64.b64decode(
+        'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3BhY2tzL29wZW4yP2NhdGVnb3J5SWQ9MQ=='.encode()).decode()
 
     def __init__(self, collections: Dict[int, Collection], packs: Dict[int, Pack], auth: EAuth) -> None:
         self.collections = collections
         self.packs = packs
         self.auth = auth
         self.p_service = PriceService(self.auth)
+        self.session = get_http_session()
 
-        self._group_item_map = self.calculate_group_item_map(self.collections)
+        self._group_item_map = self.calculate_group_item_map(self.collections) if self.collections else None
 
     def get_packs(self, s_id: int = 2020) -> Iterator[Pack]:
         next_page = True
@@ -98,6 +111,25 @@ class PackService:
 
         r.raise_for_status()
         return r.json()
+
+    def get_user_packs(self) -> Iterable[PackItem]:
+        page = 1
+        while page is not None:
+            res = self.request_user_packs(page).get('data', {})
+            page = page + 1 if res.get('total', 0) > page * 500 else None
+            for p in res.get('packs', []):
+                yield PackItem(p['id'], p['packTemplate']['name'], p['packTemplate']['properties']['seasons'])
+
+    def request_user_packs(self, page_num: int = 1) -> dict:
+        return with_retry(requests.get(f'{self.user_packs_url}&page={page_num}', auth=self.auth), self.session).json()
+
+    def open_pack(self, pack_id: int) -> Set[Card]:
+        res = with_retry(requests.post(f'{self.open_url}', json={'packId': pack_id}, auth=self.auth),
+                         self.session).json()
+
+        return {Card(o['id'], o['cardTemplate']['id'], o['mintBatch'], o['mintNumber'], o['rating'], o['type'],
+                     title=o['cardTemplate'].get('title'))
+                for o in (res.get('data', {}).get('cards', []) + res.get('data', {}).get('stickers', []))}
 
     @staticmethod
     def normalize_chances(chances: List[Chance]) -> List[Chance]:

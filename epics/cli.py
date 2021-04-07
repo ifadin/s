@@ -4,13 +4,17 @@ from argparse import Namespace, ArgumentParser
 from asyncio import gather
 
 from tqdm import tqdm
+from typing import List
 
 from epics.craft import Crafter
 from epics.domain import load_collections, get_collections_path, get_collections
 from epics.game import Trainer
+from epics.pack import PackService
 from epics.player import PlayerService
+from epics.price import PriceService
 from epics.spin import SpinService
 from epics.track import Tracker
+from epics.trader import Trader
 from epics.update import Updater
 from epics.upgrade import save_inventory, InventoryItem, load_inventory
 from epics.user import u_a, u_a_auth, u_b, u_b_auth
@@ -19,20 +23,45 @@ from epics.utils import fail_fast_handler
 
 def get_args() -> Namespace:
     parser = ArgumentParser()
+    subparser = parser.add_subparsers(dest='command')
 
-    parser.add_argument('command', metavar='COMMAND', type=str,
-                        choices={'spin', 'track', 'goal', 'items', 'craft', 'update', 'upgrade', 'sell', 'inv'})
-    parser.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
-    parser.add_argument('-c', '--col', type=int, nargs='*')
-    parser.add_argument('--cache', type=int, default=86400)
-    parser.add_argument('-m', '--margin', type=float, default=0.9)
-    parser.add_argument('--pps', type=float, default=0.1)
-    parser.add_argument('-b', '--buy-threshold', type=int, default=10)
-    parser.add_argument('--item-client', type=str, choices={'a', 'b'}, default='a')
-    parser.add_argument('--price-client', type=str, choices={'a', 'b'}, default='a')
-    parser.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
-    parser.add_argument('-i', '--interval', type=int, default=900)
-    parser.add_argument('--merge', action='store_true')
+    pack_open = subparser.add_parser('open')
+    spin = subparser.add_parser('spin')
+    track = subparser.add_parser('track')
+    goal = subparser.add_parser('goal')
+    update = subparser.add_parser('update')
+    upgrade = subparser.add_parser('upgrade')
+    inv = subparser.add_parser('inv')
+
+    pack_open.add_argument('amount', type=int)
+    pack_open.add_argument('-p', '--pattern', type=str)
+    pack_open.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
+    pack_open.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
+
+    goal.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
+
+    track.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    track.add_argument('-c', '--col', type=int, nargs='*')
+    track.add_argument('--item-client', type=str, choices={'a', 'b'}, default='a')
+    track.add_argument('--price-client', type=str, choices={'a', 'b'}, default='a')
+    track.add_argument('-m', '--margin', type=float, default=0.9)
+    track.add_argument('--pps', type=float, default=0.1)
+    track.add_argument('-b', '--buy-threshold', type=int, default=10)
+    track.add_argument('-i', '--interval', type=int, default=900)
+
+    update.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    update.add_argument('--cache', type=int, default=86400)
+
+    upgrade.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    upgrade.add_argument('-c', '--col', type=int, nargs='*')
+    upgrade.add_argument('--pps', type=float, default=0.1)
+    upgrade.add_argument('-b', '--buy-threshold', type=int, default=10)
+    upgrade.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
+
+    inv.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    inv.add_argument('-c', '--col', type=int, nargs='*')
+    inv.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
+    inv.add_argument('--merge', action='store_true')
 
     return parser.parse_known_args()[0]
 
@@ -63,9 +92,28 @@ if args.command == 'track':
     l.run_forever()
 
 if args.command == 'goal':
-    a = Trainer(u_a, u_a_auth)
-    b = Trainer(u_b, u_b_auth)
-    l.run_until_complete(gather(a.run(b), b.run(a)))
+    futures = []
+    a = Trainer(u_a, u_a_auth, Trader(u_a, u_a_auth, PriceService(u_a_auth), PlayerService(u_a, u_a_auth),
+                                      PackService(None, None, u_a_auth)))
+    b = Trainer(u_b, u_b_auth, Trader(u_b, u_b_auth, PriceService(u_b_auth), PlayerService(u_b, u_b_auth),
+                                      PackService(None, None, u_b_auth)))
+    if 'a' in args.client:
+        futures.append(a.run(b))
+    if 'b' in args.client:
+        futures.append(b.run(a))
+
+    l.run_until_complete(gather(*futures))
+
+if args.command == 'open':
+    traders: List[Trader] = []
+    if 'a' in args.client:
+        traders.append(Trader(u_a, u_a_auth, PriceService(u_a_auth), PlayerService(u_a, u_a_auth),
+                              PackService(None, None, u_a_auth)))
+    if 'b' in args.client:
+        traders.append(Trader(u_b, u_b_auth, PriceService(u_b_auth), PlayerService(u_b, u_b_auth),
+                              PackService(None, None, u_b_auth)))
+    for tr in traders:
+        tr.open_packs(args.amount, args.year, args.pattern.lower() if args.pattern else None)
 
 if args.command == 'craft':
     item_types = {'d', 'g', 's', 'p', 't1'}

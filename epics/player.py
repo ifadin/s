@@ -14,10 +14,16 @@ from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_
 class Card(NamedTuple):
     id: int
     template_id: int
-    key: str
+    batch: str
+    number: int
     score: float
     entity_type: str
     available: bool = False
+    title: str = None
+
+    @property
+    def key(self) -> str:
+        return f'{self.batch}{self.number}'
 
 
 class PlayerService:
@@ -45,8 +51,8 @@ class PlayerService:
             return self.get_cards(template_id, entity_type)
 
         r.raise_for_status()
-        return {d['id']: Card(d['id'], template_id, d['mintBatch'] + str(d['mintNumber']), d['rating'], entity_type,
-                              d['status'] == 'available')
+        return {d['id']: Card(d['id'], template_id, d['mintBatch'], d['mintNumber'], d['rating'], entity_type,
+                              d['status'] == 'available', d.get('cardTemplate', {}).get('title'))
                 for d in r.json()['data']}
 
     def get_card_ids(self, collection_id: int, entity_type: str = 'card') -> Dict[str, Set[int]]:

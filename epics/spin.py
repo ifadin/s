@@ -24,7 +24,7 @@ class Spinner(NamedTuple):
     items: Dict[int, SpinItem]
 
     def get_coin_items(self) -> List[SpinItem]:
-        return [i for i in self.items.values() if i.props['coins'] or i.props[self.cost_type] >= self.cost]
+        return [i for i in self.items.values() if i.props['coins'] or i.props[self.cost_type]]
 
 
 class SpinService:

@@ -120,6 +120,7 @@ class Tracker:
                     o = max(upgrades, key=attrgetter('offer_score'))
                     margin = (o.offer_score - i.score) * 10.0
                     sell_price = get_min_price((of for of in offers if of.offer_id != o.offer_id), o.offer_value)
+                    sell_price = 9 if sell_price == 10 or sell_price == 11 else sell_price
                     pps = get_pps(o, get_adjusted_price(sell_price))
                     details = f'{t.template_title} {i.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
                     if o.offer_value <= buy_threshold:

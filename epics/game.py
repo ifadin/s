@@ -3,7 +3,6 @@ import base64
 import re
 from copy import deepcopy
 from datetime import datetime
-from itertools import chain
 from operator import itemgetter
 from random import randint
 
@@ -12,6 +11,7 @@ from pytz import utc
 from typing import NamedTuple, List, Dict, Tuple, Optional
 
 from epics.auth import EAuth
+from epics.trader import Trader
 from epics.utils import get_http_session, with_retry
 
 
@@ -78,18 +78,28 @@ class Trainer:
     ua = base64.b64decode('b2todHRwLzMuMTIuMQ=='.encode()).decode()
     h = {'user-agent': ua}
 
-    def __init__(self, u_id: int, auth: EAuth) -> None:
+    def __init__(self, u_id: int, auth: EAuth, trader: Trader) -> None:
         self.u_id = u_id
         self.auth = auth
         self.user_goals_url = f'{self.goals_url}/{self.u_id}/user?categoryId=1'
         self.usr_rstrs_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3VsdGltYXRlLXRlYW0vcm9zdGVycz9jYX'
                                               'RlZ29yeUlkPTE='.encode()).decode() + f'&userId={self.u_id}'
         self.session = get_http_session()
+        self.trader = trader
 
     async def run(self, op=None):
+        d, w = self.get_goals()
+
+        p_amount = self.get_pack_goal_amount(d)
+        p_amount = p_amount + 1 if p_amount else None
+        if p_amount:
+            self.complete_pack_goal(p_amount)
+        else:
+            print(f'[{self.u_id}] no pack amount')
+
         usr_roster_id = self.get_usr_roster_id()
         if op:
-            op_amount = self.get_op_goal_amount(self.get_goals())
+            op_amount = self.get_op_goal_amount(d + w)
             if op_amount:
                 op_roster_id = op.get_usr_roster_id()
                 await self.play_op(op_amount, usr_roster_id, op_roster_id, op)
@@ -103,13 +113,13 @@ class Trainer:
         else:
             print(f'[{self.u_id}] no main schedule')
 
-        week_s = self.get_week_schedule(self.get_goals(), circuits)
+        week_s = self.get_week_schedule(d + w, circuits)
         if week_s:
             await self.play_schedule(usr_roster_id, week_s)
         else:
             print(f'[{self.u_id}] no week schedule')
 
-        g_amount = self.get_goal_amount(self.get_goals())
+        g_amount = self.get_goal_amount(d + w)
         if g_amount:
             tow_id = self.get_tow()
             if tow_id:
@@ -123,19 +133,21 @@ class Trainer:
         else:
             print(f'[{self.u_id}] no goal amount')
 
-        for g in self.get_goals():
+        for g in d + w:
             if g.available:
                 self.complete_goal(g)
                 print(f'[{self.u_id}] claimed {g.title}')
 
-    def get_goals(self) -> List[Goal]:
+    def get_goals(self) -> Tuple[List[Goal], List[Goal]]:
+        def get_active(data: list) -> List[Goal]:
+            return [
+                Goal(a['id'], a['title'], a['progress']['min'], a['progress']['max'], a['progress']['claimAvailable'])
+                for a in data if not a['completed']
+            ]
+
         res = with_retry(self.session.get(self.user_goals_url, auth=self.auth, headers=self.h), self.session)
         res.raise_for_status()
-
-        return [
-            Goal(a['id'], a['title'], a['progress']['min'], a['progress']['max'], a['progress']['claimAvailable'])
-            for a in chain(res.json()['data']['daily'], res.json()['data']['weekly']) if not a['completed']
-        ]
+        return get_active(res.json()['data']['daily']), get_active(res.json()['data']['weekly'])
 
     def complete_goal(self, g: Goal):
         res = with_retry(
@@ -215,6 +227,14 @@ class Trainer:
 
         return g.left
 
+    @staticmethod
+    def get_pack_goal_amount(goals: List[Goal]) -> Optional[int]:
+        g = next((g for g in goals if re.match('^Open \\d+ Packs$', g.title)), None)
+        if not g:
+            return None
+
+        return g.left
+
     def get_rosters(self, ids: List[int]) -> Dict[str, int]:
         ids_param = ','.join((str(i) for i in ids))
         res = with_retry(self.session.get(f'{self.rstrs_url}&ids={ids_param}', auth=self.auth, headers=self.h),
@@ -283,6 +303,9 @@ class Trainer:
         }), self.session)
         r.raise_for_status()
         return r.json()['data']['game']['user1']['winner']
+
+    def complete_pack_goal(self, amount: int, s_id: int = datetime.today().year):
+        self.trader.open_packs(amount, [str(s_id)])
 
     @staticmethod
     def update_schedule(schedule: Schedule, game: Tuple[int, int, int]) -> Schedule:
