@@ -31,9 +31,11 @@ class Trader:
                 if offers:
                     min_price = min(offers, key=attrgetter('offer_value')).offer_value
                     for c in sorted(cards, key=attrgetter('score'), reverse=True)[1:]:
-                        rare_bonus = 1 if 500 <= c.number < 1000 else (2 if c.number < 500 else 0)
-                        price = (min_price - 1 if min_price > 1 else min_price) + bonus.get(c.batch.lower(), 0)
-                        price += rare_bonus
+                        b_bonus = bonus.get(c.batch.lower(), 0)
+                        n_bonus = 1 if 500 <= c.number < 1000 else (2 if c.number < 500 else 0)
+                        price = (min_price - 1 if min_price > 1 else min_price) + b_bonus
+                        if c.batch.lower() == 'a':
+                            price += n_bonus
                         if price > 1:
                             self.price_service.sell_item(c.id, price, c.entity_type)
                             sold[c] = price
@@ -44,8 +46,9 @@ class Trader:
         if not amount:
             return
 
-        packs = [p for p in self.pack_service.get_user_packs()
-                 if (not s_ids or any(s in p.seasons for s in s_ids)) and (not pattern or pattern in p.name.lower())]
+        packs = sorted((p for p in self.pack_service.get_user_packs()
+                        if (not s_ids or any(s in p.seasons for s in s_ids)) and (
+                                not pattern or pattern in p.name.lower())), key=attrgetter('id'))
 
         if not packs:
             print(f'[{self.u_id}] No packs found for {s_ids} and {pattern}')

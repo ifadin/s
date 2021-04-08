@@ -56,16 +56,16 @@ class Tracker:
                       f'{r.template_title} {min_offer} ({int(rev)}/{int(margin * 100)}%) {close_offers}')
 
     def get_market_target(self, item: TemplateItem,
-                          price_margin: float, pps_threshold: float, max_price: int) -> Optional[MarketOffer]:
+                          price_margin: float, pps_threshold: float, price_threshold: int) -> Optional[MarketOffer]:
         offers = self.price_service.get_offers(item, exhaustive=True)
         if offers:
-            pps_offer = max((o for o in offers if o.offer_value < max_price and o.pps and o.pps <= pps_threshold),
-                            key=attrgetter('offer_score'), default=None)
+            pps_offer = max(
+                (o for o in offers if o.offer_value <= price_threshold and o.pps and o.pps <= pps_threshold),
+                key=attrgetter('offer_score'), default=None)
             if pps_offer:
                 return pps_offer
             else:
-                min_price_offer = min((o for o in offers if o.offer_value < max_price),
-                                      key=attrgetter('offer_value'), default=None)
+                min_price_offer = min((o for o in offers), key=attrgetter('offer_value'), default=None)
                 if min_price_offer and min_price_offer.margin and min_price_offer.margin >= price_margin:
                     return min_price_offer
 
@@ -139,10 +139,9 @@ class Tracker:
                         url = self.get_mplace_url(t.entity_type, t.template_id)
                         print(f'{url}/{o.offer_id} {details}')
 
-    def track_items(self, items: Set[TemplateItem], price_margin: float, pps_threshold: float,
-                    max_price: int, buy_threshold: int):
+    def track_items(self, items: Set[TemplateItem], price_margin: float, pps_threshold: float, buy_threshold: int):
         for i in items:
-            t = self.get_market_target(i, price_margin, pps_threshold, max_price)
+            t = self.get_market_target(i, price_margin, pps_threshold, buy_threshold)
             if t:
                 item_details = f'{t.item.template_title} for {t.offer_value} ' \
                                f'(s:{int(t.offer_score * 10)}/{t.pps:.3f} ' \
@@ -159,25 +158,25 @@ class Tracker:
                     url = self.get_mplace_url(t.item.entity_type, t.item.template_id)
                     print(f'{url} {item_details}')
 
-    def track(self, price_margin: float, pps: float, max_price: int, buy_threshold: int):
+    def track(self, price_margin: float, pps: float, buy_threshold: int):
         m = self.p_service.get_missing()
-        self.track_items(tqdm(set(m.values())), price_margin, pps, max_price, buy_threshold)
+        self.track_items(tqdm(set(m.values())), price_margin, pps, buy_threshold)
 
     def schedule_track(self, l: AbstractEventLoop,
                        price_margin: float, pps: float,
-                       max_price: int, buy_threshold: int, interval: int):
+                       buy_threshold: int, interval: int):
         try:
-            self.track(price_margin, pps, max_price, buy_threshold)
+            self.track(price_margin, pps, buy_threshold)
         except Exception as e:
             print(e)
             print(f'Rescheduling due to error')
-            return l.call_later(5, self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)
+            return l.call_later(5, self.schedule_track, l, price_margin, pps, buy_threshold, interval)
 
         print(f'Next in {interval} seconds')
-        return l.call_later(interval, self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)
+        return l.call_later(interval, self.schedule_track, l, price_margin, pps, buy_threshold, interval)
 
     def start(self, l: AbstractEventLoop, price_margin: float, pps: float, buy_threshold: int,
               max_price: int = 5000, interval: int = 900):
 
         l.call_later(3500, self.auth.refresh_token)
-        l.call_soon(self.schedule_track, l, price_margin, pps, max_price, buy_threshold, interval)
+        l.call_soon(self.schedule_track, l, price_margin, pps, buy_threshold, interval)

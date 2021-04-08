@@ -93,6 +93,7 @@ class Trainer:
         p_amount = self.get_pack_goal_amount(d)
         p_amount = p_amount + 1 if p_amount else None
         if p_amount:
+            print(f'[{self.u_id}] pack amount is {p_amount}')
             self.complete_pack_goal(p_amount)
         else:
             print(f'[{self.u_id}] no pack amount')
