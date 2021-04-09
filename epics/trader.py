@@ -1,4 +1,3 @@
-from math import floor
 from operator import attrgetter
 
 from typing import List, Dict
@@ -32,13 +31,13 @@ class Trader:
                 if offers:
                     min_price_offer = min(offers, key=attrgetter('offer_value'))
                     m_price = min_price_offer.offer_value
-                    sell_price = (floor((min_price_offer.avg_sales - m_price) / 2)
+                    sell_price = ((int(min_price_offer.avg_sales) + m_price) // 2
                                   if min_price_offer.avg_sales and int(min_price_offer.avg_sales) > m_price
                                   else m_price)
                     for c in sorted(cards, key=attrgetter('score'), reverse=True)[1:]:
                         b_bonus = bonus.get(c.batch.lower(), 0)
                         n_bonus = 1 if 500 <= c.number < 1000 else (2 if c.number < 500 else 0)
-                        price = (sell_price - 1 if sell_price > 1 else sell_price) + b_bonus
+                        price = ((sell_price - 1) if sell_price > 1 else sell_price) + b_bonus
                         if c.batch.lower() == 'a':
                             price += n_bonus
                         if price > 1:
