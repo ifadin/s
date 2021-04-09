@@ -87,7 +87,13 @@ if args.command == 'track':
     u_id = u_b if args.item_client.lower() == 'b' else u_a
     u_auth = u_b_auth if args.item_client.lower() == 'b' else u_a_auth
     u_p_auth = u_b_auth if args.price_client.lower() == 'b' else u_a_auth
-    t: Tracker = Tracker(u_id, u_auth, c, u_p_auth)
+    price_service = PriceService(u_p_auth)
+    t: Tracker = Tracker(u_id, u_auth, c,
+                         price_service,
+                         Trader(u_id, u_auth,
+                                price_service,
+                                PlayerService(u_a, u_a_auth),
+                                PackService(None, None, u_a_auth)))
     t.start(l, args.margin, args.pps, args.buy_threshold, interval=args.interval)
     l.run_forever()
 
@@ -138,7 +144,11 @@ if args.command == 'update':
 
 if args.command == 'upgrade':
     c = get_collections(args.year, args.col)
-    Tracker(u_a, u_a_auth, c).upgrade(args.pps, args.buy_threshold, args.level)
+    p = PriceService(u_a_auth)
+    Tracker(u_a, u_a_auth, c, p, Trader(u_a, u_a_auth, p,
+                                        PlayerService(u_a, u_a_auth),
+                                        PackService(None, None, u_a_auth))).upgrade(args.pps, args.buy_threshold,
+                                                                                    args.level)
 
 if args.command == 'sell':
     if len(sys.argv) < 3:

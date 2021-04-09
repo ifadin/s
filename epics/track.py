@@ -10,18 +10,22 @@ from epics.auth import EAuth
 from epics.domain import Rating, load_teams, get_player_ratings, TemplateItem, Collection
 from epics.player import PlayerService
 from epics.price import PriceService, MarketOffer
+from epics.trader import Trader
 from epics.upgrade import load_inventory, save_inventory, InventoryItem
 
 
 class Tracker:
     item_url = base64.b64decode('aHR0cHM6Ly9hcHAuZXBpY3MuZ2cvY3Nnby9tYXJrZXRwbGFjZQ=='.encode()).decode()
 
-    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection], p_auth: EAuth = None) -> None:
+    def __init__(self, u_id: int, auth: EAuth, collections: Dict[int, Collection],
+                 price_service: PriceService,
+                 trader: Trader) -> None:
         self.auth = auth
         self.collections = collections
 
         self.p_service = PlayerService(u_id, self.auth, self.collections)
-        self.price_service = PriceService(auth=(p_auth if p_auth else self.auth))
+        self.price_service = price_service
+        self.trader = trader
 
     @classmethod
     def get_mplace_url(cls, item_type: str, item_id: int) -> str:
@@ -119,22 +123,17 @@ class Tracker:
                 if upgrades:
                     o = max(upgrades, key=attrgetter('offer_score'))
                     margin = (o.offer_score - i.score) * 10.0
-                    sell_price = get_min_price((of for of in offers if of.offer_id != o.offer_id), o.offer_value)
-                    sell_price = 9 if sell_price == 10 or sell_price == 11 else sell_price
-                    pps = get_pps(o, get_adjusted_price(sell_price))
-                    details = f'{t.template_title} {i.score}->{o.offer_score} (+{margin:.2f}) P:{o.offer_value} ({pps:.2f}pps)'
+                    details = f'{t.template_title} {i.mint}({i.score}) -> {o.offer_mint}({o.offer_score}) +{margin:.2f} P:{o.offer_value}'
                     if o.offer_value <= buy_threshold:
-                        cards = self.p_service.get_cards(t.template_id, t.entity_type)
                         upgraded = self.price_service.buy_item(o.offer_id, o.offer_value)
                         if upgraded:
                             print(f'Upgraded {details}')
 
                             inventory[i.key] = InventoryItem(i.template_id, i.entity_type, o.offer_mint, o.offer_score)
                             save_inventory(inventory.values())
-                            if sell_price > 1:
-                                for cc in cards.values():
-                                    if cc.available:
-                                        self.price_service.sell_item(cc.id, sell_price, cc.entity_type)
+                            sold = self.trader.sell_items([t])
+                            for c, price in list(sold.items()):
+                                print(f'    - put {c.title} {c.key} for {price}')
                     else:
                         url = self.get_mplace_url(t.entity_type, t.template_id)
                         print(f'{url}/{o.offer_id} {details}')
@@ -150,10 +149,6 @@ class Tracker:
                 if t.offer_value <= buy_threshold:
                     self.price_service.buy_item(t.offer_id, t.offer_value)
                     print(f'Bought {item_details}')
-                    if t.pps > pps_threshold and t.avg_sales and t.avg_sales > 50:
-                        s_price = int(t.avg_sales)
-                        self.price_service.sell_item(t.card_id, s_price, t.item.entity_type)
-                        print(f'Put for {s_price}')
                 else:
                     url = self.get_mplace_url(t.item.entity_type, t.item.template_id)
                     print(f'{url} {item_details}')

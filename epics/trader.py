@@ -1,3 +1,4 @@
+from math import floor
 from operator import attrgetter
 
 from typing import List, Dict
@@ -20,23 +21,28 @@ class Trader:
         self.player_service = player_service
         self.pack_service = pack_service
 
-    def sell_items(self, items: List[Card]) -> Dict[Card, int]:
+    def sell_items(self, items: List[TemplateItem]) -> Dict[Card, int]:
         bonus = {'a': 3, 'b': 2, 'c': 1}
         sold = {}
         for i in items:
             cards: List[Card] = list(
                 c for c in self.player_service.get_cards(i.template_id, i.entity_type).values() if c.available)
             if cards and len(cards) > 1:
-                offers = self.price_service.get_offers(TemplateItem(i.template_id, i.title, None, i.entity_type))
+                offers = self.price_service.get_offers(i)
                 if offers:
-                    min_price = min(offers, key=attrgetter('offer_value')).offer_value
+                    min_price_offer = min(offers, key=attrgetter('offer_value'))
+                    m_price = min_price_offer.offer_value
+                    sell_price = (floor((min_price_offer.avg_sales - m_price) / 2)
+                                  if min_price_offer.avg_sales and int(min_price_offer.avg_sales) > m_price
+                                  else m_price)
                     for c in sorted(cards, key=attrgetter('score'), reverse=True)[1:]:
                         b_bonus = bonus.get(c.batch.lower(), 0)
                         n_bonus = 1 if 500 <= c.number < 1000 else (2 if c.number < 500 else 0)
-                        price = (min_price - 1 if min_price > 1 else min_price) + b_bonus
+                        price = (sell_price - 1 if sell_price > 1 else sell_price) + b_bonus
                         if c.batch.lower() == 'a':
                             price += n_bonus
                         if price > 1:
+                            price = 9 if price == 10 or price == 11 else price
                             self.price_service.sell_item(c.id, price, c.entity_type)
                             sold[c] = price
 
@@ -59,6 +65,6 @@ class Trader:
             print(f'[{self.u_id}] Opened {p.name}:')
             for c in cards:
                 print(f'    - {c.title} {c.key}')
-            sold = self.sell_items(cards)
+            sold = self.sell_items([TemplateItem(c.template_id, c.title, None, c.entity_type) for c in cards])
             for c, price in list(sold.items()):
                 print(f'[{self.u_id}] Put {c.title} {c.key} for {price}')
