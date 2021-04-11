@@ -88,7 +88,7 @@ class Trader:
                 print(f'    - {c.title}({c.template_id}) {c.key}')
         if self.u_id == u_a:
             self.update_inventory(items)
-        if trade:
+        if trade and items:
             self.trade(items | extra)
         sold = self.sell_items({TemplateItem(c.template_id, c.title, None, c.entity_type) for c in items})
         self.print_sold(sold)
@@ -96,7 +96,7 @@ class Trader:
 
     def open_packs(self, amount: int, s_ids: List[str] = None, pattern: str = None) -> Collection[PResult]:
         if not amount:
-            return
+            return []
 
         packs = sorted((p for p in self.pack_service.get_user_packs()
                         if (not s_ids or any(s in p.seasons for s in s_ids)) and (
@@ -104,7 +104,7 @@ class Trader:
 
         if not packs:
             print(f'[{self.u_id}] No packs found for {s_ids} and {pattern}')
-            return
+            return []
 
         return [PResult(p.id, p.name, self.pack_service.open_pack(p.id)) for p in packs[0:amount]]
 
