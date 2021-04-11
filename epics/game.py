@@ -3,6 +3,7 @@ import base64
 import re
 from copy import deepcopy
 from datetime import datetime
+from itertools import chain
 from operator import itemgetter
 from random import randint
 
@@ -90,14 +91,6 @@ class Trainer:
     async def run(self, op=None):
         d, w = self.get_goals()
 
-        p_amount = self.get_pack_goal_amount(d)
-        p_amount = p_amount + 1 if p_amount else None
-        if p_amount:
-            print(f'[{self.u_id}] pack amount is {p_amount}')
-            self.complete_pack_goal(p_amount)
-        else:
-            print(f'[{self.u_id}] no pack amount')
-
         usr_roster_id = self.get_usr_roster_id()
         if op:
             op_amount = self.get_op_goal_amount(d + w)
@@ -134,7 +127,7 @@ class Trainer:
         else:
             print(f'[{self.u_id}] no goal amount')
 
-        for g in d + w:
+        for g in chain.from_iterable(self.get_goals()):
             if g.available:
                 self.complete_goal(g)
                 print(f'[{self.u_id}] claimed {g.title}')
@@ -305,8 +298,20 @@ class Trainer:
         r.raise_for_status()
         return r.json()['data']['game']['user1']['winner']
 
-    def complete_pack_goal(self, amount: int, s_id: int = datetime.today().year):
-        self.trader.open_packs(amount, [str(s_id)])
+    def complete_pack_goal(self):
+        d, w = self.get_goals()
+
+        p_amount = self.get_pack_goal_amount(d)
+        p_amount = p_amount + 1 if p_amount else None
+        if p_amount:
+            print(f'[{self.u_id}] pack amount is {p_amount}')
+            self.trader.open_and_manage(p_amount, [str(datetime.today().year)], trade=True)
+            for g in chain.from_iterable(self.get_goals()):
+                if g.available:
+                    self.complete_goal(g)
+                    print(f'[{self.u_id}] claimed {g.title}')
+        else:
+            print(f'[{self.u_id}] no pack amount')
 
     @staticmethod
     def update_schedule(schedule: Schedule, game: Tuple[int, int, int]) -> Schedule:

@@ -1,7 +1,6 @@
 import base64
 import json
 from operator import attrgetter
-from time import sleep
 
 import requests
 from tqdm import tqdm
@@ -9,6 +8,7 @@ from typing import Set, Dict, List, NamedTuple, Iterator
 
 from epics.auth import EAuth
 from epics.domain import load_collections, TemplateItem, PlayerItem, get_roster_path, Collection
+from epics.utils import with_retry, get_http_session
 
 
 class Card(NamedTuple):
@@ -25,6 +25,10 @@ class Card(NamedTuple):
     def key(self) -> str:
         return f'{self.batch}{self.number}'
 
+    @property
+    def entity_key(self) -> str:
+        return f'{self.entity_type}-{self.template_id}'
+
 
 class PlayerService:
 
@@ -32,6 +36,7 @@ class PlayerService:
         self.u_id = u_id
         self.auth = auth
         self.collections = load_collections() if collections is None else collections
+        self.session = get_http_session()
 
         self.card_ids_url = (
                 base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL2NvbGxlY3Rpb25zL3VzZXJz'.encode()).decode()
@@ -42,28 +47,17 @@ class PlayerService:
         return f'{self.card_ids_url}/{entity_type}ids?categoryId=1&collectionId={collection_id}'
 
     def get_cards(self, template_id: int, entity_type: str = 'card') -> Dict[int, Card]:
-        r = requests.get(f'{self.card_ids_url}/{entity_type}-templates/{template_id}/{entity_type}s?categoryId=1',
-                         auth=self.auth)
+        r = with_retry(
+            requests.get(f'{self.card_ids_url}/{entity_type}-templates/{template_id}/{entity_type}s?categoryId=1',
+                         auth=self.auth), self.session)
 
-        if r.status_code == 429:
-            print(f'429: sleeping...')
-            sleep(3)
-            return self.get_cards(template_id, entity_type)
-
-        r.raise_for_status()
         return {d['id']: Card(d['id'], template_id, d['mintBatch'], d['mintNumber'], d['rating'], entity_type,
-                              d['status'] == 'available', d.get(f'{entity_type}Template', {}).get('title'))
+                              d['status'] != 'market', d.get(f'{entity_type}Template', {}).get('title'))
                 for d in r.json()['data']}
 
     def get_card_ids(self, collection_id: int, entity_type: str = 'card') -> Dict[str, Set[int]]:
-        r = requests.get(self.get_owned_url(entity_type, collection_id), auth=self.auth)
+        r = with_retry(requests.get(self.get_owned_url(entity_type, collection_id), auth=self.auth), self.session)
 
-        if r.status_code == 429:
-            print(f'429: sleeping...')
-            sleep(3)
-            return self.get_card_ids(collection_id, entity_type)
-
-        r.raise_for_status()
         return {(entity_type + '-' + str(d[f'{entity_type}TemplateId'])): set(d[f'{entity_type}Ids'])
                 for d in r.json()['data']}
 

@@ -32,11 +32,13 @@ def get_args() -> Namespace:
     update = subparser.add_parser('update')
     upgrade = subparser.add_parser('upgrade')
     inv = subparser.add_parser('inv')
+    trade = subparser.add_parser('trade')
 
     pack_open.add_argument('amount', type=int)
     pack_open.add_argument('-p', '--pattern', type=str)
     pack_open.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
     pack_open.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
+    pack_open.add_argument('--trade', action='store_true')
 
     goal.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
 
@@ -62,6 +64,9 @@ def get_args() -> Namespace:
     inv.add_argument('-c', '--col', type=int, nargs='*')
     inv.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
     inv.add_argument('--merge', action='store_true')
+
+    trade.add_argument('-c', '--col', type=int, nargs='*')
+    trade.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
 
     return parser.parse_known_args()[0]
 
@@ -99,10 +104,17 @@ if args.command == 'track':
 
 if args.command == 'goal':
     futures = []
-    a = Trainer(u_a, u_a_auth, Trader(u_a, u_a_auth, PriceService(u_a_auth), PlayerService(u_a, u_a_auth),
-                                      PackService(None, None, u_a_auth)))
-    b = Trainer(u_b, u_b_auth, Trader(u_b, u_b_auth, PriceService(u_b_auth), PlayerService(u_b, u_b_auth),
-                                      PackService(None, None, u_b_auth)))
+    c = load_collections()
+    a = Trainer(u_a, u_a_auth, Trader(u_a, u_a_auth,
+                                      PriceService(u_a_auth),
+                                      PlayerService(u_a, u_a_auth, c),
+                                      PackService(c, None, u_a_auth),
+                                      PlayerService(u_b, u_b_auth, c)))
+
+    b = Trainer(u_b, u_b_auth, Trader(u_b, u_b_auth,
+                                      PriceService(u_b_auth),
+                                      PlayerService(u_b, u_b_auth, c),
+                                      PackService(c, None, u_b_auth)))
     if 'a' in args.client:
         futures.append(a.run(b))
     if 'b' in args.client:
@@ -110,16 +122,36 @@ if args.command == 'goal':
 
     l.run_until_complete(gather(*futures))
 
+    for tr in [b, a]:
+        tr.complete_pack_goal()
+
 if args.command == 'open':
+    c = load_collections()
     traders: List[Trader] = []
-    if 'a' in args.client:
-        traders.append(Trader(u_a, u_a_auth, PriceService(u_a_auth), PlayerService(u_a, u_a_auth),
-                              PackService(None, None, u_a_auth)))
     if 'b' in args.client:
-        traders.append(Trader(u_b, u_b_auth, PriceService(u_b_auth), PlayerService(u_b, u_b_auth),
-                              PackService(None, None, u_b_auth)))
-    for tr in traders:
-        tr.open_packs(args.amount, args.year, args.pattern.lower() if args.pattern else None)
+        trader_b = Trader(u_b, u_b_auth,
+                          PriceService(u_b_auth),
+                          PlayerService(u_b, u_b_auth, c),
+                          PackService(c, None, u_b_auth))
+        items = trader_b.open_and_manage(args.amount, args.year, args.pattern.lower() if args.pattern else None,
+                                         trade=args.trade)
+    if 'a' in args.client:
+        trader_a = Trader(u_a, u_a_auth,
+                          PriceService(u_a_auth),
+                          PlayerService(u_a, u_a_auth, c),
+                          PackService(c, None, u_a_auth),
+                          PlayerService(u_b, u_b_auth, c))
+        trader_a.open_and_manage(args.amount, args.year, args.pattern.lower() if args.pattern else None,
+                                 trade=args.trade, extra=items)
+
+if args.command == 'trade':
+    c = get_collections(args.year, args.col)
+    tr = Trader(u_a, u_a_auth,
+                PriceService(u_a_auth),
+                PlayerService(u_a, u_a_auth, c),
+                PackService(None, None, u_a_auth),
+                PlayerService(u_b, u_b_auth, c))
+    tr.trade()
 
 if args.command == 'craft':
     item_types = {'d', 'g', 's', 'p', 't1'}

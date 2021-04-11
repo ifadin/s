@@ -89,7 +89,7 @@ class Tracker:
             if not i:
                 return False
 
-            return i.mint[0] == 'A' and int(i.mint[1:]) < 100
+            return i.mint[0] == 'A' and int(i.mint[1:]) < 50
 
         def get_min_price(offers: Iterable[MarketOffer], default: int) -> int:
             o = set(offers)
@@ -132,8 +132,7 @@ class Tracker:
                             inventory[i.key] = InventoryItem(i.template_id, i.entity_type, o.offer_mint, o.offer_score)
                             save_inventory(inventory.values())
                             sold = self.trader.sell_items([t])
-                            for c, price in list(sold.items()):
-                                print(f'    - put {c.title} {c.key} for {price}')
+                            self.trader.print_sold(sold)
                     else:
                         url = self.get_mplace_url(t.entity_type, t.template_id)
                         print(f'{url}/{o.offer_id} {details}')

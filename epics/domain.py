@@ -117,7 +117,7 @@ def get_roster_path(u_id: int) -> str:
     return os.path.join('epics', 'data', f'roster_{u_id}.json')
 
 
-def load_collections(file_path: str = get_collections_path('2020')) -> Dict[int, Collection]:
+def load_collections(file_path: str = get_collections_path('2021')) -> Dict[int, Collection]:
     with open(file_path) as f:
         res = yaml.load(f, Loader=yaml.SafeLoader)
         if not res:

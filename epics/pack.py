@@ -40,7 +40,7 @@ class Pack(NamedTuple):
 class PackItem(NamedTuple):
     id: int
     name: str
-    seasons: List[str]
+    seasons: Set[str]
 
 
 def load_packs(file_path: str = PACKS_PATH) -> Dict[int, Pack]:
@@ -118,7 +118,7 @@ class PackService:
             res = self.request_user_packs(page).get('data', {})
             page = page + 1 if res.get('total', 0) > page * 500 else None
             for p in res.get('packs', []):
-                yield PackItem(p['id'], p['packTemplate']['name'], p['packTemplate']['properties']['seasons'])
+                yield PackItem(p['id'], p['packTemplate']['name'], set(p['packTemplate']['properties']['seasons']))
 
     def request_user_packs(self, page_num: int = 1) -> dict:
         return with_retry(requests.get(f'{self.user_packs_url}&page={page_num}', auth=self.auth), self.session).json()
