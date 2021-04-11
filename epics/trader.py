@@ -3,7 +3,7 @@ from operator import attrgetter
 
 import requests
 from tqdm import tqdm
-from typing import List, Dict, Optional, Set, Collection
+from typing import List, Dict, Optional, Set, Collection, NamedTuple
 
 from epics.auth import EAuth
 from epics.domain import TemplateItem
@@ -13,6 +13,12 @@ from epics.price import PriceService
 from epics.upgrade import load_inventory, InventoryItem, save_inventory
 from epics.user import u_a
 from epics.utils import with_retry, get_http_session
+
+
+class PResult(NamedTuple):
+    pack_id: int
+    pack_name: str
+    cards: Set[Card]
 
 
 class Trader:
@@ -75,9 +81,9 @@ class Trader:
     def open_and_manage(self, amount: int, s_ids: List[str] = None, pattern: str = None,
                         trade: bool = False, extra: Set[Card] = set()) -> Set[Card]:
         items: Set[Card] = set()
-        for p, cards in self.open_packs(amount, s_ids, pattern).items():
-            print(f'[{self.u_id}] Opened {p}:')
-            for c in cards:
+        for p in self.open_packs(amount, s_ids, pattern):
+            print(f'[{self.u_id}] Opened {p.pack_name}:')
+            for c in p.cards:
                 items.add(c)
                 print(f'    - {c.title}({c.template_id}) {c.key}')
         if self.u_id == u_a:
@@ -88,7 +94,7 @@ class Trader:
         self.print_sold(sold)
         return items
 
-    def open_packs(self, amount: int, s_ids: List[str] = None, pattern: str = None) -> Dict[str, Set[Card]]:
+    def open_packs(self, amount: int, s_ids: List[str] = None, pattern: str = None) -> Collection[PResult]:
         if not amount:
             return
 
@@ -100,7 +106,7 @@ class Trader:
             print(f'[{self.u_id}] No packs found for {s_ids} and {pattern}')
             return
 
-        return {p.name: self.pack_service.open_pack(p.id) for p in packs[0:amount]}
+        return [PResult(p.id, p.name, self.pack_service.open_pack(p.id)) for p in packs[0:amount]]
 
     def trade(self, items: Set[Card] = None):
         if not self.tradable:
