@@ -39,6 +39,7 @@ class Circuit(NamedTuple):
     stages: List[Stage]
     stages_done: int
     stages_total: int
+    roster_lvl: int = 0
 
     @property
     def completed(self) -> bool:
@@ -154,16 +155,13 @@ class Trainer:
     def get_circuits(self) -> List[Circuit]:
         res = with_retry(self.session.get(f'{self.circuits_url}?categoryId=1', auth=self.auth, headers=self.h),
                          self.session)
-        res.raise_for_status()
         circuits = []
 
         for crc in res.json()['data']['circuits']:
             if isoparse(crc['start']) < datetime.utcnow().replace(tzinfo=utc) < isoparse(crc['end']):
                 c_res = with_retry(self.session.get(f"{self.circuits_url}/{crc['id']}", auth=self.auth, headers=self.h),
                                    self.session)
-                c_res.raise_for_status()
                 c = c_res.json()['data']['circuit']
-
                 circuits.append(Circuit(c['id'], c['name'], [
                     Stage(s['id'], s['name'], bool(s.get('completed', False)), [
                         Opponent(r['ut_pve_roster_id'],
@@ -173,7 +171,7 @@ class Trainer:
                                  r['wins'])
                         for r in s['rosters']
                     ]) for s in c['stages']
-                ], c['stagesCompleted'], c['totalStages']))
+                ], c['stagesCompleted'], c['totalStages'], c.get('rules', {}).get('rosterLevel', 0)))
 
         return circuits
 
@@ -192,17 +190,16 @@ class Trainer:
             if m and len(m.groups()) == 2:
                 tm_name = m.groups()[0].lower()
                 stg_name = m.groups()[1]
-                for c in circuits:
+                for c in (c for c in circuits if not c.roster_lvl):
                     for s in c.stages:
                         if s.name == stg_name:
                             rosters = self.get_rosters([o.id for o in s.opponents])
-                            if tm_name not in rosters:
-                                raise AssertionError(f'Unknown roster {tm_name} from available {rosters}')
-                            if c.id not in schedule:
-                                schedule[c.id] = {}
-                            if s.id not in schedule[c.id]:
-                                schedule[c.id][s.id] = {}
-                            schedule[c.id][s.id][rosters[tm_name]] = g.left
+                            if tm_name in rosters:
+                                if c.id not in schedule:
+                                    schedule[c.id] = {}
+                                if s.id not in schedule[c.id]:
+                                    schedule[c.id][s.id] = {}
+                                schedule[c.id][s.id][rosters[tm_name]] = g.left
         return schedule
 
     @staticmethod

@@ -89,7 +89,7 @@ class Tracker:
             if not i:
                 return False
 
-            return i.mint[0] == 'A' and int(i.mint[1:]) < 50
+            return i.mint[0] == 'A' and int(i.mint[1:]) <= 10
 
         def get_min_price(offers: Iterable[MarketOffer], default: int) -> int:
             o = set(offers)
@@ -104,7 +104,7 @@ class Tracker:
 
         def get_pps(o: MarketOffer, sell_price: int) -> float:
             return (o.offer_value - (sell_price if sell_price > 1 else 0)) / (o.offer_score - i.score) / 10.0
-
+        
         collection = {i.key: i for col in self.collections.values() for i in col.items.values()
                       if not levels or any(i.rarity.lower().startswith(l) for l in levels)}
         inventory = load_inventory()
