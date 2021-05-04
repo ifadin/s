@@ -89,7 +89,7 @@ class Tracker:
             if not i:
                 return False
 
-            return i.mint[0] == 'A' and int(i.mint[1:]) <= 10
+            return i.mint[0] == 'A' and int(i.mint[1:]) <= 30
 
         def get_min_price(offers: Iterable[MarketOffer], default: int) -> int:
             o = set(offers)

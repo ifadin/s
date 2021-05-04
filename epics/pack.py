@@ -127,8 +127,9 @@ class PackService:
         res = with_retry(requests.post(f'{self.open_url}', json={'packId': pack_id}, auth=self.auth),
                          self.session).json()
 
-        return {Card(o['id'], o[o['type'] + 'Template']['id'], o['mintBatch'], o['mintNumber'], o['rating'], o['type'],
-                     title=o[o['type'] + 'Template'].get('title'))
+        return {Card(o['id'], o[o.get('type', 'sticker') + 'Template']['id'],
+                     o['mintBatch'], o['mintNumber'], o['rating'], o.get('type', 'sticker'),
+                     title=o[o.get('type', 'sticker') + 'Template'].get('title'))
                 for o in (res.get('data', {}).get('cards', []) + res.get('data', {}).get('stickers', []))}
 
     @staticmethod

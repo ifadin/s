@@ -51,7 +51,7 @@ class Trader:
         return self._inventory
 
     def sell_items(self, items: Collection[TemplateItem]) -> Dict[Card, int]:
-        bonus = {'a': 3, 'b': 2, 'c': 1}
+        bonus = {'a': 2, 'b': 1}
         sold = {}
         for i in items:
             i: TemplateItem = i
@@ -108,7 +108,7 @@ class Trader:
 
         return [PResult(p.id, p.name, self.pack_service.open_pack(p.id)) for p in packs[0:amount]]
 
-    def trade(self, items: Set[Card] = None):
+    def trade(self, items: Set[Card] = None, offer_limit: int = 5):
         if not self.tradable:
             return
 
@@ -138,7 +138,7 @@ class Trader:
             if cards and cards_b and cards_b[0].score > cards[0].score:
                 candidates_b.add(cards_b[0])
 
-            if len(candidates) + len(candidates_b) > 4:
+            if len(candidates) + len(candidates_b) > offer_limit:
                 self.trade_items(candidates, candidates_b)
                 candidates, candidates_b = set(), set()
         self.trade_items(candidates, candidates_b)

@@ -42,7 +42,7 @@ def get_args() -> Namespace:
 
     goal.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
 
-    track.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    track.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     track.add_argument('-c', '--col', type=int, nargs='*')
     track.add_argument('--item-client', type=str, choices={'a', 'b'}, default='a')
     track.add_argument('--price-client', type=str, choices={'a', 'b'}, default='a')
@@ -51,22 +51,23 @@ def get_args() -> Namespace:
     track.add_argument('-b', '--buy-threshold', type=int, default=10)
     track.add_argument('-i', '--interval', type=int, default=900)
 
-    update.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    update.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     update.add_argument('--cache', type=int, default=86400)
 
-    upgrade.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    upgrade.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     upgrade.add_argument('-c', '--col', type=int, nargs='*')
     upgrade.add_argument('--pps', type=float, default=0.1)
     upgrade.add_argument('-b', '--buy-threshold', type=int, default=10)
     upgrade.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
 
-    inv.add_argument('-y', '--year', type=str, nargs='+', default=['2020'])
+    inv.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     inv.add_argument('-c', '--col', type=int, nargs='*')
     inv.add_argument('-l', '--level', type=str, nargs='*', choices={'a', 'r', 'v', 's', 'u', 'l'})
     inv.add_argument('--merge', action='store_true')
 
     trade.add_argument('-c', '--col', type=int, nargs='*')
     trade.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
+    trade.add_argument('-l', '--offer-limit', type=int, default=5)
 
     return parser.parse_known_args()[0]
 
@@ -151,7 +152,7 @@ if args.command == 'trade':
                 PlayerService(u_a, u_a_auth, c),
                 PackService(None, None, u_a_auth),
                 PlayerService(u_b, u_b_auth, c))
-    tr.trade()
+    tr.trade(offer_limit=args.offer_limit)
 
 if args.command == 'craft':
     item_types = {'d', 'g', 's', 'p', 't1'}
