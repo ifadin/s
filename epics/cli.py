@@ -6,6 +6,7 @@ from asyncio import gather
 from tqdm import tqdm
 from typing import List
 
+from epics.buyer import Buyer
 from epics.craft import Crafter
 from epics.domain import load_collections, get_collections_path, get_collections
 from epics.game import Trainer
@@ -25,14 +26,15 @@ def get_args() -> Namespace:
     parser = ArgumentParser()
     subparser = parser.add_subparsers(dest='command')
 
+    buy = subparser.add_parser('buy')
+    goal = subparser.add_parser('goal')
+    inv = subparser.add_parser('inv')
     pack_open = subparser.add_parser('open')
     spin = subparser.add_parser('spin')
     track = subparser.add_parser('track')
-    goal = subparser.add_parser('goal')
+    trade = subparser.add_parser('trade')
     update = subparser.add_parser('update')
     upgrade = subparser.add_parser('upgrade')
-    inv = subparser.add_parser('inv')
-    trade = subparser.add_parser('trade')
 
     pack_open.add_argument('amount', type=int)
     pack_open.add_argument('-p', '--pattern', type=str)
@@ -68,6 +70,10 @@ def get_args() -> Namespace:
     trade.add_argument('-c', '--col', type=int, nargs='*')
     trade.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     trade.add_argument('-l', '--offer-limit', type=int, default=5)
+
+    buy.add_argument('id', type=int)
+    buy.add_argument('amount', type=int)
+    buy.add_argument('--price-client', type=str, choices={'a', 'b'}, default='a')
 
     return parser.parse_known_args()[0]
 
@@ -203,5 +209,11 @@ if args.command == 'inv':
         if index % (len(items) // 10) == 0:
             save_inventory(inv.values())
     save_inventory(inv.values())
+
+if args.command == 'buy':
+    u_p_auth = u_b_auth if args.price_client.lower() == 'b' else u_a_auth
+    price_service = PriceService(u_p_auth)
+    buyer = Buyer(price_service)
+    buyer.buy_packs(args.id, args.amount)
 
 l.close()

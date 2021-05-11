@@ -73,11 +73,12 @@ class PackService:
     open_url = base64.b64decode(
         'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3BhY2tzL29wZW4yP2NhdGVnb3J5SWQ9MQ=='.encode()).decode()
 
-    def __init__(self, collections: Dict[int, Collection], packs: Dict[int, Pack], auth: EAuth) -> None:
+    def __init__(self, collections: Dict[int, Collection], packs: Dict[int, Pack], auth: EAuth,
+                 price_service: PriceService = None) -> None:
         self.collections = collections
         self.packs = packs
         self.auth = auth
-        self.p_service = PriceService(self.auth)
+        self.p_service = PriceService(self.auth) if not price_service else price_service
         self.session = get_http_session()
 
         self._group_item_map = self.calculate_group_item_map(self.collections) if self.collections else None

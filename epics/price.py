@@ -35,6 +35,8 @@ class MarketOffer(NamedTuple):
 
 class PriceService:
     buy_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0x'.encode()).decode()
+    buy_pack_url = base64.b64decode(
+        'aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL3BhY2tzL2J1eT9jYXRlZ29yeUlkPTE='.encode()).decode()
     sales_url = base64.b64decode('aHR0cHM6Ly9hcGkuZXBpY3MuZ2cvYXBpL3YxL21hcmtldC9idXk/Y2F0ZWdvcnlJZD0xJnNvcnQ9'
                                  'cHJpY2U='.encode()).decode()
     sell_url = base64.b64decode(
@@ -47,6 +49,11 @@ class PriceService:
     def buy_item(self, offer_id: int, offer_value: int) -> bool:
         r = with_retry(requests.post(self.buy_url, auth=self.auth, json={'marketId': offer_id, 'price': offer_value}),
                        self.session, raise_status=False)
+        return r.ok and r.json()['success']
+
+    def buy_pack(self, pack_id: int, amount: int = 1) -> bool:
+        r = with_retry(requests.post(self.buy_pack_url, auth=self.auth, json={'packTemplateId': pack_id, 'amount': amount}),
+                       self.session, raise_status=False, retry_timeout=1)
         return r.ok and r.json()['success']
 
     def request_sales(self, target_id: int, entity_type: str, page: int = 1) -> dict:

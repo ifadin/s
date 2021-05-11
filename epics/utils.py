@@ -16,15 +16,16 @@ def get_http_session() -> Session:
 
 def with_retry(r: Response, session: Session,
                raise_status: bool = True,
-               sleep_fc: Callable[[int], None] = sleep) -> Response:
+               sleep_fc: Callable[[int], None] = sleep,
+               retry_timeout: int = 5) -> Response:
     if r.status_code >= 500 or r.status_code in {413, 429}:
         if r.status_code == 429:
             print(f'{r.status_code} sleeping...')
-            sleep_fc(5)
+            sleep_fc(retry_timeout)
         else:
             print(f'{r.status_code} retrying...')
         req: PreparedRequest = r.request
-        return with_retry(session.send(req), session, raise_status=raise_status, sleep_fc=sleep_fc)
+        return with_retry(session.send(req), session, raise_status=raise_status, sleep_fc=sleep_fc, retry_timeout=retry_timeout)
 
     if not r.ok:
         raise_http_error(r) if raise_status else log_http_error(r)
