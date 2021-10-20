@@ -23,11 +23,17 @@ class Card(NamedTuple):
 
     @property
     def key(self) -> str:
-        return f'{self.batch}{self.number}'
+        return f'{self.batch}{self.number}'.upper()
 
     @property
     def entity_key(self) -> str:
         return f'{self.entity_type}-{self.template_id}'
+
+
+def is_card_key_lower(c: Card, key: str) -> bool:
+    if not key or len(key) < 2:
+        return False
+    return c.key[0] <= key[0] and int(c.key[1:]) <= int(key[1:])
 
 
 class PlayerService:

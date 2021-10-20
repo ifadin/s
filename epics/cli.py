@@ -41,6 +41,7 @@ def get_args() -> Namespace:
     pack_open.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
     pack_open.add_argument('-y', '--year', type=str, nargs='+', default=['2021'])
     pack_open.add_argument('--trade', action='store_true')
+    pack_open.add_argument('--sell-tr', type=str)
 
     goal.add_argument('--client', type=str, nargs='+', choices={'a', 'b'}, default=['a', 'b'])
 
@@ -135,13 +136,14 @@ if args.command == 'goal':
 if args.command == 'open':
     c = load_collections()
     traders: List[Trader] = []
+    sell_tr = args.sell_tr.upper() if args.sell_tr else None
     if 'b' in args.client:
         trader_b = Trader(u_b, u_b_auth,
                           PriceService(u_b_auth),
                           PlayerService(u_b, u_b_auth, c),
                           PackService(c, None, u_b_auth))
         items = trader_b.open_and_manage(args.amount, args.year, args.pattern.lower() if args.pattern else None,
-                                         trade=args.trade)
+                                         trade=args.trade, sell_tr=sell_tr)
     if 'a' in args.client:
         trader_a = Trader(u_a, u_a_auth,
                           PriceService(u_a_auth),
@@ -149,7 +151,7 @@ if args.command == 'open':
                           PackService(c, None, u_a_auth),
                           PlayerService(u_b, u_b_auth, c))
         trader_a.open_and_manage(args.amount, args.year, args.pattern.lower() if args.pattern else None,
-                                 trade=args.trade, extra=items)
+                                 trade=args.trade, sell_tr=sell_tr, extra=items)
 
 if args.command == 'trade':
     c = get_collections(args.year, args.col)

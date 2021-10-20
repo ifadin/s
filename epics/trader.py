@@ -8,7 +8,7 @@ from typing import List, Dict, Optional, Set, Collection, NamedTuple
 from epics.auth import EAuth
 from epics.domain import TemplateItem
 from epics.pack import PackService
-from epics.player import PlayerService, Card
+from epics.player import PlayerService, Card, is_card_key_lower
 from epics.price import PriceService
 from epics.upgrade import load_inventory, InventoryItem, save_inventory
 from epics.user import u_a
@@ -50,13 +50,33 @@ class Trader:
         self._inventory = self._inventory if self._inventory else load_inventory()
         return self._inventory
 
-    def sell_items(self, items: Collection[TemplateItem]) -> Dict[Card, int]:
+    def open_and_manage(self, amount: int, s_ids: List[str] = None, pattern: str = None,
+                        trade: bool = False, sell_tr: str = None, extra: Set[Card] = set()) -> Set[Card]:
+        items: Set[Card] = set()
+        for p in self.open_packs(amount, s_ids, pattern):
+            print(f'[{self.u_id}] Opened {p.pack_name}:')
+            for c in p.cards:
+                items.add(c)
+                print(f'    - {c.title}({c.template_id}) {c.key}')
+        if self.u_id == u_a:
+            self.update_inventory(items)
+        if trade and items:
+            self.trade(items | extra)
+        sold = self.sell_items({
+            TemplateItem(c.template_id, c.title, None, c.entity_type)
+            for c in items
+        }, sell_tr)
+        self.print_sold(sold)
+        return items
+
+    def sell_items(self, items: Collection[TemplateItem], sell_tr: str = None) -> Dict[Card, int]:
         bonus = {'a': 2, 'b': 1}
         sold = {}
         for i in items:
             i: TemplateItem = i
             cards: List[Card] = list(
-                c for c in self.player_service.get_cards(i.template_id, i.entity_type).values() if c.available)
+                c for c in self.player_service.get_cards(i.template_id, i.entity_type).values()
+                if c.available and (is_card_key_lower(c, sell_tr) if sell_tr else True))
             if cards and len(cards) > 1:
                 offers = self.price_service.get_offers(i)
                 if offers:
@@ -77,22 +97,6 @@ class Trader:
                             sold[c] = price
 
         return sold
-
-    def open_and_manage(self, amount: int, s_ids: List[str] = None, pattern: str = None,
-                        trade: bool = False, extra: Set[Card] = set()) -> Set[Card]:
-        items: Set[Card] = set()
-        for p in self.open_packs(amount, s_ids, pattern):
-            print(f'[{self.u_id}] Opened {p.pack_name}:')
-            for c in p.cards:
-                items.add(c)
-                print(f'    - {c.title}({c.template_id}) {c.key}')
-        if self.u_id == u_a:
-            self.update_inventory(items)
-        if trade and items:
-            self.trade(items | extra)
-        sold = self.sell_items({TemplateItem(c.template_id, c.title, None, c.entity_type) for c in items})
-        self.print_sold(sold)
-        return items
 
     def open_packs(self, amount: int, s_ids: List[str] = None, pattern: str = None) -> Collection[PResult]:
         if not amount:
